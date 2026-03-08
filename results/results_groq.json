@@ -1,0 +1,267 @@
+[
+  {
+    "meeting_id": 1,
+    "summary": "The key discussion points from the meeting included deploying the recommendation model by Friday and addressing the pipeline and API endpoint issues. Sara agreed to review the dataset pipeline and check the API endpoints, while Omar will set up the Docker containers by Wednesday, supporting the deployment timeline.",
+    "tasks": [
+      {
+        "task": "deploy the recommendation model to production",
+        "responsible_person": null,
+        "deadline": "Friday"
+      },
+      {
+        "task": "review the dataset pipeline",
+        "responsible_person": "Sara",
+        "deadline": "today"
+      },
+      {
+        "task": "check the API endpoints are working",
+        "responsible_person": "Sara",
+        "deadline": null
+      },
+      {
+        "task": "set up the Docker containers",
+        "responsible_person": "Omar",
+        "deadline": "Wednesday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 2,
+    "summary": "The evaluation results for the new model were discussed, with key tasks including comparing Mixtral and DeepSeek outputs by the end of the week. Omar will prepare the full evaluation report by tomorrow, while Sara will run benchmark tests on the test dataset today. The results should be shared in the shared drive by Sara.",
+    "tasks": [
+      {
+        "task": "compare Mixtral and DeepSeek outputs",
+        "responsible_person": null,
+        "deadline": "end of week"
+      },
+      {
+        "task": "share comparison results in shared drive",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "prepare full evaluation report",
+        "responsible_person": "Omar",
+        "deadline": "tomorrow"
+      },
+      {
+        "task": "run benchmark tests on test dataset",
+        "responsible_person": "Sara",
+        "deadline": "today"
+      }
+    ]
+  },
+  {
+    "meeting_id": 3,
+    "summary": "The team discussed the new dashboard requirements, focusing on the need for a real-time meeting summary section. Key tasks mentioned include updating the UI components and color scheme to align with the company's new branding. Design work and reviews are to be completed by Friday, with design mockups to be reviewed by Ahmed and the UI components to be finalised by Omar by Thursday.",
+    "tasks": [
+      {
+        "task": "design the new UI components",
+        "responsible_person": "Omar",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "update the color scheme",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "review the design mockups",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      },
+      {
+        "task": "send the Figma file to everyone",
+        "responsible_person": "Omar",
+        "deadline": "Wednesday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 4,
+    "summary": "The team discussed 3 new features to test in the current sprint and assigned tasks among team members: \n\nNour will write test cases for the transcription module by Monday, \nAhmed will handle integration testing for the embedding pipeline, \nand Omar will conduct API load testing, reporting back by Thursday.",
+    "tasks": [
+      {
+        "task": "write test cases for the transcription module",
+        "responsible_person": "Nour",
+        "deadline": "Monday"
+      },
+      {
+        "task": "handle integration testing for the embedding pipeline",
+        "responsible_person": "Ahmed",
+        "deadline": null
+      },
+      {
+        "task": "do the API load testing",
+        "responsible_person": "Omar",
+        "deadline": "Thursday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 5,
+    "summary": "The team discussed the preparation for the next LLM demo. Key tasks include writing technical documentation for prompt templates and updating the README with setup instructions. Additionally, a summary report for stakeholders is being prepared and is expected to be ready by Friday.",
+    "tasks": [
+      {
+        "task": "document the full LLM POC workflow",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "write the technical documentation for the prompt templates",
+        "responsible_person": "Ahmed",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "update the README with setup instructions",
+        "responsible_person": "Nour",
+        "deadline": "today"
+      },
+      {
+        "task": "prepare a summary report for the stakeholders",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "have the stakeholder report ready",
+        "responsible_person": "Sara",
+        "deadline": "Friday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 6,
+    "summary": "The meeting focused on updating the CI/CD pipeline for model deployment. Key tasks include refactoring the deployment scripts, testing the rollback mechanism, and creating a runbook with deployment steps. The team also scheduled a dry run deployment on Wednesday to prepare for model deployment.",
+    "tasks": [
+      {
+        "task": "update the CI/CD pipeline for model deployment",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "refactor the deployment scripts",
+        "responsible_person": "Ahmed",
+        "deadline": "Tuesday"
+      },
+      {
+        "task": "test the rollback mechanism",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "document the deployment steps and create a runbook",
+        "responsible_person": "Nour",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "schedule a dry run deployment",
+        "responsible_person": null,
+        "deadline": "Wednesday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 7,
+    "summary": "The frontend team discussed the new API contract and set a deadline of Monday for its completion. Tasks assigned include finalizing API documentation by today, updating React components to match new endpoints, and adding loading states to the summary UI. Omar will have a PR for the loading states ready by Wednesday.",
+    "tasks": [
+      {
+        "task": "finalize the API documentation",
+        "responsible_person": "Ahmed",
+        "deadline": "today"
+      },
+      {
+        "task": "update the React components to match the new endpoints",
+        "responsible_person": "Omar",
+        "deadline": null
+      },
+      {
+        "task": "add loading states to the summary UI",
+        "responsible_person": "Omar",
+        "deadline": "Wednesday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 8,
+    "summary": "The team discussed noise in the meeting transcripts dataset and identified the need for better coverage. Key tasks include cleaning and re-validating the dataset by Sara by tomorrow and creating 20 edge case samples by Nour by the end of the week. Once the edge case samples are created, Sara will re-run the evaluation pipeline.",
+    "tasks": [
+      {
+        "task": "clean and re-validate the dataset",
+        "responsible_person": "Sara",
+        "deadline": "tomorrow"
+      },
+      {
+        "task": "create 20 edge case samples",
+        "responsible_person": "Nour",
+        "deadline": "end of week"
+      },
+      {
+        "task": "re-run the evaluation pipeline",
+        "responsible_person": "Sara",
+        "deadline": null
+      }
+    ]
+  },
+  {
+    "meeting_id": 9,
+    "summary": "The team discussed high system latency for long transcripts, attributing it to the embedding generation step. Key tasks include profiling bottlenecks by Ahmed, optimizing vector database queries by Sara, and compiling a performance report by Nour. The team agreed to review results in the next standup on Friday.",
+    "tasks": [
+      {
+        "task": "profile the bottlenecks in the embedding generation step",
+        "responsible_person": "Ahmed",
+        "deadline": "today"
+      },
+      {
+        "task": "optimize the vector database queries",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "prepare a performance report comparing before and after optimization",
+        "responsible_person": "Nour",
+        "deadline": null
+      },
+      {
+        "task": "review the results in the next standup",
+        "responsible_person": null,
+        "deadline": "Friday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 10,
+    "summary": "The team discussed preparing the final POC presentation for next Monday. Key tasks assigned include compiling model comparison results into slides by Friday, recording a demo video, preparing the evaluation summary, and reviewing the full presentation for final edits on Sunday. Task deadline is to have everything ready by Saturday.",
+    "tasks": [
+      {
+        "task": "prepare the final POC presentation",
+        "responsible_person": null,
+        "deadline": "next Monday"
+      },
+      {
+        "task": "compile the model comparison results into slides",
+        "responsible_person": null,
+        "deadline": "Friday"
+      },
+      {
+        "task": "record a demo video showing the full pipeline in action",
+        "responsible_person": "Nour",
+        "deadline": null
+      },
+      {
+        "task": "prepare the evaluation summary and key findings section",
+        "responsible_person": "Sara",
+        "deadline": null
+      },
+      {
+        "task": "review the full presentation on Sunday and make final edits",
+        "responsible_person": "Omar",
+        "deadline": "Sunday"
+      },
+      {
+        "task": "make sure everything is ready",
+        "responsible_person": null,
+        "deadline": "Saturday"
+      }
+    ]
+  }
+]
