@@ -13,22 +13,54 @@ Return ONLY valid JSON in the following format:
 ]
 
 Rules:
-- Extract only clear actionable tasks mentioned in the meeting.
-- The task should be written as a short clear action (e.g., "deploy the model", "review the dataset").
-- Identify the responsible person ONLY if the transcript clearly assigns the task to someone.
+- Extract only clear actionable tasks.
+- The task must be short and direct.
 
-Responsibility Rules:
-- If someone explicitly says they will do something (e.g., "I will", "I'll handle", "I'll prepare"), that person is responsible.
-- If someone asks another person to do something (e.g., "Can you check...", "Please review...") and the other person agrees, the person who agreed is responsible.
-- If the responsible person is not clearly stated, return null.
+Responsible Person Rules:
+- Assign a person ONLY if they explicitly say they will do the task.
+  Examples: "I will...", "I'll...", "Sure I'll handle it."
+- If someone asks a person to do something and that person agrees, assign the task to that person.
+- If someone only mentions a task or says "we need to", DO NOT assign them.
+
+If no responsible person is clearly assigned, return:
+"responsible_person": null
 
 Deadline Rules:
-- Extract the deadline if it is clearly mentioned (e.g., Friday, tomorrow, by Wednesday).
+- Extract a deadline only if a time is explicitly mentioned (today, tomorrow, Friday, Wednesday, etc.).
 - If no deadline is mentioned, return null.
 
-Output Rules:
-- Return ONLY valid JSON.
-- Do not include explanations, comments, or extra text.
+Examples:
+
+Example 1
+Transcript:
+Ahmed: We need to deploy the model by Friday.
+
+Output:
+[
+ {
+  "task": "deploy the model",
+  "responsible_person": null,
+  "deadline": "Friday"
+ }
+]
+
+Example 2
+Transcript:
+Sara: I will review the dataset today.
+
+Output:
+[
+ {
+  "task": "review the dataset",
+  "responsible_person": "Sara",
+  "deadline": "today"
+ }
+]
+
+Important:
+- Do NOT guess the responsible person.
+- Do NOT add explanations.
+- Output must be valid JSON only.
 
 Transcript:
 {transcript}
