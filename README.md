@@ -1,172 +1,98 @@
 # AI Meeting Assistant – LLM POC
 
-This project is a **Proof of Concept (POC)** for an AI Meeting Assistant that extracts **action items from meeting transcripts** using Large Language Models (LLMs).
+This project is a Proof of Concept (POC) for an AI-powered Meeting Assistant.
+The system processes meeting transcripts and uses a Large Language Model (LLM) to generate structured insights.
 
-The system takes a meeting transcript and automatically identifies:
+## Features
 
-* Tasks discussed in the meeting
-* Responsible person for each task
-* Deadlines (if mentioned)
+The system currently performs:
 
-The output is returned in **structured JSON format**.
+### 1. Meeting Summary
 
----
+Generates a concise summary of the meeting discussion.
 
-# Project Goal
+### 2. Task Extraction
 
-The goal of this POC is to evaluate how well different **LLM models** can extract structured information from meeting transcripts.
+Extracts actionable tasks from the meeting transcript including:
 
-This is part of the **AI Meeting Assistant Graduation Project**.
+* Task description
+* Responsible person
+* Deadline (if mentioned)
 
----
+### Example Output
 
-# Example Input
+Summary:
+The meeting focused on deploying the recommendation model to production by Friday. Sara will review the dataset pipeline and verify the API endpoints. Omar will set up the Docker containers by Wednesday.
 
-Meeting Transcript:
+Action Items:
 
-Ahmed: We need to deploy the recommendation model to production by Friday.
-Sara: I will review the dataset pipeline today.
-Omar: I'll set up the Docker containers by Wednesday.
-
----
-
-# Example Output
-
-```json
 [
-  {
-    "task": "deploy the recommendation model to production",
-    "responsible_person": "Ahmed",
-    "deadline": "Friday"
-  },
-  {
-    "task": "review the dataset pipeline",
-    "responsible_person": "Sara",
-    "deadline": "today"
-  },
-  {
-    "task": "set up the Docker containers",
-    "responsible_person": "Omar",
-    "deadline": "Wednesday"
-  }
+{
+"task": "deploy the recommendation model to production",
+"responsible_person": null,
+"deadline": "Friday"
+},
+{
+"task": "review the dataset pipeline",
+"responsible_person": "Sara",
+"deadline": "today"
+},
+{
+"task": "check the API endpoints",
+"responsible_person": "Sara",
+"deadline": null
+},
+{
+"task": "set up the Docker containers",
+"responsible_person": "Omar",
+"deadline": "Wednesday"
+}
 ]
-```
 
----
+## Project Structure
 
-# Project Structure
+ai_meeting_assistant/
 
-```
-POC_LLM/
-│
-├── data/
-│   └── meeting_transcripts.json
-│
-├── prompts/
-│   └── task_extraction_prompt.txt
-│
-├── llm_test.py
-├── requirements.txt
-├── .gitignore
-└── README.md
-```
+prompts/
 
----
+* task_extraction_prompt.txt
+* meeting_summary_prompt.txt
 
-# Technologies Used
+data/
 
-* Python
-* Groq API
-* Llama 3.1 LLM
-* Prompt Engineering
-* JSON processing
+* meeting_transcripts.json
 
-Future components of the full system include:
+llm_test.py
 
-* WhisperX for speech-to-text
-* Vector database (ChromaDB)
-* Retrieval Augmented Generation (RAG)
+requirements.txt
 
----
+README.md
 
-# How to Run the Project
+## Installation
 
-### 1️⃣ Clone the repository
+Install dependencies:
 
-```
-git clone https://github.com/MeetingAssistant26/POC_LLM.git
-```
-
----
-
-### 2️⃣ Enter the project folder
-
-```
-cd POC_LLM
-```
-
----
-
-### 3️⃣ Create a virtual environment
-
-```
-python -m venv venv
-```
-
----
-
-### 4️⃣ Activate the environment
-
-Windows:
-
-```
-venv\Scripts\activate
-```
-
----
-
-### 5️⃣ Install dependencies
-
-```
 pip install -r requirements.txt
-```
 
----
+## Environment Variables
 
-### 6️⃣ Create a `.env` file
+Create a `.env` file and add your API key:
 
-Inside the project folder create a file called:
-
-```
-.env
-```
-
-and add your Groq API key:
-
-```
 GROQ_API_KEY=your_api_key_here
-```
 
----
+## Run the Project
 
-### 7️⃣ Run the script
-
-```
 python llm_test.py
-```
 
----
+The system will:
 
-# Future Improvements
+1. Load a meeting transcript
+2. Generate a meeting summary
+3. Extract action items from the transcript
 
-* Support multiple LLM models for evaluation
-* Process multiple meeting transcripts automatically
-* Add automatic evaluation metrics
-* Integrate speech-to-text using WhisperX
-* Build a full AI meeting assistant pipeline
+## Future Work
 
----
-
-# Authors
-
-AI Meeting Assistant Graduation Project Team
+* Process audio meetings using WhisperX (Speech-to-Text)
+* Analyze multiple meetings automatically
+* Save results to JSON
+* Integrate task creation with Trello
