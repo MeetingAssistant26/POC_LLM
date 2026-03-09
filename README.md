@@ -1,98 +1,164 @@
-# AI Meeting Assistant – LLM POC
+AI Meeting Assistant
 
-This project is a Proof of Concept (POC) for an AI-powered Meeting Assistant.
-The system processes meeting transcripts and uses a Large Language Model (LLM) to generate structured insights.
+This project is a Proof of Concept (POC) for an AI-powered Meeting Assistant that can automatically analyze meeting transcripts and extract useful information such as summaries and action items.
 
-## Features
+The system uses Large Language Models (LLMs) to process meeting transcripts and generate structured outputs.
 
-The system currently performs:
+Project Features
 
-### 1. Meeting Summary
+The system currently supports:
 
-Generates a concise summary of the meeting discussion.
+1️⃣ Meeting Summarization
 
-### 2. Task Extraction
+Generate concise summaries of meetings based on the transcript.
 
-Extracts actionable tasks from the meeting transcript including:
+2️⃣ Task Extraction
 
-* Task description
-* Responsible person
-* Deadline (if mentioned)
+Automatically extract actionable tasks including:
 
-### Example Output
+Task description
 
-Summary:
-The meeting focused on deploying the recommendation model to production by Friday. Sara will review the dataset pipeline and verify the API endpoints. Omar will set up the Docker containers by Wednesday.
+Responsible person
 
-Action Items:
+Deadline (if mentioned)
 
-[
+3️⃣ Mixed Language Handling
+
+The system supports transcripts containing mixed Egyptian Arabic and English.
+
+Example:
+
+Sara: أنا هراجع الـETL scripts وأصلح المشاكل قبل الخميس
+
+The model can still correctly extract tasks and deadlines.
+
+4️⃣ LLM Model Evaluation
+
+Different LLM models are tested and their outputs are stored for comparison.
+
+Project Structure
+AI_MEETING_ASSISTANT
+│
+├── data
+│   ├── meeting_transcripts.json
+│   └── meeting_transcripts_mixed.json
+│
+├── prompts
+│   ├── meeting_summary_prompt.txt
+│   ├── task_extraction_prompt.txt
+│   └── mixed_language_prompt.txt
+│
+├── testing
+│   ├── llm_test_llama.py
+│   └── llm_test_mixtral.py
+│
+├── results
+│   ├── results_groq.json
+│   ├── results_mixed_groq.json
+│   └── results_mixtral_groq.json
+│
+├── RAG
+│   ├── chunking.py
+│   ├── embeddings.py
+│   ├── vector_store.py
+│   └── retrieval.py
+│
+├── requirements.txt
+└── README.md
+How the LLM Pipeline Works
+
+The current pipeline works as follows:
+
+Load meeting transcript dataset
+
+Send transcript to the LLM
+
+Generate:
+
+Meeting summary
+
+Actionable tasks
+
+Convert results to structured JSON
+
+Store outputs in the results folder
+
+Example output:
+
 {
-"task": "deploy the recommendation model to production",
-"responsible_person": null,
-"deadline": "Friday"
-},
-{
-"task": "review the dataset pipeline",
-"responsible_person": "Sara",
-"deadline": "today"
-},
-{
-"task": "check the API endpoints",
-"responsible_person": "Sara",
-"deadline": null
-},
-{
-"task": "set up the Docker containers",
-"responsible_person": "Omar",
-"deadline": "Wednesday"
+  "summary": "The team reviewed user feedback and discussed preparing a report and presentation for management.",
+  "tasks": [
+    {
+      "task": "Review user feedback",
+      "responsible_person": "Sara",
+      "deadline": "Thursday"
+    },
+    {
+      "task": "Test notifications flow",
+      "responsible_person": "Mariam",
+      "deadline": "Wednesday"
+    }
+  ]
 }
-]
+Running the LLM Tests
 
-## Project Structure
+Activate the virtual environment:
 
-ai_meeting_assistant/
+venv\Scripts\activate
 
-prompts/
+Run the LLM test script:
 
-* task_extraction_prompt.txt
-* meeting_summary_prompt.txt
+python testing/llm_test_llama.py
 
-data/
+or
 
-* meeting_transcripts.json
+python testing/llm_test_mixtral.py
 
-llm_test.py
+The outputs will be saved inside:
 
-requirements.txt
+results/
+RAG Module (In Progress)
 
-README.md
+The project includes an early implementation of a Retrieval-Augmented Generation (RAG) system.
 
-## Installation
+Modules inside RAG/ include:
 
-Install dependencies:
+chunking.py
+Splits long meeting transcripts into smaller chunks.
 
-pip install -r requirements.txt
+embeddings.py
+Generates vector embeddings for transcript chunks.
 
-## Environment Variables
+vector_store.py
+Stores embeddings inside a vector database.
 
-Create a `.env` file and add your API key:
+retrieval.py
+Retrieves relevant context for LLM queries.
 
-GROQ_API_KEY=your_api_key_here
+This system will help the assistant handle long meetings and contextual questions.
 
-## Run the Project
+Future Work
 
-python llm_test.py
+Next improvements planned:
 
-The system will:
+Whisper integration for automatic transcription
 
-1. Load a meeting transcript
-2. Generate a meeting summary
-3. Extract action items from the transcript
+Hierarchical RAG for long meetings
 
-## Future Work
+Conversation-aware retrieval
 
-* Process audio meetings using WhisperX (Speech-to-Text)
-* Analyze multiple meetings automatically
-* Save results to JSON
-* Integrate task creation with Trello
+Integration with task management tools (Trello / Jira)
+
+LLM model comparison (Groq vs Qwen vs DeepSeek)
+
+Tech Stack
+
+Python
+
+Groq API
+
+Llama / Mixtral
+
+Vector embeddings
+
+JSON structured outputs
