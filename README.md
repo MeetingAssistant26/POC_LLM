@@ -1,64 +1,47 @@
-AI Meeting Assistant
+# AI Meeting Assistant
 
 AI system that analyzes meeting transcripts and automatically generates:
 
-Meeting summaries
+- **Meeting summaries**
+- **Action items**
+- **Responsible persons**
+- **Deadlines**
 
-Action items
+The project evaluates **Large Language Models (LLMs)** and prepares the system for a future **RAG-based meeting assistant**.
 
-Responsible persons
+---
 
-Deadlines
+## Project Components
 
-The project evaluates Large Language Models (LLMs) and prepares the system for a future RAG-based meeting assistant.
+- **data**  
+  Contains meeting transcript datasets used for testing the models.
 
-Project Components
+- **prompts**  
+  Prompt templates used for meeting summarization and task extraction.
 
-data
-Contains meeting transcript datasets used for testing the models.
+- **testing**  
+  Python scripts used to test different LLM models.
 
-prompts
-Prompt templates used for meeting summarization and task extraction.
+- **results**  
+  Generated outputs from the tested models.
 
-testing
-Python scripts used to test different LLM models.
+- **RAG**  
+  Initial modules for the Retrieval-Augmented Generation system.
 
-results
-Generated outputs from the tested models.
+---
 
-RAG
-Initial modules for the Retrieval-Augmented Generation system.
+## Features
 
-Features
+- **Meeting summarization**
+- **Task extraction** *(task, responsible person, deadline)*
+- Support for **mixed Arabic and English transcripts**
+- Testing multiple **LLM models**
 
-Meeting summarization
+---
 
-Task extraction (task, responsible person, deadline)
-
-Support for mixed Arabic and English transcripts
-
-Testing multiple LLM models
-
-Running the Project
+## Running the Project
 
 Activate the virtual environment:
 
+```bash
 venv\Scripts\activate
-
-Run the LLM testing script:
-
-python testing/llm_test_llama.py
-
-or
-
-python testing/llm_test_mixtral.py
-
-The generated outputs will be saved inside the results folder.
-
-Next Steps
-
-Implement RAG for long meetings
-
-Improve context retrieval
-
-Add automatic transcription
