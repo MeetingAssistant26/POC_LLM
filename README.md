@@ -1,73 +1,64 @@
 AI Meeting Assistant
 
-A Proof of Concept (POC) for an AI system that analyzes meeting transcripts and automatically generates:
+AI system that analyzes meeting transcripts and automatically generates:
 
 Meeting summaries
 
-Actionable tasks
+Action items
 
 Responsible persons
 
 Deadlines
 
-The project evaluates different Large Language Models (LLMs) and prepares the foundation for a RAG-based meeting assistant.
+The project evaluates Large Language Models (LLMs) and prepares the system for a future RAG-based meeting assistant.
 
-Project Structure
-AI_MEETING_ASSISTANT
-│
-├── data
-│   ├── meeting_transcripts.json
-│   └── meeting_transcripts_mixed.json
-│
-├── prompts
-│   ├── meeting_summary_prompt.txt
-│   ├── task_extraction_prompt.txt
-│   └── mixed_language_prompt.txt
-│
-├── testing
-│   ├── llm_test_llama.py
-│   └── llm_test_mixtral.py
-│
-├── results
-│   ├── results_groq.json
-│   ├── results_mixed_groq.json
-│   └── results_mixtral_groq.json
-│
-├── RAG
-│   ├── chunking.py
-│   ├── embeddings.py
-│   ├── vector_store.py
-│   └── retrieval.py
+Project Components
+
+data
+Contains meeting transcript datasets used for testing the models.
+
+prompts
+Prompt templates used for meeting summarization and task extraction.
+
+testing
+Python scripts used to test different LLM models.
+
+results
+Generated outputs from the tested models.
+
+RAG
+Initial modules for the Retrieval-Augmented Generation system.
+
 Features
 
-Meeting Summarization
+Meeting summarization
 
-Task Extraction
-(task, responsible person, deadline)
+Task extraction (task, responsible person, deadline)
 
-Mixed Language Support
-Handles transcripts containing Arabic + English
+Support for mixed Arabic and English transcripts
 
-LLM Model Testing
+Testing multiple LLM models
 
 Running the Project
-1️⃣ Activate the virtual environment
+
+Activate the virtual environment:
+
 venv\Scripts\activate
-2️⃣ Run LLM testing
+
+Run the LLM testing script:
+
 python testing/llm_test_llama.py
 
 or
 
 python testing/llm_test_mixtral.py
-3️⃣ Check results
 
-Generated outputs will appear in:
+The generated outputs will be saved inside the results folder.
 
-results/
 Next Steps
 
 Implement RAG for long meetings
 
 Improve context retrieval
 
-Integrate automatic transcription
+Add automatic transcription
