@@ -1,0 +1,252 @@
+[
+  {
+    "meeting_id": 1,
+    "topic": "User Feedback Review",
+    "transcript": "Ahmed: نبدأ بمراجعة الـUser Feedback اللي وصلتنا الفترة اللي فاتت. Sara: أنا هراجع كل التعليقات وأعمل summary مفصل قبل الخميس، وأقسمها على حسب المهم واللي محتاج يتحل فورًا. Ahmed: كويس، التقرير لازم يكون جاهز قبل الجمعة ويشمل المشاكل والحلول المقترحة، وكمان تحضروا presentation صغير للـmanagement. Mariam: أنا هخلص اختبار الـnotifications flow قبل الأربعاء، وسأضيف كل الملاحظات وأوثق كل مشكلة عشان الفريق يقدر يتابع بسهولة."
+  },
+  {
+    "meeting_id": 2,
+    "topic": "Data Pipeline Updates",
+    "transcript": "Khaled: هنتكلم عن Data Pipeline ونراجع الـETL jobs اللي اتعملت، ونتأكد إن كل حاجة شغالة تمام. Salma: هراجع الـETL scripts وأصلح أي مشاكل قبل الخميس، وأتأكد من سلامة البيانات وتسلسلها صح، وكمان هعمل logs لكل خطوة. Khaled: تمام، كل المهام لازم تخلص قبل الجمعة، ولازم نعمل double-check على الـlogs ونتأكد مفيش مشاكل على الـproduction. Mariam: أنا هختبر الـmobile build وأتأكد مفيش crashes قبل الأحد، وكمان هكتب report لكل المشاكل اللي تظهر وأقترح حلول للتحسين."
+  },
+  {
+    "meeting_id": 3,
+    "topic": "Search Optimization",
+    "transcript": "Omar: نبدأ تحسين Search Optimization ونراجع الـqueries البطيئة. Ahmed: سأعمل profiling للـdatabase queries وأصلح البطيئة قبل الأربعاء، وكمان أراجع الـindexes الحالية. Khaled: لازم ننتهي قبل الجمعة ونتأكد إن كل التحسينات على الـstaging environment شغالة. Sara: سأراجع الـlogs مع الفريق قبل الاثنين، وأجهز report يوضح الـmetrics الجديدة."
+  },
+  {
+    "meeting_id": 4,
+    "topic": "Marketing Campaign Planning",
+    "transcript": "Sara: النهاردة هنتكلم عن Marketing Campaign Planning وننظم الرسائل الإعلانية. Ahmed: سأجهز email drafts قبل الثلاثاء، وسأراجع copy لكل الرسائل. Mariam: سأصمم الرسومات للـsocial media قبل الخميس، وأتأكد من أنها متوافقة مع الهوية البصرية للبراند. Khaled: كل شيء لازم يكون جاهز قبل الجمعة، وشاركوا النسخ النهائية مع الفريق."
+  },
+  {
+    "meeting_id": 5,
+    "topic": "Product QA & Testing",
+    "transcript": "Ahmed: النهاردة هنتابع QA Testing ونراجع الأخطاء المكتشفة. Sara: سأبدأ الاختبارات النهاردة وأرسل التقرير قبل الخميس، وسأضيف ملاحظات مفصلة لكل خطأ. Omar: سأتعامل مع automation tests وأخلص قبل الأربعاء، وسأحدث scripts الاختبارات حسب الحاجة. Fatima: سأسجل كل الـbugs وأشاركها قبل الخميس، وسأقترح خطوات إصلاح واضحة لكل مشكلة."
+  },
+  {
+    "meeting_id": 6,
+    "topic": "Client Presentation Preparation",
+    "transcript": "Sara: النهاردة هجهز العرض للعميل ونراجع كل الشرائح. Ahmed: سأراجع الشرائح وأضيف النقاط المهمة قبل الثلاثاء، ونتأكد إن كل المعلومات واضحة. Omar: سأجهز demo environment قبل الثلاثاء، وأتأكد إن كل الـdemos شغالة بدون مشاكل. Fatima: سأجهز المحتوى العربي قبل الخميس وأتأكد إنه متوافق مع النسخة الإنجليزية."
+  },
+  {
+    "meeting_id": 7,
+    "topic": "Backend Deployment",
+    "transcript": "Ahmed: النهاردة هنتابع Backend Deployment ونراجع كل الـendpoints. Sara: سأختبر الـAPI endpoints وأصلح المشاكل قبل الأربعاء، وأتأكد إن كل الـlogs متسجلة صح. Omar: سأجهز Docker containers قبل الجمعة وأتأكد إن كل configuration مضبوطة. Khaled: كل الإعدادات لازم تكون جاهزة قبل الاثنين ونتأكد إن الـdeployment smooth."
+  },
+  {
+    "meeting_id": 8,
+    "topic": "Website Redesign",
+    "transcript": "Ahmed: النهاردة نكمل Website Redesign ونراجع كل الـlayouts. Sara: سأجهز wireframes النهاردة وأخلص قبل الخميس، وأضيف أي تحسينات لازمة. Mariam: سأراجع assets التصميم قبل الجمعة وأتأكد إنها متوافقة مع التصميم الجديد. Khaled: لازم كل حاجة تكون جاهزة قبل الاثنين، ونجهز النسخة النهائية للـQA."
+  },
+  {
+    "meeting_id": 9,
+    "topic": "Analytics Setup",
+    "transcript": "Omar: النهاردة Analytics Setup ونتأكد إن كل الـtracking شغال. Ahmed: سأجهز tracking وأرسل التقرير قبل الخميس، وأراجع كل الـevents المهمة. Sara: سأراجع بيانات الـintegrity قبل الجمعة، وأتأكد إن كل الـmetrics صحيحة. Mariam: سأجهز dashboards قبل الأربعاء وأتأكد إن كل visualization شغالة صح."
+  },
+  {
+    "meeting_id": 10,
+    "topic": "Feature Planning",
+    "transcript": "Ahmed: النهاردة Feature Planning ونحدد الـfeatures اللي هتنزل في الـsprint الجاي. Sara: سأجهز feature specs وأرسلها للفريق قبل الخميس، وأوضح كل التفاصيل المهمة. Omar: سأراجع الـimplementation details قبل الجمعة وأتأكد إن كل dependencies موجودة. Khaled: كل المهام لازم تخلص قبل الاثنين، ونعمل sync بعد كده للتأكد من كل حاجة."
+  },
+  {
+    "meeting_id": 11,
+    "topic": "Sprint Retrospective",
+    "transcript": "Ahmed: النهاردة هنعمل Sprint Retrospective ونتكلم عن الـsprint اللي فات ونشوف إيه اللي نجح وإيه اللي محتاج يتحسن. Sara: هجمع كل data من الفريق وأعمل summary قبل الأربعاء، وأشير على أهم النقاط اللي محتاجة تعديل. Mariam: هراجع كل lessons learned وأكتب ملاحظات قبل الأربعاء، وكمان هحدد الأولويات للـimprovements. Khaled: كويس، share summary قبل الجمعة ونجهزها للـmanagement ونوضح كل النقاط المهمة للفريق."
+  },
+  {
+    "meeting_id": 12,
+    "topic": "New Feature Discussion",
+    "transcript": "Sara: النهاردة هنتكلم عن New Feature ونحدد التفاصيل الفنية والـuser stories. Ahmed: سأجهز user stories كاملة قبل الأربعاء وأوضح acceptance criteria لكل واحدة. Omar: سأراجع الـimplementation plan قبل الجمعة وأتأكد إن كل الـdependencies متوفرة. Fatima: سأجهز prototypes قبل الاثنين وأشاركها مع الفريق للمراجعة."
+  },
+  {
+    "meeting_id": 13,
+    "topic": "UX Review",
+    "transcript": "Khaled: النهاردة UX Review وهنراجع كل الـuser flows والـdesign patterns. Salma: سأراجع كل الـuser flows وأرسل findings قبل الثلاثاء وأشير على المشاكل اللي ممكن تأثر على الـuser experience. Mariam: سأراجع الـdesign patterns قبل الأربعاء وأعمل suggestions لتحسين الـinteraction. Ahmed: كويس، share results قبل الجمعة للفريق كله."
+  },
+  {
+    "meeting_id": 14,
+    "topic": "Performance Tuning",
+    "transcript": "Omar: النهاردة هنتكلم عن Performance Tuning وهنشوف الـbottlenecks في الـapplication. Sara: سأحسن slow functions قبل الخميس وأراجع كل الـqueries الثقيلة. Khaled: سأضبط الـDB indexes قبل الجمعة ونتأكد من إن كل الـtransactions سريعة. Ahmed: ممتاز، نعمل final tests قبل الاثنين ونوثق كل النتائج."
+  },
+  {
+    "meeting_id": 15,
+    "topic": "Security Audit",
+    "transcript": "Ahmed: النهاردة Security Audit وهنراجع كل الـvulnerabilities المكتشفة. Sara: سأراجع كل الـvulnerabilities قبل الأربعاء وأحدد critical ones. Omar: سأصلح الـcritical issues قبل الجمعة وأتأكد من الـpatches شغالة صح. Khaled: كويس، document fixes قبل الاثنين ونشاركها مع الفريق."
+  },
+  {
+    "meeting_id": 16,
+    "topic": "API Expansion",
+    "transcript": "Sara: النهاردة هنتكلم عن API Expansion ونحدد الـendpoints الجديدة. Ahmed: سأجهز خطة الـendpoints الجديدة قبل الخميس وأوضح كل الـparameters المطلوبة. Khaled: سأختبر الـAPI routes الجديدة قبل الجمعة وأتأكد من استقرارها. Mariam: سأشارك documentation مفصلة قبل الاثنين عشان كل الفريق يبقى عارف التفاصيل."
+  },
+  {
+    "meeting_id": 17,
+    "topic": "Database Migration",
+    "transcript": "Omar: النهاردة هنتكلم عن Database Migration ونتأكد إن كل الـschemas الجديدة جاهزة. Sara: سأرسم كل schema changes قبل الأربعاء وأراجع أي تعارض ممكن يحصل. Ahmed: سأعمل backup كامل للـDB قبل الجمعة وأتأكد من إن كل البيانات محمية. Fatima: سأختبر rollback procedures قبل الاثنين وأتأكد إنها شغالة في أي حالة."
+  },
+  {
+    "meeting_id": 18,
+    "topic": "Mobile Integration",
+    "transcript": "Ahmed: النهاردة Mobile Integration وهنراجع الـAPI sync jobs بين الموبايل والـbackend. Sara: سأختبر كل الـAPI sync jobs قبل الأربعاء وأتأكد من عدم فقد البيانات. Mariam: سأراجع UI compatibility قبل الخميس وأتأكد إن كل الشاشات شغالة كويس على الموبايلات المختلفة. Omar: سأجهز final build قبل الجمعة وأرسل للفريق للاختبارات النهائية."
+  },
+  {
+    "meeting_id": 19,
+    "topic": "Error Logging Improvement",
+    "transcript": "Khaled: النهاردة هنتكلم عن Error Logging Improvement ونتأكد من إن كل الأخطاء متسجلة بطريقة واضحة. Salma: سأحدث logging levels قبل الأربعاء وأضيف أي errors ممكن تظهر. Ahmed: سأضيف alert triggers لكل critical errors قبل الجمعة. Sara: ممتاز، سأراجع الـlogs مع الفريق قبل الاثنين ونوثق كل التحسينات."
+  },
+  {
+    "meeting_id": 20,
+    "topic": "Release Planning",
+    "transcript": "Sara: النهاردة Release Planning وهنجهز كل المستندات اللازمة للإصدار القادم. Ahmed: سأجهز release notes قبل الخميس وأوضح كل التغييرات الجديدة. Omar: سأنسق deployments قبل الجمعة وأتأكد إن كل الـenvironments جاهزة. Khaled: ممتاز، كل حاجة جاهزة للrollout قبل الاثنين."
+  },
+  {
+    "meeting_id": 21,
+    "topic": "Customer Support Feedback",
+    "transcript": "Ahmed: النهاردة هنتابع Customer Support Feedback ونتأكد من ردود العملاء. Sara: سأجمع كل tickets وأعمل summary قبل الأربعاء وأوضح أهم المشاكل. Mariam: سأراجع الردود قبل الجمعة وأقترح تحسينات للتعامل مع العملاء. Khaled: كويس، share report قبل الاثنين مع كل الفريق."
+  },
+  {
+    "meeting_id": 22,
+    "topic": "Server Monitoring",
+    "transcript": "Omar: النهاردة هنتابع Server Monitoring ونتأكد إن كل السيرفرات شغالة بدون مشاكل. Sara: سأراجع كل الـlogs وأحدد أي spikes قبل الأربعاء. Ahmed: سأحدث الـalert system قبل الجمعة وأتأكد إن كل critical notifications شغالة. Khaled: كويس، share report شامل قبل الاثنين للفريق كله."
+  },
+  {
+    "meeting_id": 23,
+    "topic": "Feature Retrospective",
+    "transcript": "Ahmed: النهاردة هنعمل Feature Retrospective ونشوف أي features كانت ناجحة وأي حاجة محتاجة تحسين. Sara: سأجمع كل data للفريق وأعمل summary قبل الخميس وأشير على أهم المشاكل. Mariam: سأحدد priorities للـimprovements قبل الجمعة وأكتب ملاحظات واضحة للفريق. Khaled: تمام، presentation كامل قبل الاثنين للفريق والمديرين."
+  },
+  {
+    "meeting_id": 24,
+    "topic": "API Documentation",
+    "transcript": "Sara: النهاردة هنتكلم عن API Documentation ونتأكد من إنه كامل ومفصل. Ahmed: سأكتب كل endpoints قبل الأربعاء وأوضح كل parameters والresponses. Omar: سأراجع الـexamples قبل الخميس وأتأكد إنها واضحة لكل المطورين. Khaled: كويس، كل documentation لازم جاهز قبل الجمعة."
+  },
+  {
+    "meeting_id": 25,
+    "topic": "UI Testing",
+    "transcript": "Mariam: النهاردة UI Testing وهنراجع كل الشاشات ونحدد أي مشاكل في الـlayout. Sara: سأجرب كل flows قبل الأربعاء وأوثق أي bug يظهر. Ahmed: سأراجع responsive design قبل الجمعة وأتأكد إن كل الشاشات شغالة على كل الأجهزة. Khaled: ممتاز، share report كامل قبل الاثنين مع الفريق."
+  },
+  {
+    "meeting_id": 26,
+    "topic": "Content Update",
+    "transcript": "Ahmed: النهاردة هنتابع Content Update ونتأكد إن كل المحتوى محدث. Sara: سأراجع المقالات والصفحات قبل الخميس وأعدل أي أخطاء. Mariam: سأضيف أي صور جديدة قبل الجمعة وأتأكد من توافقها مع التصميم. Khaled: كويس، كل التحديثات لازم تكون جاهزة قبل الاثنين."
+  },
+  {
+    "meeting_id": 27,
+    "topic": "Bug Triage",
+    "transcript": "Ahmed: النهاردة هنعمل Bug Triage ونتأكد من ترتيب الأولويات. Sara: سأراجع كل الـtickets وأحدد critical ones قبل الأربعاء. Omar: سأصحح الـhigh priority bugs قبل الجمعة وأتأكد من اختباراتهم. Khaled: ممتاز، كل الـlow priority bugs نجهز تقرير شامل للفريق قبل الاثنين."
+  },
+  {
+    "meeting_id": 28,
+    "topic": "Release Candidate Testing",
+    "transcript": "Mariam: النهاردة هنجرب Release Candidate ونتأكد من stability قبل الإصدار. Ahmed: سأراجع كل الـtest cases قبل الخميس وأعمل أي adjustments لازمة. Sara: سأجري regression tests قبل الجمعة وأوثق أي مشاكل. Khaled: كويس، share full report للفريق قبل الاثنين قبل ما نطلع الإصدار."
+  },
+  {
+    "meeting_id": 29,
+    "topic": "Load Testing",
+    "transcript": "Omar: النهاردة هنعمل Load Testing على السيرفرات ونشوف أدائها تحت الضغط. Sara: سأجهز كل السيناريوهات قبل الأربعاء وأحدد thresholds لكل service. Ahmed: سأراقب الـmetrics وأوثق أي bottlenecks قبل الجمعة. Khaled: تمام، presentation كامل للـresults قبل الاثنين لكل الفريق."
+  },
+  {
+    "meeting_id": 30,
+    "topic": "Marketing Copy Review",
+    "transcript": "Sara: النهاردة هراجع Marketing Copy للـcampaign الجاي ونظبط النصوص. Ahmed: سأراجع كل copy قبل الخميس وأشير على أي أخطاء أو تحسينات. Mariam: سأقترح تعديلات على الـheadlines قبل الجمعة وأتأكد إنها متوافقة مع brand tone. Khaled: كويس، كل النسخ النهائية لازم جاهزة قبل الاثنين."
+  },
+  {
+    "meeting_id": 31,
+    "topic": "Database Backup Validation",
+    "transcript": "Ahmed: النهاردة هنتأكد من Database Backup ونتحقق من سلامة النسخ الاحتياطية. Sara: سأراجع كل backups قبل الأربعاء وأجرب restore لكل واحد للتأكد. Omar: سأوثق كل النتائج قبل الجمعة وأشير على أي مشاكل. Khaled: تمام، share comprehensive report قبل الاثنين مع الفريق كله."
+  },
+  {
+    "meeting_id": 32,
+    "topic": "Feature Rollout Planning",
+    "transcript": "Sara: النهاردة هنتكلم عن Feature Rollout Planning ونحدد ترتيب إطلاق الـfeatures الجديدة. Ahmed: سأجهز timeline كامل قبل الأربعاء وأوضح dependencies لكل feature. Omar: سأراجع readiness لكل environment قبل الجمعة وأتأكد إن كل حاجة شغالة. Khaled: كويس، كل الفريق لازم يكون عارف الـschedule قبل الاثنين."
+  },
+  {
+    "meeting_id": 33,
+    "topic": "Code Review Session",
+    "transcript": "Ahmed: النهاردة هنعمل Code Review ونراجع أهم الـpull requests المفتوحة. Sara: سأراجع كل الـPRs قبل الخميس وأشير على أي مشاكل أو تحسينات لازمة. Mariam: سأقترح refactoring للـmodules اللي محتاجة تحسين قبل الجمعة. Khaled: تمام، نشارك report كامل للفريق قبل الاثنين."
+  },
+  {
+    "meeting_id": 34,
+    "topic": "Client Onboarding",
+    "transcript": "Omar: النهاردة هنتابع Client Onboarding ونشوف كل التفاصيل اللازمة للعميل الجديد. Sara: سأجهز documentation كاملة قبل الأربعاء وأوضح كل الخطوات. Ahmed: سأراجع إعدادات الـaccounts قبل الجمعة وأتأكد إنها شغالة صح. Mariam: سأشارك قائمة tasks مع الفريق قبل الاثنين عشان كل واحد يعرف مسؤوليته."
+  },
+  {
+    "meeting_id": 35,
+    "topic": "UI Component Library Update",
+    "transcript": "Mariam: النهاردة هنتابع UI Component Library Update ونتأكد إن كل الـcomponents متوافقة. Sara: سأراجع كل الـcomponents قبل الخميس وأضيف أي تحسينات لازمة. Ahmed: سأجرب integration لكل الـcomponents قبل الجمعة. Khaled: كويس، documentation كاملة قبل الاثنين للفريق."
+  },
+  {
+    "meeting_id": 36,
+    "topic": "Performance Benchmarking",
+    "transcript": "Ahmed: النهاردة Performance Benchmarking ونقارن الـmetrics الحالية مع القديمة. Sara: سأجمع كل الـdata قبل الأربعاء وأوضح أي اختلافات. Omar: سأجري stress tests قبل الجمعة وأوثق أي bottlenecks. Khaled: تمام، presentation شامل لكل النتائج قبل الاثنين."
+  },
+  {
+    "meeting_id": 37,
+    "topic": "Security Patch Deployment",
+    "transcript": "Ahmed: النهاردة هنتابع Security Patch Deployment ونتأكد إن كل السيرفرات محدثة. Sara: سأطبق كل الـpatches قبل الخميس وأتأكد إن مفيش errors. Omar: سأختبر stability بعد التحديث قبل الجمعة وأوثق أي مشكلة. Khaled: تمام، كل السيرفرات لازم تكون fully updated قبل الاثنين."
+  },
+  {
+    "meeting_id": 38,
+    "topic": "Customer Survey Analysis",
+    "transcript": "Sara: النهاردة هنجمع ونحلل Customer Survey اللي وصلتنا الفترة اللي فاتت. Ahmed: سأجهز summary كامل قبل الأربعاء وأشير على أهم الـfeedback. Mariam: سأحدد أهم النقاط للتحسين قبل الجمعة وأقترح حلول للفريق. Khaled: كويس، share report شامل لكل الفريق قبل الاثنين."
+  },
+  {
+    "meeting_id": 39,
+    "topic": "Mobile App Beta Testing",
+    "transcript": "Omar: النهاردة Mobile App Beta Testing وهنراجع كل الـfeatures الجديدة. Sara: سأجرب كل flows قبل الخميس وأوثق أي bugs. Ahmed: سأراجع الـperformance قبل الجمعة وأتأكد إن كل الـcrashes مختفية. Mariam: ممتاز، report كامل قبل الاثنين مع كل الملاحظات للفريق."
+  },
+  {
+    "meeting_id": 40,
+    "topic": "Internal Training Session",
+    "transcript": "Ahmed: النهاردة Internal Training Session وهنراجع الأدوات الجديدة للفريق. Sara: سأجهز slides قبل الأربعاء وأوضح كل الخطوات. Omar: سأجهز demo لكل الأدوات قبل الجمعة وأشاركها مع الفريق. Khaled: تمام، كل التدريب جاهز ومباشر قبل الاثنين."
+  },
+  {
+    "meeting_id": 41,
+    "topic": "Marketing Analytics Review",
+    "transcript": "Sara: النهاردة هنتابع Marketing Analytics Review ونشوف كل الـmetrics للفترة الأخيرة. Ahmed: سأجهز dashboards قبل الخميس وأوضح أي اختلافات. Mariam: سأراجع كل الـreports قبل الجمعة وأشير على أي مشاكل. Khaled: كويس، share final report شامل قبل الاثنين للفريق والمديرين."
+  },
+  {
+    "meeting_id": 42,
+    "topic": "Feature Freeze Review",
+    "transcript": "Ahmed: النهاردة هنعمل Feature Freeze Review ونتأكد إن كل الـfeatures اللي مقرر تنزل جاهزة. Sara: سأراجع كل الـfeatures قبل الخميس وأوثق أي مشاكل. Omar: سأجرب كل الوظائف قبل الجمعة وأتأكد من stability. Khaled: كويس، كل التقرير النهائي جاهز قبل الاثنين للفريق."
+  },
+  {
+    "meeting_id": 43,
+    "topic": "System Health Check",
+    "transcript": "Mariam: النهاردة هنعمل System Health Check ونشوف أداء كل الـservices. Ahmed: سأراجع كل الـlogs قبل الأربعاء وأشير على أي anomalies. Sara: سأختبر كل الـendpoints قبل الجمعة وأوثق أي errors. Khaled: تمام، share full health report قبل الاثنين للفريق كله."
+  },
+  {
+    "meeting_id": 44,
+    "topic": "Release Notes Drafting",
+    "transcript": "Sara: النهاردة هنجمع المعلومات ونكتب Release Notes للإصدار القادم. Ahmed: سأجهز كل التفاصيل قبل الخميس وأوضح كل التغييرات. Omar: سأراجع النصوص قبل الجمعة وأتأكد من وضوحها لكل الفريق والعملاء. Khaled: كويس، share final draft قبل الاثنين."
+  },
+  {
+    "meeting_id": 45,
+    "topic": "Bug Fix Verification",
+    "transcript": "Ahmed: النهاردة هنتأكد من حل كل الـbugs المكتشفة في الإصدار الأخير. Sara: سأراجع كل الـbugs قبل الخميس وأتأكد من الإصلاحات. Mariam: سأجرب الـfixes قبل الجمعة وأوثق أي مشاكل إضافية. Khaled: تمام، report كامل قبل الاثنين للفريق."
+  },
+  {
+    "meeting_id": 46,
+    "topic": "Data Migration Testing",
+    "transcript": "Omar: النهاردة Data Migration Testing ونتأكد إن كل البيانات انتقلت صح. Sara: سأراجع كل البيانات قبل الخميس وأجرب restore لكل batch. Ahmed: سأراقب الـlogs وأوثق أي مشاكل قبل الجمعة. Khaled: كويس، share full report قبل الاثنين للفريق."
+  },
+  {
+    "meeting_id": 47,
+    "topic": "API Versioning",
+    "transcript": "Sara: النهاردة هنتكلم عن API Versioning وهنراجع كل الـendpoints الجديدة والقديمة. Ahmed: سأراجع كل الـversions قبل الخميس وأوضح أي breaking changes. Omar: سأختبر backward compatibility قبل الجمعة وأتأكد إن كل clients شغالين. Khaled: تمام، documentation كامل قبل الاثنين للفريق."
+  },
+  {
+    "meeting_id": 48,
+    "topic": "Internal Tool Update",
+    "transcript": "Mariam: النهاردة Internal Tool Update وهنراجع كل التحسينات الجديدة. Sara: سأجرب كل الـfeatures قبل الخميس وأوثق أي مشاكل. Ahmed: سأراجع الأداء قبل الجمعة وأتأكد إن كل workflow شغالة صح. Khaled: كويس، share final update report قبل الاثنين."
+  },
+  {
+    "meeting_id": 49,
+    "topic": "Content Strategy Meeting",
+    "transcript": "Ahmed: النهاردة هنتكلم عن Content Strategy للفترة الجاية ونحدد الأولويات. Sara: سأجمع كل المقترحات وأعمل summary قبل الخميس. Mariam: سأحدد أهم المواضيع قبل الجمعة وأقترح خطة تنفيذ. Khaled: تمام، presentation كامل قبل الاثنين لكل الفريق."
+  },
+  {
+    "meeting_id": 50,
+    "topic": "Final Sprint Review",
+    "transcript": "Sara: النهاردة Final Sprint Review وهنراجع كل الإنجازات والمشاكل اللي واجهتنا. Ahmed: سأجهز summary لكل الـtasks قبل الخميس وأوضح الـcompleted وremaining. Omar: سأوثق أي pending issues قبل الجمعة وأقترح حلول. Khaled: كويس، share final report شامل قبل الاثنين لكل الفريق والمديرين."
+  }
+]

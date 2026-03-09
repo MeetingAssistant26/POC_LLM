@@ -1,0 +1,122 @@
+[
+  {
+    "meeting_id": 1,
+    "summary": "Sara agreed to review the dataset pipeline and check API endpoints by Friday for the recommendation model's production deployment. Omar will set up Docker containers by Wednesday.",
+    "tasks": [
+      {
+        "task": "deploy the recommendation model to production",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      },
+      {
+        "task": "review the dataset pipeline",
+        "responsible_person": "Sara",
+        "deadline": "today"
+      },
+      {
+        "task": "check the API endpoints are working",
+        "responsible_person": "Sara",
+        "deadline": null
+      },
+      {
+        "task": "set up the Docker containers",
+        "responsible_person": "Omar",
+        "deadline": "Wednesday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 2,
+    "summary": " The meeting discussed the evaluation results for a new model. Key tasks include Omar preparing a full evaluation report by tomorrow, Sara running benchmark tests on the test dataset today and sharing the results in the shared drive, and the team comparing Mixtral and DeepSeek outputs by the end of the week.",
+    "tasks": [
+      {
+        "task": "compare Mixtral and DeepSeek outputs",
+        "responsible_person": null,
+        "deadline": "end of week"
+      },
+      {
+        "task": "prepare the full evaluation report",
+        "responsible_person": "Omar",
+        "deadline": "tomorrow"
+      },
+      {
+        "task": "run benchmark tests on the test dataset",
+        "responsible_person": "Sara",
+        "deadline": "today"
+      }
+    ]
+  },
+  {
+    "meeting_id": 3,
+    "summary": " At the meeting, it was decided that a new section for real-time meeting summaries will be added to the dashboard. Omar will design the UI components by Thursday, and Omar will also send the Figma file to the team by Wednesday. Additionally, the color scheme of the dashboard will be updated to match the new branding, with Ahmed reviewing the design mockups on Friday.",
+    "tasks": [
+      {
+        "task": "design new UI components for real-time meeting summaries",
+        "responsible_person": "Omar",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "update the color scheme to match the new branding for dashboard",
+        "responsible_person": "Laila",
+        "deadline": null
+      },
+      {
+        "task": "review the design mockups for dashboard",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      },
+      {
+        "task": "send the Figma file to everyone for dashboard",
+        "responsible_person": "Omar",
+        "deadline": "Wednesday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 4,
+    "summary": " Three new features will be tested in this sprint. Nour will write the test cases for the transcription module by Monday, Ahmed will handle integration testing for the embedding pipeline, and Omar will do the load testing and report back by Thursday.",
+    "tasks": [
+      {
+        "task": "write the test cases for the transcription module",
+        "responsible_person": "Nour",
+        "deadline": "Monday"
+      },
+      {
+        "task": "integration testing for the embedding pipeline",
+        "responsible_person": "Ahmed",
+        "deadline": null
+      },
+      {
+        "task": "API load testing",
+        "responsible_person": "Omar",
+        "deadline": "Thursday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 5,
+    "summary": "At the meeting, it was decided that Laila will document the full LLM POC workflow before the next demo. Ahmed will write the technical documentation for the prompt templates by Wednesday, Nour will update the README with setup instructions today, and Sara will prepare a stakeholder report, which she will have ready by Friday.",
+    "tasks": [
+      {
+        "task": "document the full LLM POC workflow",
+        "responsible_person": "Laila",
+        "deadline": "before the next demo"
+      },
+      {
+        "task": "write the technical documentation for the prompt templates",
+        "responsible_person": "Ahmed",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "update the README with setup instructions",
+        "responsible_person": "Nour",
+        "deadline": "today"
+      },
+      {
+        "task": "prepare a summary report for the stakeholders",
+        "responsible_person": "Sara",
+        "deadline": "Friday"
+      }
+    ]
+  }
+]
