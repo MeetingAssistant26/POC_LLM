@@ -1,98 +1,47 @@
-# AI Meeting Assistant – LLM POC
+# AI Meeting Assistant
 
-This project is a Proof of Concept (POC) for an AI-powered Meeting Assistant.
-The system processes meeting transcripts and uses a Large Language Model (LLM) to generate structured insights.
+AI system that analyzes meeting transcripts and automatically generates:
+
+- **Meeting summaries**
+- **Action items**
+- **Responsible persons**
+- **Deadlines**
+
+The project evaluates **Large Language Models (LLMs)** and prepares the system for a future **RAG-based meeting assistant**.
+
+---
+
+## Project Components
+
+- **data**  
+  Contains meeting transcript datasets used for testing the models.
+
+- **prompts**  
+  Prompt templates used for meeting summarization and task extraction.
+
+- **testing**  
+  Python scripts used to test different LLM models.
+
+- **results**  
+  Generated outputs from the tested models.
+
+- **RAG**  
+  Initial modules for the Retrieval-Augmented Generation system.
+
+---
 
 ## Features
 
-The system currently performs:
+- **Meeting summarization**
+- **Task extraction** *(task, responsible person, deadline)*
+- Support for **mixed Arabic and English transcripts**
+- Testing multiple **LLM models**
 
-### 1. Meeting Summary
+---
 
-Generates a concise summary of the meeting discussion.
+## Running the Project
 
-### 2. Task Extraction
+Activate the virtual environment:
 
-Extracts actionable tasks from the meeting transcript including:
-
-* Task description
-* Responsible person
-* Deadline (if mentioned)
-
-### Example Output
-
-Summary:
-The meeting focused on deploying the recommendation model to production by Friday. Sara will review the dataset pipeline and verify the API endpoints. Omar will set up the Docker containers by Wednesday.
-
-Action Items:
-
-[
-{
-"task": "deploy the recommendation model to production",
-"responsible_person": null,
-"deadline": "Friday"
-},
-{
-"task": "review the dataset pipeline",
-"responsible_person": "Sara",
-"deadline": "today"
-},
-{
-"task": "check the API endpoints",
-"responsible_person": "Sara",
-"deadline": null
-},
-{
-"task": "set up the Docker containers",
-"responsible_person": "Omar",
-"deadline": "Wednesday"
-}
-]
-
-## Project Structure
-
-ai_meeting_assistant/
-
-prompts/
-
-* task_extraction_prompt.txt
-* meeting_summary_prompt.txt
-
-data/
-
-* meeting_transcripts.json
-
-llm_test.py
-
-requirements.txt
-
-README.md
-
-## Installation
-
-Install dependencies:
-
-pip install -r requirements.txt
-
-## Environment Variables
-
-Create a `.env` file and add your API key:
-
-GROQ_API_KEY=your_api_key_here
-
-## Run the Project
-
-python llm_test.py
-
-The system will:
-
-1. Load a meeting transcript
-2. Generate a meeting summary
-3. Extract action items from the transcript
-
-## Future Work
-
-* Process audio meetings using WhisperX (Speech-to-Text)
-* Analyze multiple meetings automatically
-* Save results to JSON
-* Integrate task creation with Trello
+```bash
+venv\Scripts\activate
