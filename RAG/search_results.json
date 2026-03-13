@@ -1,0 +1,15 @@
+{
+  "query": "What is the status of the backend API",
+  "results": [
+    {
+      "rank": 1,
+      "text": "Ahmed: لازم نعمل dashboard تعرض meeting summaries و tasks المستخرجة من الاجتماعات. Sara: I'll design the UI using React علشان يبقى سهل الاستخدام. Omar: I'll build the API endpoint اللي يرجع summaries من ال backend.",
+      "meeting_id": "4"
+    },
+    {
+      "rank": 2,
+      "text": "Mariam: وأنا هعمل integration testing للنظام بالكامل. Ahmed: لازم نتأكد إن summary و tasks دايمًا بيرجعوا JSON valid. Sara: تمام، I'll add validation checks.",
+      "meeting_id": "10"
+    }
+  ]
+}
