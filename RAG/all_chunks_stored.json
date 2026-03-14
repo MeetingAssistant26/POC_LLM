@@ -1,0 +1,295 @@
+{
+  "ids": [
+    "1",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "2",
+    "20",
+    "21",
+    "22",
+    "23",
+    "24",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29",
+    "3",
+    "30",
+    "31",
+    "32",
+    "33",
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39",
+    "4",
+    "40",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9"
+  ],
+  "embeddings": null,
+  "metadatas": [
+    {
+      "chunk_id": "1",
+      "meeting_id": "1",
+      "word_count": "77"
+    },
+    {
+      "chunk_id": "5",
+      "meeting_id": "2",
+      "word_count": "26"
+    },
+    {
+      "chunk_id": "1",
+      "meeting_id": "3",
+      "word_count": "29"
+    },
+    {
+      "chunk_id": "2",
+      "meeting_id": "3",
+      "word_count": "31"
+    },
+    {
+      "chunk_id": "3",
+      "meeting_id": "3",
+      "word_count": "23"
+    },
+    {
+      "chunk_id": "4",
+      "meeting_id": "3",
+      "word_count": "18"
+    },
+    {
+      "chunk_id": "5",
+      "meeting_id": "3",
+      "word_count": "16"
+    },
+    {
+      "chunk_id": "1",
+      "meeting_id": "4",
+      "word_count": "35"
+    },
+    {
+      "chunk_id": "2",
+      "meeting_id": "4",
+      "word_count": "29"
+    },
+    {
+      "chunk_id": "3",
+      "meeting_id": "4",
+      "word_count": "13"
+    },
+    {
+      "chunk_id": "1",
+      "meeting_id": "5",
+      "word_count": "27"
+    },
+    {
+      "chunk_id": "2",
+      "meeting_id": "1",
+      "word_count": "40"
+    },
+    {
+      "chunk_id": "2",
+      "meeting_id": "5",
+      "word_count": "24"
+    },
+    {
+      "chunk_id": "3",
+      "meeting_id": "5",
+      "word_count": "8"
+    },
+    {
+      "chunk_id": "1",
+      "meeting_id": "6",
+      "word_count": "34"
+    },
+    {
+      "chunk_id": "2",
+      "meeting_id": "6",
+      "word_count": "31"
+    },
+    {
+      "chunk_id": "3",
+      "meeting_id": "6",
+      "word_count": "31"
+    },
+    {
+      "chunk_id": "4",
+      "meeting_id": "6",
+      "word_count": "29"
+    },
+    {
+      "chunk_id": "5",
+      "meeting_id": "6",
+      "word_count": "6"
+    },
+    {
+      "chunk_id": "1",
+      "meeting_id": "7",
+      "word_count": "33"
+    },
+    {
+      "chunk_id": "2",
+      "meeting_id": "7",
+      "word_count": "31"
+    },
+    {
+      "chunk_id": "3",
+      "meeting_id": "7",
+      "word_count": "30"
+    },
+    {
+      "chunk_id": "3",
+      "meeting_id": "1",
+      "word_count": "33"
+    },
+    {
+      "chunk_id": "4",
+      "meeting_id": "7",
+      "word_count": "14"
+    },
+    {
+      "chunk_id": "1",
+      "meeting_id": "8",
+      "word_count": "27"
+    },
+    {
+      "chunk_id": "2",
+      "meeting_id": "8",
+      "word_count": "23"
+    },
+    {
+      "chunk_id": "3",
+      "meeting_id": "8",
+      "word_count": "21"
+    },
+    {
+      "chunk_id": "4",
+      "meeting_id": "8",
+      "word_count": "6"
+    },
+    {
+      "chunk_id": "1",
+      "meeting_id": "9",
+      "word_count": "31"
+    },
+    {
+      "chunk_id": "2",
+      "meeting_id": "9",
+      "word_count": "25"
+    },
+    {
+      "chunk_id": "3",
+      "meeting_id": "9",
+      "word_count": "15"
+    },
+    {
+      "chunk_id": "1",
+      "meeting_id": "10",
+      "word_count": "26"
+    },
+    {
+      "chunk_id": "2",
+      "meeting_id": "10",
+      "word_count": "24"
+    },
+    {
+      "chunk_id": "4",
+      "meeting_id": "1",
+      "word_count": "32"
+    },
+    {
+      "chunk_id": "3",
+      "meeting_id": "10",
+      "word_count": "14"
+    },
+    {
+      "chunk_id": "5",
+      "meeting_id": "1",
+      "word_count": "23"
+    },
+    {
+      "chunk_id": "1",
+      "meeting_id": "2",
+      "word_count": "43"
+    },
+    {
+      "chunk_id": "2",
+      "meeting_id": "2",
+      "word_count": "34"
+    },
+    {
+      "chunk_id": "3",
+      "meeting_id": "2",
+      "word_count": "35"
+    },
+    {
+      "chunk_id": "4",
+      "meeting_id": "2",
+      "word_count": "25"
+    }
+  ],
+  "documents": [
+    "Ahmed: صباح الخير يا جماعة خلينا نبدأ الاجتماع ونراجع تقدم مشروع AI Meeting Assistant. الهدف إن السيستم يقدر يلخص الاجتماعات ويستخرج action items تلقائي. Sara: أنا اشتغلت الأسبوع اللي فات على تنظيف meeting transcripts dataset وكان فيه duplicate entries وبعض missing fields. دلوقتي الداتا بقت أنضف وبدأت أجرب summarization prompts. Omar: I tested the task extraction prompt with the Groq model and the results were good but sometimes the model creates tasks that were not mentioned explicitly.",
+    "Sara: I'll prepare dataset أطول علشان نختبر retrieval accuracy. Omar: وأنا هكتب script يعمل embedding generation لكل chunk. Ahmed: عايزين prototype بسيط لل RAG قبل Friday.",
+    "Ahmed: في مشكلة ظهرت في search performance لما عدد الdocuments يزيد. Omar: I noticed slow queries in the database during retrieval. Ahmed: طب اعمل profiling للqueries وشوف bottleneck فين.",
+    "Omar: تمام هستخدم profiling tools علشان أشوف execution time لكل query. Sara: ممكن المشكلة تكون في indexing لو indexes مش optimized. Omar: Exactly ممكن نضيف index على fields اللي بنستخدمها كتير.",
+    "Ahmed: خلينا نجرب ده. Mariam: أنا كمان لاحظت إن بعض queries بترجع results مش مرتبطة بالموضوع. Sara: ده ممكن يكون بسبب embedding quality.",
+    "Omar: ممكن نجرب embedding model مختلف. Ahmed: فكرة كويسة. Sara: أنا هراجع logs علشان أشوف patterns في الأخطاء.",
+    "Omar: I'll analyze slow queries النهارده وأكتب performance report. Ahmed: خلينا نحاول نخلص optimization قبل Friday.",
+    "Ahmed: لازم نعمل dashboard تعرض meeting summaries و tasks المستخرجة من الاجتماعات. Sara: I'll design the UI using React علشان يبقى سهل الاستخدام. Omar: I'll build the API endpoint اللي يرجع summaries من ال backend.",
+    "Mariam: أنا هعمل testing للواجهة باستخدام sample transcripts. Ahmed: لازم كمان نضيف filter علشان المستخدم يقدر يشوف tasks حسب الشخص المسؤول. Sara: فكرة كويسة ممكن نضيف search bar كمان.",
+    "Omar: I'll connect the dashboard with the database. Ahmed: خلصوا prototype قبل Friday.",
+    "Ahmed: خلينا نقارن بين Groq و Mixtral models. Sara: أنا جربت Groq على summarization والنتائج كانت كويسة. Omar: Mixtral كان سريع شوية لكن أحيانًا بيطلع hallucinated tasks.",
+    "Ahmed: ده غالبًا hallucination. لازم نحسن prompt engineering علشان نقلل المشكلة دي. Sara: أنا جربت few-shot prompting وضفت examples واضحة للموديل علشان يفهم شكل ال tasks المطلوبة. Mariam: أنا بدأت أشتغل على UI بسيط يعرض meeting summary و action items.",
+    "Ahmed: طب نعمل evaluation واضح. Sara: I'll create a comparison table يوضح accuracy لكل موديل. Omar: وأنا هقيس latency و response time لكل موديل.",
+    "Ahmed: لازم evaluation report يكون جاهز قبل Wednesday.",
+    "Ahmed: خلينا نكمل مناقشة RAG pipeline. النهاردة محتاجين نركز على vector database. Omar: I started experimenting with FAISS for storing embeddings. Sara: أنا كنت بقرأ عن Pinecone برضه لكن FAISS أسهل لو هنشتغل locally.",
+    "Ahmed: صح، في البداية خلينا نستخدم FAISS علشان التجربة تبقى بسيطة. Mariam: طيب إحنا هنعمل embedding لكل chunk من ال transcripts صح؟ Omar: Exactly، كل chunk هيتحول لvector باستخدام embedding model.",
+    "Sara: أنا جربت sentence-transformers وكان الأداء كويس. Ahmed: طب نجربه مع dataset الكبيرة ونشوف retrieval accuracy. Omar: I'll build a script that generates embeddings and stores them in the FAISS index.",
+    "Mariam: وأنا ممكن أكتب script صغير يختبر search queries. Ahmed: كويس، خلوا retrieval يقدر يرجع أفضل 3 chunks. Sara: تمام، I'll also check how chunk size affects retrieval quality.",
+    "Ahmed: عايزين results واضحة قبل Thursday.",
+    "Ahmed: النهاردة عايزين نحسن prompts الخاصة بال summarization و task extraction. Sara: أنا لاحظت إن بعض summaries بتبقى طويلة زيادة عن اللزوم. Omar: Maybe we should instruct the model to produce concise summaries.",
+    "Ahmed: صح، لازم نحط rule إن summary يبقى 2 أو 3 جمل بس. Mariam: بالنسبة لل tasks extraction الموديل أحيانًا بيخترع tasks. Sara: علشان كده لازم نقول explicitly don't guess tasks.",
+    "Omar: I tested a prompt that forces the model to return JSON only. Ahmed: ده ممتاز لأننا محتاجين output structured. Sara: I'll document different prompt versions and compare their results.",
+    "Ahmed: كويس لازم كمان نركز على performance. Omar: I measured response time and latency وكان متوسط الوقت حوالي ثانيتين لكل transcript. Ahmed: ده كويس كبداية لكن لما الاجتماعات تبقى أطول ممكن يزيد الوقت.",
+    "Omar: وأنا هقيس accuracy لكل prompt. Ahmed: كويس خلوا أفضل prompt جاهز قبل Tuesday.",
+    "Ahmed: لازم نعمل API علشان السيستم يبقى usable. Omar: I'll create an endpoint that receives meeting transcripts. Sara: وبعد كده ال endpoint يبعث النص لل summarization module.",
+    "Mariam: طيب الAPI هترجع summary و tasks في JSON؟ Omar: Yes exactly. Ahmed: لازم كمان نضيف endpoint للتاسكات علشان نقدر نبعتها ل Trello.",
+    "Sara: فكرة كويسة. Omar: I'll implement a function that converts extracted tasks into Trello cards. Mariam: وأنا هعمل testing باستخدام Postman.",
+    "Ahmed: خلوا الAPI جاهزة قبل Friday.",
+    "Ahmed: لاحظت إن response time بدأ يزيد لما حجم الtranscript يكبر. Omar: That's expected because the LLM receives more tokens. Sara: علشان كده RAG مهم لأنه هيبعت للموديل chunks قليلة بس.",
+    "Mariam: يعني بدل ما نبعت transcript كامل نبعت الجزء المهم بس. Ahmed: بالضبط. Omar: I will benchmark performance between normal LLM processing and RAG pipeline.",
+    "Sara: وأنا هسجل النتائج في جدول علشان نقارن. Ahmed: خلوا performance report جاهزة قبل Wednesday.",
+    "Ahmed: قبل ما نعرض المشروع لازم نعمل testing كويس. Sara: I'll write test cases for summarization module. Omar: I'll test task extraction accuracy using different transcripts.",
+    "Mariam: وأنا هعمل integration testing للنظام بالكامل. Ahmed: لازم نتأكد إن summary و tasks دايمًا بيرجعوا JSON valid. Sara: تمام، I'll add validation checks.",
+    "Sara: ممكن بعد كده نستخدم RAG علشان نقلل حجم الcontext اللي بيتبعت للموديل. Omar: Exactly لو قسمنا transcript لchunks ونعمل retrieval للجزء المهم بس ده هيحسن الأداء. Ahmed: تمام خلينا نحدد tasks.",
+    "Omar: وأنا هسجل أي bugs تظهر أثناء الاختبار. Ahmed: خلصوا testing report قبل Thursday.",
+    "Sara: I'll review prompts again and evaluate summaries before Thursday. Omar: I'll analyze latency and prepare performance metrics. Mariam: وأنا هكمل dashboard prototype.",
+    "Ahmed: النهاردة هدف الاجتماع إننا نحدد architecture لل RAG pipeline اللي هنستخدمه في المشروع. Sara: أنا قرأت عن hierarchical RAG و conversation-aware retrieval لأن الاجتماعات بتكون طويلة وفيها مواضيع متعددة. Omar: I think chunking strategy will be very important especially with long meetings.",
+    "Ahmed: مظبوط لو chunk size كبير retrieval هيبقى غير دقيق ولو صغير قوي هنفقد context. Sara: ممكن نبدأ ب chunk size حوالي 250 كلمة مع overlap بسيط. Mariam: هل هنستخدم FAISS لل vector database؟",
+    "Omar: Yes I'll generate embeddings using sentence-transformers and store them in FAISS. Ahmed: لازم نجرب retrieval queries مختلفة. Sara: ممكن نسأل questions زي what tasks were assigned in the meeting أو summarize discussion about deployment.",
+    "Omar: Exactly والsystem يرجع relevant chunks بس. Mariam: وبعد كده الLLM يولد summary أو task extraction من الchunks دي. Ahmed: كده يبقى عندنا pipeline كاملة."
+  ],
+  "uris": null,
+  "data": null,
+  "included": [
+    "metadatas",
+    "documents"
+  ]
+}
