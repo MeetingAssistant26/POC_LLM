@@ -1,0 +1,29 @@
+[0.03-0.99] SPEAKER_01:  Good morning everyone.
+[1.09-5.96] SPEAKER_01: Today we need to discuss the progress of our Eye Meeting Assistant project and define the next steps.
+[6.46-7.02] SPEAKER_00: Good morning.
+[7.58-12.75] SPEAKER_00: I started working on the transcription module using Whisper and the basic setup is already working.
+[13.15-13.77] SPEAKER_01:  That's great.
+[14.01-20.66] SPEAKER_01: Sarah, please test the transcription accuracy on a few meeting recordings and share the results before Wednesday at 4 p.m.
+[21.12-26.40] SPEAKER_01: I can start working on the speaker identification part so the system can recognize different people in the meeting.
+[26.82-27.30] SPEAKER_01: Perfect.
+[27.60-32.52] SPEAKER_01: Omar, try to finish the first version of the speaker detection module before Thursday noon.
+[33.00-37.64] SPEAKER_00: After that, I can integrate the transcription output with the task extraction component.
+[37.95-38.52] SPEAKER_01:  Good idea.
+[38.62-42.28] SPEAKER_01: Please prepare a small demo for that integration before Thursday evening.
+[42.72-47.90] SPEAKER_01: I will also start preparing the backend API that will store meeting transcripts and extracted tasks.
+[48.44-48.94] SPEAKER_01: Excellent.
+[49.18-52.21] SPEAKER_01: Make sure the API is ready for testing before Friday morning.
+[52.67-58.03] SPEAKER_00: Once the API is ready, I will connect the transcription module to it and test the full pipeline.
+[58.24-58.74] SPEAKER_01:  Perfect.
+[58.96-64.04] SPEAKER_01: Let's schedule another meeting on Friday afternoon to review the first prototype of the iMeeting Assistant.
+[64.28-68.06] SPEAKER_01: During that meeting we can also test the system using a real meeting recording.
+[68.56-69.18] SPEAKER_01: Exactly.
+[69.42-73.08] SPEAKER_01: After that we can decide what improvements we need for the next version.
+[73.30-79.08] SPEAKER_00: I think one improvement could be adding automatic meeting summaries so users can quickly understand the discussion.
+[79.44-80.50] SPEAKER_01:  That's a great idea.
+[80.66-86.16] SPEAKER_01: Sarah, please research a few summarization models and prepare a comparison before Monday afternoon.
+[86.44-91.64] SPEAKER_01: I can also start building a simple summarization pipeline using the transcripts we already generate.
+[91.96-92.46] SPEAKER_01: Perfect.
+[92.74-97.64] SPEAKER_01: Omar, try to create a basic prototype of the summarization feature before Tuesday noon.
+[97.91-103.55] SPEAKER_00: Once we have the summaries, we could also highlight the extracted tasks and deadlines directly in the report.
+[103.86-109.16] SPEAKER_01:  I will also check if we can store summaries, transcripts, and tasks in the same database structure.

@@ -1,0 +1,37 @@
+[0.15-1.15] SPEAKER_02:  Good morning everyone.
+[1.57-11.01] SPEAKER_02: Today we need to review our progress on the meeting transcription system using Whisper and discuss how we can integrate it with the RAG pipeline for retrieving useful information for meetings.
+[11.39-11.95] SPEAKER_00: Good morning.
+[12.57-24.02] SPEAKER_00: I spent some time yesterday testing Whisper with several meeting recordings, and overall the transcription quality is good, but there are still small mistakes when speakers talk quickly or interrupt each other.
+[24.28-25.12] SPEAKER_01:  That's expected.
+[25.28-31.48] SPEAKER_01: Our main goal now is to clean the transcripts and make sure they are formatted correctly before we send them into the RAG pipeline.
+[39.68-40.68] SPEAKER_01:  That would help a lot.
+[40.90-47.50] SPEAKER_01: Sarah, please complete the preprocessing script and test it with at least five meeting recordings before Wednesday at 4pm.
+[47.70-54.91] SPEAKER_02: While Sarah prepares the clean transcripts, I can start building the embedding pipeline that converts each transcript chunk into vector embeddings.
+[55.29-55.59] SPEAKER_02: Good.
+[55.77-58.13] SPEAKER_02: Which embedding model are you planning to test first?
+[58.47-65.29] SPEAKER_02: I will start with a standard sentence embedding model and then compare it with another model to see which one gives better semantic search results.
+[65.85-66.33] SPEAKER_01:  Perfect.
+[66.57-72.11] SPEAKER_01: Please prepare a comparison report about the embedding quality and retrieval performance before Thursday noon.
+[72.39-80.34] SPEAKER_00: After the transcripts are cleaned, I will split them into smaller chunks of text so that the RAG system can retrieve more precise information during queries.
+[80.64-81.22] SPEAKER_01: Good idea.
+[81.32-86.72] SPEAKER_01: Make sure the chunk size and overlap strategy are documented so we can reproduce the process later.
+[86.98-94.20] SPEAKER_02: I will also connect the embedding pipeline to our vector database so that every transcript chunk is stored and indexed for fast similarity search.
+[94.67-103.38] SPEAKER_00:  Once the data is inside the vector database, we should run some tests where we ask questions about the meeting and see if the correct transcript sections are retrieved.
+[103.77-104.39] SPEAKER_01:  Exactly.
+[104.57-109.13] SPEAKER_01: That will help us verify that the retrieval stage of the RAG pipeline is working correctly.
+[109.43-116.79] SPEAKER_02: After retrieval works properly, we can connect the results to a language model that generates a final answer based on the retrieved transcript chunks.
+[117.39-124.44] SPEAKER_02: I will also measure the response time for each query so we understand how fast the system retrieves information from long meeting transcripts.
+[125.08-132.00] SPEAKER_02:  In addition to measuring latency, I want to compare how retrieval speed changes when the database grows larger with more stored meetings.
+[132.46-139.84] SPEAKER_02: I also plan to simulate multiple users asking questions at the same time to see if the system performance remains stable under heavier workloads.
+[140.31-148.25] SPEAKER_00:  Another important thing we should test is whether the system can correctly identify tasks and deadlines that were mentioned during the meetings.
+[148.59-157.26] SPEAKER_00: Many meetings contain action items that teams need to track later, so if the RAG system can retrieve those sections accurately, it will be very useful.
+[157.62-168.67] SPEAKER_00: I will review several transcripts manually and create example queries that specifically ask about tasks, responsibilities, and deadlines to evaluate how well the system responds.
+[168.94-170.12] SPEAKER_01:  That is a good direction.
+[170.24-177.69] SPEAKER_01: If the RAG system can retrieve those parts of the conversation correctly, we can later build an automatic task extraction feature on top of it.
+[177.85-186.27] SPEAKER_01: This feature could scan the transcript, detect sentences that contain commitments or deadlines, and present them to users as a structured list of action items.
+[186.63-191.59] SPEAKER_01: It would make the meeting assistant much more valuable for teams who need to follow up on discussions.
+[192.00-198.48] SPEAKER_02:  I will log all retrieval results and store them in a small evaluation dashboard so we can track performance metrics over time.
+[198.92-205.74] SPEAKER_02: The dashboard will show query response time, retrieval accuracy, and which transcript chunks were selected by the system.
+[206.14-212.55] SPEAKER_02: This will allow us to identify patterns where the system performs well in cases where the retrieval process might need improvement.
+[212.94-223.47] SPEAKER_00:  After all the tests are completed, I will prepare a detailed report summarizing transcription accuracy, retrieval quality, and any problems we discovered during the evaluation process.
+[223.71-234.01] SPEAKER_00: The report will also include examples of successful queries and cases where the system failed to retrieve the correct context, so we can clearly see what needs improvement in the next iteration.

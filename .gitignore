@@ -1,3 +1,5 @@
+chroma_db/
 venv/
-.env
+venv310/
 __pycache__/
+.env
