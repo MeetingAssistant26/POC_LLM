@@ -1,7 +1,7 @@
 import json
 import re
 
-with open("data/meeting_transcripts_mixed_rag.json", "r", encoding="utf-8") as f:
+with open("data/meeting_transcripts_audio.json", "r", encoding="utf-8") as f:
     meetings = json.load(f)
 
 pattern = r'(\w+):\s*(.*?)(?=\s*\w+:|$)'
