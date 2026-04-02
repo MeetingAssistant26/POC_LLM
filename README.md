@@ -42,12 +42,12 @@ Core modules implementing the **Retrieval-Augmented Generation pipeline**.
 - **embeddings.py** → generates vector embeddings using `all-MiniLM-L6-v2`
 - **vector_store.py** → stores embeddings in ChromaDB with cosine similarity
 - **rag_pipeline.py** → retrieves relevant context and generates answers using Groq LLM
-- **creating_dataset_from_audio.py** → converts WhisperX transcripts into RAG-ready JSON dataset *(new)*
 
 ### 📂 audio_pipeline
 Modules for processing real meeting audio files and converting them into transcripts.
 - **audio_preprocessing.py** → converts audio to WAV, mono, 16kHz, and removes silence
 - **audio_transcription.py** → transcribes audio using WhisperX with speaker diarization
+- **creating_dataset_from_audio.py** → converts WhisperX transcripts into RAG-ready JSON dataset *(new)*
 
 ### 📂 audio_clean
 Contains preprocessed audio files ready for transcription.
@@ -132,6 +132,7 @@ AI_MEETING_ASSISTANT
 │
 ├── audio_pipeline
 │   ├── audio_preprocessing.py
+│   ├── creating_dataset_from_audio.py            ← integration script
 │   └── audio_transcription.py
 │
 ├── data
@@ -158,7 +159,6 @@ AI_MEETING_ASSISTANT
 │   ├── embeddings.py
 │   ├── vector_store.py
 │   ├── rag_pipeline.py
-│   ├── creating_dataset_from_audio.py            ← integration script
 │   ├── chunks.json
 │   ├── embeddings.json
 │   ├── search_results.json
@@ -263,7 +263,7 @@ venv\Scripts\activate
 
 ### 7️⃣ Run the integration script
 ```bash
-python RAG/creating_dataset_from_audio.py
+python audio_pipeline/creating_dataset_from_audio.py
 ```
 Reads all `.txt` files from `transcripts/`, maps speaker labels to real names, and saves `data/meeting_transcripts_audio.json`.
 
