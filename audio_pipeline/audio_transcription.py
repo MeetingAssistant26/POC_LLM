@@ -8,7 +8,7 @@ import os
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Using device:", device)
 
-HF_TOKEN = "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"
+HF_TOKEN = "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"
 
 model = whisperx.load_model(
     "medium",

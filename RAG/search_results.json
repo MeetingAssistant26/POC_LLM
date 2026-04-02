@@ -8,7 +8,7 @@
     },
     {
       "rank": 2,
-      "text": "Mariam: وأنا هعمل integration testing للنظام بالكامل. Ahmed: لازم نتأكد إن summary و tasks دايمًا بيرجعوا JSON valid. Sara: تمام، I'll add validation checks.",
+      "text": "Ahmed: That sounds perfect. Once the prototype is ready, we can test task creation, assignment, and notification flows with a small group of users. This testing will help us identify potential bottlenecks or confusing interactions. I also suggest collecting feedback on the dashboard layout and usability to see if any adjustments are needed before the wider release. Sara: I will coordinate with the design team to ensure that the visual elements match the functionality OMAR implements. After testing, we can refine the interface and release the beta version to a small set of teams. By next Monday, we should have initial feedback to prioritize the final improvements and prepare for the full release. OMAR makes sure all APIs are documented so the team can integrate them with the front-end smoothly. Omar: Additionally, I will monitor the system performance during the beta test to make sure that real-time updates and notifications work without lag. If any issues arise, we can address them immediately and ensure a smooth experience for all users.",
       "meeting_id": "10"
     }
   ]
