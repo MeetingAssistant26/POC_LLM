@@ -17,91 +17,122 @@ collection = chroma_client.get_collection("meeting_chunks")
 
 print("AI Meeting Assistant Ready\n")
 
-# User menu
-print("Choose an option:")
-print("1 - Generate Meeting Summary")
-print("2 - Extract Tasks")
-print("3 - Ask a Question")
+# ── Conversation History ──────────────────────────────────────
+conversation_history = []
 
-choice = input("\nEnter choice (1/2/3): ")
+# ── Main Loop ─────────────────────────────────────────────────
+while True:
 
-if choice == "1":
-    query = "Summarize the meeting discussion"
+    print("\nChoose an option:")
+    print("1 - Generate Meeting Summary")
+    print("2 - Extract Tasks")
+    print("3 - Ask a Question")
+    print("4 - Exit")
 
-elif choice == "2":
-    query = "Extract all tasks assigned in the meeting"
+    choice = input("\nEnter choice (1/2/3/4): ")
 
-elif choice == "3":
-    query = input("\nAsk a question about the meeting: ")
+    if choice == "4":
+        print("Goodbye!")
+        break
 
-else:
-    print("Invalid choice, defaulting to question mode.")
-    query = input("Ask a question about the meeting: ")
+    elif choice == "1":
+        query = "Summarize the meeting discussion"
 
-print("\nQuery:", query)
+    elif choice == "2":
+        query = "Extract all tasks assigned in the meeting"
 
-# Convert query to embedding
-query_embedding = embed_model.encode(query).tolist()
+    elif choice == "3":
+        query = input("\nAsk a question about the meeting: ")
 
-# Retrieve chunks
-results = collection.query(
-    query_embeddings=[query_embedding],
-    n_results=3
-)
+    else:
+        print("Invalid choice.")
+        continue
 
-retrieved_chunks = results["documents"][0]
+    print("\nQuery:", query)
 
-context = "\n".join(retrieved_chunks)
+    # ── Improve Retrieval using History ────────────────────────
+    history_questions = " ".join(
+        [turn["question"] for turn in conversation_history[-2:]]
+    )
 
-print("\nRetrieved Chunks:\n")
+    enhanced_query = query + " " + history_questions
 
-for i, chunk in enumerate(retrieved_chunks):
-    print(f"Chunk {i+1}: {chunk}\n")
+    query_embedding = embed_model.encode(enhanced_query).tolist()
 
-# Prompt for LLM
-prompt = f"""
+    # Increased top_k for better retrieval
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=5
+    )
+
+    retrieved_chunks = results["documents"][0]
+    context = "\n".join(retrieved_chunks)
+
+    print("\nRetrieved Chunks:\n")
+    for i, chunk in enumerate(retrieved_chunks):
+        print(f"Chunk {i+1}: {chunk}\n")
+
+    # ── Build History Text ────────────────────────────────────
+    history_text = ""
+
+    for turn in conversation_history[-3:]:
+        history_text += f"Q: {turn['question']}\nA: {turn['answer']}\n\n"
+
+    if history_text.strip() == "":
+        history_text = "No previous conversation."
+
+    # ── Improved Prompt ───────────────────────────────────────
+    prompt = f"""
 You are an AI meeting assistant.
+Use BOTH the conversation history and the meeting context to answer.
+Answer directly without mentioning the sources or context in your response.
+Do not say "Based on..." or "According to..." or "From the context...".
+If the answer is not available, say "I don't have enough information."
 
-Using the meeting transcript context below, complete the task.
+Previous conversation:
+{history_text}
 
-Context:
+Meeting context:
 {context}
 
-Task:
+Current question:
 {query}
-
-Provide a clear answer.
 """
 
-response = groq_client.chat.completions.create(
-    model="llama-3.1-8b-instant",
-    messages=[{"role": "user", "content": prompt}]
-)
+    # ── LLM Call ──────────────────────────────────────────────
+    response = groq_client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[{"role": "user", "content": prompt}]
+    )
 
-answer = response.choices[0].message.content
+    answer = response.choices[0].message.content
 
-print("\nFinal Answer:\n")
-print(answer)
+    print("\nFinal Answer:\n")
+    print(answer)
 
-# Save results folder
-results_folder = "RAG/rag_results"
+    # ── Save to History ───────────────────────────────────────
+    conversation_history.append({
+        "question": query,
+        "answer": answer
+    })
 
-if not os.path.exists(results_folder):
-    os.makedirs(results_folder)
+    # ── Save Result ───────────────────────────────────────────
+    results_folder = "RAG/rag_results"
+    os.makedirs(results_folder, exist_ok=True)
 
-existing_files = [f for f in os.listdir(results_folder) if f.startswith("result_")]
-file_number = len(existing_files) + 1
+    existing_files = [f for f in os.listdir(results_folder) if f.startswith("result_")]
+    file_number = len(existing_files) + 1
+    file_path = f"{results_folder}/result_{file_number}.json"
 
-file_path = f"{results_folder}/result_{file_number}.json"
+    output_data = {
+        "task_type": choice,
+        "query": query,
+        "retrieved_chunks": retrieved_chunks,
+        "answer": answer,
+        "conversation_history": conversation_history
+    }
 
-output_data = {
-    "task_type": choice,
-    "query": query,
-    "retrieved_chunks": retrieved_chunks,
-    "answer": answer
-}
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(output_data, f, ensure_ascii=False, indent=2)
 
-with open(file_path, "w", encoding="utf-8") as f:
-    json.dump(output_data, f, ensure_ascii=False, indent=2)
-
-print(f"\nResult saved to {file_path}")
+    print(f"\nResult saved to {file_path}")
