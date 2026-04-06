@@ -1,24 +1,98 @@
 import chromadb
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import SentenceTransformer, CrossEncoder
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 from groq import Groq
 import os
 import json
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Initialize models
+# ── Disable chroma telemetry warning ──────────────────────────
+chromadb.Settings(anonymized_telemetry=False)
+
+# ── Initialize models ─────────────────────────────────────────
 embed_model = SentenceTransformer("all-MiniLM-L6-v2")
+reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-# Connect to ChromaDB
+# ── Connect to ChromaDB ───────────────────────────────────────
 chroma_client = chromadb.PersistentClient(path="RAG/chroma_db")
 collection = chroma_client.get_collection("meeting_chunks")
 
+# ── Load all texts for TF-IDF ─────────────────────────────────
+all_data = collection.get()
+texts_all = all_data["documents"]
+metadatas_all = all_data["metadatas"]
+
 print("AI Meeting Assistant Ready\n")
 
-# ── Conversation History ──────────────────────────────────────
 conversation_history = []
+
+
+def retrieve_chunks(query, query_embedding, meeting_id=None, top_k=8):
+    """Retrieve chunks using Vector Search + TF-IDF + Reranking"""
+
+    # ── 1. Vector Search ──────────────────────────────────────
+    if meeting_id is not None:
+        vector_results = collection.query(
+            query_embeddings=[query_embedding],
+            n_results=10,
+            where={"meeting_id": meeting_id}
+        )
+    else:
+        vector_results = collection.query(
+            query_embeddings=[query_embedding],
+            n_results=10
+        )
+
+    vector_texts = vector_results["documents"][0]
+    vector_metadatas = vector_results["metadatas"][0]
+
+    # ── 2. TF-IDF Search ──────────────────────────────────────
+    if meeting_id is not None:
+        filtered_texts = [t for t, m in zip(texts_all, metadatas_all) if m.get("meeting_id") == meeting_id]
+        filtered_metas = [m for m in metadatas_all if m.get("meeting_id") == meeting_id]
+    else:
+        filtered_texts = texts_all
+        filtered_metas = metadatas_all
+
+    if filtered_texts:
+        vectorizer = TfidfVectorizer()
+        tfidf_matrix = vectorizer.fit_transform(filtered_texts)
+        query_vec = vectorizer.transform([query])
+        cos_scores = cosine_similarity(query_vec, tfidf_matrix)[0]
+        top_indices = np.argsort(-cos_scores)[:10]
+        tfidf_texts = [filtered_texts[i] for i in top_indices]
+        tfidf_metadatas = [filtered_metas[i] for i in top_indices]
+    else:
+        tfidf_texts = []
+        tfidf_metadatas = []
+
+    # ── 3. Combine and Deduplicate ────────────────────────────
+    unique = {}
+    for text, meta in zip(vector_texts + tfidf_texts, vector_metadatas + tfidf_metadatas):
+        if text not in unique:
+            unique[text] = meta
+
+    final_texts = list(unique.keys())
+    final_metadatas = list(unique.values())
+
+    if not final_texts:
+        return [], []
+
+    # ── 4. Rerank ─────────────────────────────────────────────
+    scores = reranker.predict([[query, t] for t in final_texts])
+    top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k]
+
+    retrieved_chunks = [final_texts[i] for i in top_indices]
+    retrieved_metadatas = [final_metadatas[i] for i in top_indices]
+
+    return retrieved_chunks, retrieved_metadatas
+
 
 # ── Main Loop ─────────────────────────────────────────────────
 while True:
@@ -35,14 +109,45 @@ while True:
         print("Goodbye!")
         break
 
-    elif choice == "1":
-        query = "Summarize the meeting discussion"
+    meeting_id = None
+
+    # ── Build Query ────────────────────────────────────────────
+    if choice == "1":
+        meeting_num = input("Enter meeting number (1-10): ")
+        meeting_id = int(meeting_num)
+        query = f"Summarize meeting {meeting_num} discussion and key points"
 
     elif choice == "2":
-        query = "Extract all tasks assigned in the meeting"
+        meeting_num = input("Enter meeting number (1-10): ")
+        meeting_id = int(meeting_num)
+        query = f"List ALL tasks assigned to each person in meeting {meeting_num} with deadlines"
 
     elif choice == "3":
-        query = input("\nAsk a question about the meeting: ")
+        query = input("\nAsk a question about the meetings: ")
+
+        # Check if the question contains a meeting number
+        match = re.search(r'meeting\s*(\d+)', query.lower())
+
+        # Check if the question is a follow-up (contains pronouns)
+        follow_up_words = ['he', 'she', 'his', 'her', 'they', 'their', 'it', 'this', 'that']
+        is_follow_up = any(word in query.lower().split() for word in follow_up_words)
+
+        if match:
+            # Meeting number found in question
+            meeting_id = int(match.group(1))
+            print(f"\n[DEBUG] Meeting detected in question: {meeting_id}")
+
+        elif is_follow_up:
+            # Follow-up question: use last meeting_id from history
+            for turn in reversed(conversation_history):
+                if turn.get("meeting_id") is not None:
+                    meeting_id = turn["meeting_id"]
+                    print(f"\n[DEBUG] Follow-up question, using meeting from history: {meeting_id}")
+                    break
+
+        else:
+            # General question: search all meetings
+            print(f"\n[DEBUG] General question, searching all meetings")
 
     else:
         print("Invalid choice.")
@@ -50,44 +155,54 @@ while True:
 
     print("\nQuery:", query)
 
-    # ── Improve Retrieval using History ────────────────────────
-    history_questions = " ".join(
-        [turn["question"] for turn in conversation_history[-2:]]
+    # ── Embedding ─────────────────────────────────────────────
+    query_embedding = embed_model.encode(query).tolist()
+
+    # ── Retrieval ─────────────────────────────────────────────
+    if meeting_id is not None:
+        print(f"\n[DEBUG] Filtering by meeting_id = {meeting_id}")
+
+    retrieved_chunks, retrieved_metadatas = retrieve_chunks(
+        query, query_embedding, meeting_id=meeting_id
     )
 
-    enhanced_query = query + " " + history_questions
-
-    query_embedding = embed_model.encode(enhanced_query).tolist()
-
-    # Increased top_k for better retrieval
-    results = collection.query(
-        query_embeddings=[query_embedding],
-        n_results=5
-    )
-
-    retrieved_chunks = results["documents"][0]
-    context = "\n".join(retrieved_chunks)
+    # ── Context ───────────────────────────────────────────────
+    context = "\n".join(retrieved_chunks) if retrieved_chunks else ""
 
     print("\nRetrieved Chunks:\n")
-    for i, chunk in enumerate(retrieved_chunks):
-        print(f"Chunk {i+1}: {chunk}\n")
+    if not retrieved_chunks:
+        print("⚠️ No chunks retrieved!")
+    else:
+        for i, chunk in enumerate(retrieved_chunks):
+            print(f"Chunk {i+1}: {chunk}\n")
 
-    # ── Build History Text ────────────────────────────────────
+    # ── Conversation History ───────────────────────────────────
     history_text = ""
-
     for turn in conversation_history[-3:]:
         history_text += f"Q: {turn['question']}\nA: {turn['answer']}\n\n"
 
-    if history_text.strip() == "":
+    if not history_text.strip():
         history_text = "No previous conversation."
 
-    # ── Improved Prompt ───────────────────────────────────────
+    # ── Prompt ───────────────────────────────────────────────
+    if choice == "1":
+        header = f"Start your answer with: 'Meeting {meeting_num} Summary:'"
+    elif choice == "2":
+        header = f"Start your answer with: 'Meeting {meeting_num} Tasks:'"
+    else:
+        header = ""
+
     prompt = f"""
 You are an AI meeting assistant.
-Use BOTH the conversation history and the meeting context to answer.
+Always prioritize the meeting context over the conversation history.
+Use the conversation history only to understand who is being referred to.
 Answer directly without mentioning the sources or context in your response.
 Do not say "Based on..." or "According to..." or "From the context...".
+Do not repeat the same information twice.
+Do not mention anything about the context or how you retrieved the information.
+When listing tasks, make sure to include ALL tasks mentioned, do not summarize or skip any.
 If the answer is not available, say "I don't have enough information."
+{header}
 
 Previous conversation:
 {history_text}
@@ -110,10 +225,11 @@ Current question:
     print("\nFinal Answer:\n")
     print(answer)
 
-    # ── Save to History ───────────────────────────────────────
+    # ── Save History ──────────────────────────────────────────
     conversation_history.append({
         "question": query,
-        "answer": answer
+        "answer": answer,
+        "meeting_id": meeting_id
     })
 
     # ── Save Result ───────────────────────────────────────────
@@ -127,6 +243,7 @@ Current question:
     output_data = {
         "task_type": choice,
         "query": query,
+        "meeting_id": meeting_id,
         "retrieved_chunks": retrieved_chunks,
         "answer": answer,
         "conversation_history": conversation_history

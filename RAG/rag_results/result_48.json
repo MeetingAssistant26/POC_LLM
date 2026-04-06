@@ -1,0 +1,37 @@
+{
+  "task_type": "1",
+  "query": "Summarize meeting 3 discussion and key points",
+  "meeting_id": 3,
+  "retrieved_chunks": [
+    "Sara: I think one improvement could be adding automatic meeting summaries so users can quickly understand the discussion. Ahmed: That's a great idea. Sarah, please research a few summarization models and prepare a comparison before Monday afternoon. I can also start building a simple summarization pipeline using the transcripts we already generate. Perfect. Omar, try to create a basic prototype of the summarization feature before Tuesday noon. Sara: Once we have the summaries, we could also highlight the extracted tasks and deadlines directly in the report. Ahmed: I will also check if we can store summaries, transcripts, and tasks in the same database structure.",
+    "Ahmed: Good morning everyone. Today we need to discuss the progress of our Eye Meeting Assistant project and define the next steps. Sara: Good morning. I started working on the transcription module using Whisper and the basic setup is already working. Ahmed: That's great. Sarah, please test the transcription accuracy on a few meeting recordings and share the results before Wednesday at 4 p.m. I can start working on the speaker identification part so the system can recognize different people in the meeting. Perfect. Omar, try to finish the first version of the speaker detection module before Thursday noon. Sara: After that, I can integrate the transcription output with the task extraction component. Ahmed: Good idea. Please prepare a small demo for that integration before Thursday evening. I will also start preparing the backend API that will store meeting transcripts and extracted tasks. Excellent. Make sure the API is ready for testing before Friday morning. Sara: Once the API is ready, I will connect the transcription module to it and test the full pipeline. Ahmed: Perfect. Let's schedule another meeting on Friday afternoon to review the first prototype of the iMeeting Assistant. During that meeting we can also test the system using a real meeting recording. Exactly. After that we can decide what improvements we need for the next version. Sara: I think one improvement could be adding automatic meeting summaries so users can quickly understand the discussion. Ahmed: That's a great idea. Sarah, please research a few summarization models"
+  ],
+  "answer": "Meeting 3 Summary:\nThe team discussed progress of the Eye Meeting Assistant project and defined next steps. Ahmed started working on building a simple summarization pipeline using existing transcripts. Sara is researching summarization models and will prepare a comparison before Monday afternoon. Omar will create a basic prototype of the summarization feature before Tuesday noon. Key points include: \n- Transcription module setup using Whisper working well\n- Sara to test transcription accuracy on meeting recordings and share results by Wednesday at 4 p.m.\n- Omar to finish the first version of speaker detection module by Thursday noon\n- Sara to integrate transcription output with task extraction component and prepare a demo\n- Ahmed to prepare backend API for meeting transcripts and extracted tasks and have it ready by Friday morning for testing",
+  "conversation_history": [
+    {
+      "question": "Who is Sara?",
+      "answer": "Sara is a team member involved in several projects, working on various tasks related to the Eye Meeting Assistant, data review, content creation, and campaign planning.",
+      "meeting_id": null
+    },
+    {
+      "question": "What did she do?",
+      "answer": "She started reviewing part of the data set, especially the Arabic text section, and noticed some missing values and formatting issues.",
+      "meeting_id": null
+    },
+    {
+      "question": "What did she do in meeting61?",
+      "answer": "She began reviewing part of the data set, specifically the Arabic text section, and identified some missing values and formatting issues.",
+      "meeting_id": 61
+    },
+    {
+      "question": "What did she do in meeting 6?",
+      "answer": "She began reviewing part of the data set, specifically the Arabic text section, and identified some missing values and formatting issues.",
+      "meeting_id": 6
+    },
+    {
+      "question": "Summarize meeting 3 discussion and key points",
+      "answer": "Meeting 3 Summary:\nThe team discussed progress of the Eye Meeting Assistant project and defined next steps. Ahmed started working on building a simple summarization pipeline using existing transcripts. Sara is researching summarization models and will prepare a comparison before Monday afternoon. Omar will create a basic prototype of the summarization feature before Tuesday noon. Key points include: \n- Transcription module setup using Whisper working well\n- Sara to test transcription accuracy on meeting recordings and share results by Wednesday at 4 p.m.\n- Omar to finish the first version of speaker detection module by Thursday noon\n- Sara to integrate transcription output with task extraction component and prepare a demo\n- Ahmed to prepare backend API for meeting transcripts and extracted tasks and have it ready by Friday morning for testing",
+      "meeting_id": 3
+    }
+  ]
+}
