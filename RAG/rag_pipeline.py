@@ -1,4 +1,5 @@
 import chromadb
+from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -9,21 +10,22 @@ import json
 import re
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
-# ── Disable chroma telemetry warning ──────────────────────────
 chromadb.Settings(anonymized_telemetry=False)
 
-# ── Initialize models ─────────────────────────────────────────
 embed_model = SentenceTransformer("all-MiniLM-L6-v2")
 reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-# ── Connect to ChromaDB ───────────────────────────────────────
-chroma_client = chromadb.PersistentClient(path="RAG/chroma_db")
+chroma_client = chromadb.PersistentClient(
+    path="RAG/chroma_db",
+    settings=Settings(anonymized_telemetry=False)
+)
+
 collection = chroma_client.get_collection("meeting_chunks")
 
-# ── Load all texts for TF-IDF ─────────────────────────────────
 all_data = collection.get()
 texts_all = all_data["documents"]
 metadatas_all = all_data["metadatas"]
@@ -33,65 +35,70 @@ print("AI Meeting Assistant Ready\n")
 conversation_history = []
 
 
-def retrieve_chunks(query, query_embedding, meeting_id=None, top_k=8):
-    """Retrieve chunks using Vector Search + TF-IDF + Reranking"""
+# 🟢 STEP 1: Get top meetings (Hierarchical Level 1)
+def get_relevant_meetings(query_embedding, top_k=3):
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=30
+    )
 
-    # ── 1. Vector Search ──────────────────────────────────────
-    if meeting_id is not None:
+    meeting_ids = [meta["meeting_id"] for meta in results["metadatas"][0]]
+
+    # unique + keep order
+    seen = set()
+    unique_meetings = []
+    for m in meeting_ids:
+        if m not in seen:
+            seen.add(m)
+            unique_meetings.append(m)
+
+    return unique_meetings[:top_k]
+
+
+# 🔵 STEP 2: Retrieve chunks inside meetings (Level 2)
+def retrieve_chunks_hierarchical(query, query_embedding, meeting_ids, top_k=8):
+
+    all_texts = []
+    all_metas = []
+
+    for meeting_id in meeting_ids:
         vector_results = collection.query(
             query_embeddings=[query_embedding],
             n_results=10,
             where={"meeting_id": meeting_id}
         )
-    else:
-        vector_results = collection.query(
-            query_embeddings=[query_embedding],
-            n_results=10
-        )
 
-    vector_texts = vector_results["documents"][0]
-    vector_metadatas = vector_results["metadatas"][0]
+        all_texts.extend(vector_results["documents"][0])
+        all_metas.extend(vector_results["metadatas"][0])
 
-    # ── 2. TF-IDF Search ──────────────────────────────────────
-    if meeting_id is not None:
-        filtered_texts = [t for t, m in zip(texts_all, metadatas_all) if m.get("meeting_id") == meeting_id]
-        filtered_metas = [m for m in metadatas_all if m.get("meeting_id") == meeting_id]
-    else:
-        filtered_texts = texts_all
-        filtered_metas = metadatas_all
+    if not all_texts:
+        return [], []
 
-    if filtered_texts:
-        vectorizer = TfidfVectorizer()
-        tfidf_matrix = vectorizer.fit_transform(filtered_texts)
-        query_vec = vectorizer.transform([query])
-        cos_scores = cosine_similarity(query_vec, tfidf_matrix)[0]
-        top_indices = np.argsort(-cos_scores)[:10]
-        tfidf_texts = [filtered_texts[i] for i in top_indices]
-        tfidf_metadatas = [filtered_metas[i] for i in top_indices]
-    else:
-        tfidf_texts = []
-        tfidf_metadatas = []
+    # TF-IDF
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(all_texts)
+    query_vec = vectorizer.transform([query])
+    cos_scores = cosine_similarity(query_vec, tfidf_matrix)[0]
 
-    # ── 3. Combine and Deduplicate ────────────────────────────
+    top_indices = np.argsort(-cos_scores)[:10]
+
+    tfidf_texts = [all_texts[i] for i in top_indices]
+    tfidf_metas = [all_metas[i] for i in top_indices]
+
+    # Combine + deduplicate
     unique = {}
-    for text, meta in zip(vector_texts + tfidf_texts, vector_metadatas + tfidf_metadatas):
+    for text, meta in zip(all_texts + tfidf_texts, all_metas + tfidf_metas):
         if text not in unique:
             unique[text] = meta
 
     final_texts = list(unique.keys())
-    final_metadatas = list(unique.values())
+    final_metas = list(unique.values())
 
-    if not final_texts:
-        return [], []
-
-    # ── 4. Rerank ─────────────────────────────────────────────
+    # Rerank
     scores = reranker.predict([[query, t] for t in final_texts])
     top_indices = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k]
 
-    retrieved_chunks = [final_texts[i] for i in top_indices]
-    retrieved_metadatas = [final_metadatas[i] for i in top_indices]
-
-    return retrieved_chunks, retrieved_metadatas
+    return [final_texts[i] for i in top_indices], [final_metas[i] for i in top_indices]
 
 
 # ── Main Loop ─────────────────────────────────────────────────
@@ -106,110 +113,83 @@ while True:
     choice = input("\nEnter choice (1/2/3/4): ")
 
     if choice == "4":
-        print("Goodbye!")
         break
 
     meeting_id = None
 
-    # ── Build Query ────────────────────────────────────────────
     if choice == "1":
         meeting_num = input("Enter meeting number (1-10): ")
         meeting_id = int(meeting_num)
-        query = f"Summarize meeting {meeting_num} discussion and key points"
+        query = f"Summarize meeting {meeting_num}"
 
     elif choice == "2":
         meeting_num = input("Enter meeting number (1-10): ")
         meeting_id = int(meeting_num)
-        query = f"List ALL tasks assigned to each person in meeting {meeting_num} with deadlines"
+        query = f"Extract tasks from meeting {meeting_num}"
 
     elif choice == "3":
-        query = input("\nAsk a question about the meetings: ")
+        query = input("\nAsk a question: ")
 
-        # Check if the question contains a meeting number
         match = re.search(r'meeting\s*(\d+)', query.lower())
 
-        # Check if the question is a follow-up (contains pronouns)
         follow_up_words = ['he', 'she', 'his', 'her', 'they', 'their', 'it', 'this', 'that']
         is_follow_up = any(word in query.lower().split() for word in follow_up_words)
 
         if match:
-            # Meeting number found in question
             meeting_id = int(match.group(1))
-            print(f"\n[DEBUG] Meeting detected in question: {meeting_id}")
 
         elif is_follow_up:
-            # Follow-up question: use last meeting_id from history
             for turn in reversed(conversation_history):
                 if turn.get("meeting_id") is not None:
                     meeting_id = turn["meeting_id"]
-                    print(f"\n[DEBUG] Follow-up question, using meeting from history: {meeting_id}")
                     break
-
-        else:
-            if conversation_history:
-                for turn in reversed(conversation_history):
-                    if turn.get("meeting_id") is not None:
-                        meeting_id = turn["meeting_id"]
-                        print(f"\n[DEBUG] No meeting specified, using last meeting: {meeting_id}")
-                        break
-
-            if meeting_id is None:
-                print("\n[DEBUG] No meeting context found, please specify meeting number.")
-
-    else:
-        print("Invalid choice.")
-        continue
 
     print("\nQuery:", query)
 
-    # ── Embedding ─────────────────────────────────────────────
     query_embedding = embed_model.encode(query).tolist()
 
-    # ── Retrieval ─────────────────────────────────────────────
+    # 🔥 Hierarchical logic
     if meeting_id is not None:
-        print(f"\n[DEBUG] Filtering by meeting_id = {meeting_id}")
+       meeting_ids = [meeting_id]
+    else:
+      meeting_ids = get_relevant_meetings(query_embedding)
 
-    retrieved_chunks, retrieved_metadatas = retrieve_chunks(
-        query, query_embedding, meeting_id=meeting_id
+      if not meeting_ids:
+          print("[DEBUG] No meetings found, fallback to full search")
+          meeting_ids = list(set([m["meeting_id"] for m in metadatas_all]))
+    print(f"[DEBUG] Retrieved meetings: {meeting_ids}")
+
+    retrieved_chunks, _ = retrieve_chunks_hierarchical(
+        query, query_embedding, meeting_ids
     )
 
-    # ── Context ───────────────────────────────────────────────
-    context = "\n".join(retrieved_chunks[:5]) if retrieved_chunks else ""
+    context = "\n".join(retrieved_chunks[:8])
 
-    print("\nRetrieved Chunks:\n")
-    if not retrieved_chunks:
-        print("⚠️ No chunks retrieved!")
-    else:
-        for i, chunk in enumerate(retrieved_chunks):
-            print(f"Chunk {i+1}: {chunk}\n")
-
-    # ── Conversation History ───────────────────────────────────
     history_text = ""
     for turn in conversation_history[-3:]:
         history_text += f"Q: {turn['question']}\nA: {turn['answer']}\n\n"
 
-    if not history_text.strip():
-        history_text = "No previous conversation."
-
-    # ── Prompt ───────────────────────────────────────────────
-    if choice == "1":
-        header = f"Start your answer with: 'Meeting {meeting_num} Summary:'"
-    elif choice == "2":
-        header = f"Start your answer with: 'Meeting {meeting_num} Tasks:'"
-    else:
-        header = ""
-
+    header= ""
+    
     prompt = f"""
 You are an AI meeting assistant.
 
 Instructions:
+
 - If the question is asking for a summary:
-  Summarize the meeting clearly.
-  Focus on:
-  - The main goal
+  Provide a clear and structured summary of the meeting.
+
+  Focus ONLY on:
+  - Main goal
   - Key discussion points
   - Important decisions
-  Do NOT list tasks or assign tasks.
+
+  STRICT RULES:
+  - Do NOT list tasks.
+  - Do NOT mention any assigned work.
+  - Do NOT include sentences with future actions (e.g., "will", "should", "plan to").
+  - Do NOT include responsibilities of individuals.
+  - Keep the summary high-level and descriptive only.
 
 - If the question is asking for tasks:
   Extract ONLY actionable tasks explicitly assigned in the meeting.
@@ -234,9 +214,20 @@ Instructions:
   - Output tasks as a flat list (no nested bullets).
   - Output ONLY the task list.
   - Do NOT include explanations, notes, comments, or reasoning.
+  - Do NOT mention removed or excluded tasks.
   - Prefer active tasks (e.g., "review", "prepare") and avoid passive ones (e.g., "receive").
-  
-  Format:
+  - Output MUST follow the exact format strictly.
+  - Do NOT use bold formatting (**).
+  - Each person name MUST start with "- " and end with ":".
+  - Example:
+    - Sara:
+      - Task 1
+    
+  - STRICT RULE: Remove any task that contains "decide".
+  - Only include tasks that are clearly assigned using direct instructions (e.g., "please", "try to", "can you").
+  - Do NOT include general responsibilities (e.g., monitoring, observing).
+ 
+   Format:
   - Person Name:
     - Task 1
     - Task 2
@@ -254,10 +245,14 @@ Instructions:
   - Keep the answer concise and directly relevant to the question.
   - If partial information is found, return only what is explicitly available.
   - If no relevant information is found, say: "I don't have enough information."
+  - If the question asks about tasks for a specific person:
+    apply the SAME strict task extraction rules.
+  - Only return tasks that are explicitly assigned to that person.
 
 General rules:
 - Do NOT repeat information.
 - Do NOT mention context or sources.
+- Do NOT include explanations outside the required format.
 
 {header}
 
@@ -271,7 +266,6 @@ Question:
 {query}
 """
 
-    # ── LLM Call ──────────────────────────────────────────────
     response = groq_client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[{"role": "user", "content": prompt}]
@@ -279,34 +273,10 @@ Question:
 
     answer = response.choices[0].message.content
 
-    print("\nFinal Answer:\n")
-    print(answer)
+    print("\nFinal Answer:\n", answer)
 
-    # ── Save History ──────────────────────────────────────────
     conversation_history.append({
         "question": query,
         "answer": answer,
         "meeting_id": meeting_id
     })
-
-    # ── Save Result ───────────────────────────────────────────
-    results_folder = "RAG/rag_results"
-    os.makedirs(results_folder, exist_ok=True)
-
-    existing_files = [f for f in os.listdir(results_folder) if f.startswith("result_")]
-    file_number = len(existing_files) + 1
-    file_path = f"{results_folder}/result_{file_number}.json"
-
-    output_data = {
-        "task_type": choice,
-        "query": query,
-        "meeting_id": meeting_id,
-        "retrieved_chunks": retrieved_chunks,
-        "answer": answer,
-        "conversation_history": conversation_history
-    }
-
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(output_data, f, ensure_ascii=False, indent=2)
-
-    print(f"\nResult saved to {file_path}")
