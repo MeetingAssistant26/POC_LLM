@@ -146,8 +146,15 @@ while True:
                     break
 
         else:
-            # General question: search all meetings
-            print(f"\n[DEBUG] General question, searching all meetings")
+            if conversation_history:
+                for turn in reversed(conversation_history):
+                    if turn.get("meeting_id") is not None:
+                        meeting_id = turn["meeting_id"]
+                        print(f"\n[DEBUG] No meeting specified, using last meeting: {meeting_id}")
+                        break
+
+            if meeting_id is None:
+                print("\n[DEBUG] No meeting context found, please specify meeting number.")
 
     else:
         print("Invalid choice.")
@@ -167,7 +174,7 @@ while True:
     )
 
     # ── Context ───────────────────────────────────────────────
-    context = "\n".join(retrieved_chunks) if retrieved_chunks else ""
+    context = "\n".join(retrieved_chunks[:5]) if retrieved_chunks else ""
 
     print("\nRetrieved Chunks:\n")
     if not retrieved_chunks:
@@ -194,14 +201,64 @@ while True:
 
     prompt = f"""
 You are an AI meeting assistant.
-Always prioritize the meeting context over the conversation history.
-Use the conversation history only to understand who is being referred to.
-Answer directly without mentioning the sources or context in your response.
-Do not say "Based on..." or "According to..." or "From the context...".
-Do not repeat the same information twice.
-Do not mention anything about the context or how you retrieved the information.
-When listing tasks, make sure to include ALL tasks mentioned, do not summarize or skip any.
-If the answer is not available, say "I don't have enough information."
+
+Instructions:
+- If the question is asking for a summary:
+  Summarize the meeting clearly.
+  Focus on:
+  - The main goal
+  - Key discussion points
+  - Important decisions
+  Do NOT list tasks or assign tasks.
+
+- If the question is asking for tasks:
+  Extract ONLY actionable tasks explicitly assigned in the meeting.
+
+  Rules:
+  - A task must be a clear action (e.g., prepare, fix, review, test, run, document).
+  - Only include tasks explicitly assigned to a specific person.
+  - If the task owner is not clearly mentioned, DO NOT include the task.
+
+  - ALWAYS merge all similar names into ONE fixed name: "Sara".
+  - Each person must appear ONLY once.
+  - Do NOT create multiple sections for the same person.
+
+  - Do NOT include any task that contains "decide".
+  - Do NOT include discussions, observations, or past actions.
+  - Do NOT infer or generate new tasks.
+
+  - Merge similar or repeated tasks into ONE concise task.
+  - Do NOT duplicate or rephrase the same task.
+  - Do NOT split one task into multiple similar tasks.
+
+  - Output tasks as a flat list (no nested bullets).
+  - Output ONLY the task list.
+  - Do NOT include explanations, notes, comments, or reasoning.
+  - Prefer active tasks (e.g., "review", "prepare") and avoid passive ones (e.g., "receive").
+  
+  Format:
+  - Person Name:
+    - Task 1
+    - Task 2
+
+  If no tasks are found, return: "No tasks found."
+
+- If the question is a general question:
+  Answer using ONLY information explicitly mentioned in the meeting context.
+
+  Rules:
+  - Do NOT add any information that is not clearly stated.
+  - Do NOT infer, assume, or generate new tasks.
+  - Do NOT expand beyond the given context.
+  - Use the exact meaning from the context (no extra interpretation).
+  - Keep the answer concise and directly relevant to the question.
+  - If partial information is found, return only what is explicitly available.
+  - If no relevant information is found, say: "I don't have enough information."
+
+General rules:
+- Do NOT repeat information.
+- Do NOT mention context or sources.
+
 {header}
 
 Previous conversation:
@@ -210,7 +267,7 @@ Previous conversation:
 Meeting context:
 {context}
 
-Current question:
+Question:
 {query}
 """
 
