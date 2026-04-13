@@ -129,7 +129,7 @@ def run_pipeline():
             print("Goodbye!")
             break
 
-        meeting_id = None
+        meeting_ids = None
         if choice == "1":
             meeting_num = input("Enter meeting number (1-10): ")
             meeting_id = int(meeting_num)
@@ -139,14 +139,25 @@ def run_pipeline():
             meeting_id = int(meeting_num)
             query = f"Extract tasks from meeting {meeting_num}"
         elif choice == "3":
-            query = input("\nAsk a question: ")
-            match = re.search(r'meeting\s*(\d+)', query.lower())
+            query = input("Ask a question: ")
+            query_lower = query.lower()
+
+            matches = re.findall(r'meeting\s*(\d+)|\b(\d+)\b', query.lower())
+
+            meeting_ids = []
+            for m1, m2 in matches:
+                if m1:
+                    meeting_ids.append(int(m1))
+                elif m2:
+                    meeting_ids.append(int(m2))
+
+            if not meeting_ids:
+                meeting_ids = None
+
             follow_up_words = ['he', 'she', 'his', 'her', 'they', 'their', 'it', 'this', 'that']
             is_follow_up = any(word in query.lower().split() for word in follow_up_words)
 
-            if match:
-                meeting_id = int(match.group(1))
-            elif is_follow_up:
+            if not matches and is_follow_up:
                 for turn in reversed(conversation_history):
                     if turn.get("meeting_id") is not None:
                         meeting_id = turn["meeting_id"]
@@ -158,22 +169,35 @@ def run_pipeline():
         query_embedding = embed_model.encode(query).tolist()
 
         # Selection Logic
-        if meeting_id is not None:
+        if meeting_ids is not None:
+            pass
+        elif meeting_id is not None:
             meeting_ids = [meeting_id]
         else:
             meeting_ids = get_relevant_meetings(query_embedding)
             if not meeting_ids:
                 meeting_ids = list(set([m["meeting_id"] for m in metadatas_all]))
 
-        retrieved_chunks, _ = retrieve_chunks_hierarchical(query, query_embedding, meeting_ids)
-        context = "\n".join(retrieved_chunks[:8])
+        print("[DEBUG] meeting_ids:", meeting_ids)
+        retrieved_chunks, retrieved_metas = retrieve_chunks_hierarchical(query, query_embedding, meeting_ids)
+        print("[DEBUG] retrieved_chunks:", len(retrieved_chunks))
+
+        grouped_context = {}
+
+        for text, meta in zip(retrieved_chunks, retrieved_metas ):
+            m_id = meta["meeting_id"]
+            if m_id not in grouped_context:
+                grouped_context[m_id] = []
+            grouped_context[m_id].append(text)
+
+        context = ""
+        for m_id, texts in grouped_context.items():
+            context += f"\n### Meeting {m_id}:\n"
+            context += "\n".join(texts[:4])
 
         history_text = ""
         for turn in conversation_history[-3:]:
             history_text += f"Q: {turn['question']}\nA: {turn['answer']}\n\n"
-
-        
-
 
         prompt = f"""
 You are an AI meeting assistant.
@@ -194,6 +218,7 @@ Instructions:
   - Do NOT include sentences with future actions (e.g., "will", "should", "plan to").
   - Do NOT include responsibilities of individuals.
   - Keep the summary high-level and descriptive only.
+  - Convert any task-like statements into general discussion points (do NOT mention names or assignments).
 
 - If the question is asking for tasks:
   Extract ONLY actionable tasks explicitly assigned in the meeting.
@@ -252,6 +277,7 @@ Instructions:
   - If the question asks about tasks for a specific person:
     apply the SAME strict task extraction rules.
   - Only return tasks that are explicitly assigned to that person.
+  - When comparing, clearly highlight differences instead of similarities unless explicitly stated.
 
 General rules:
 - Do NOT repeat information.
