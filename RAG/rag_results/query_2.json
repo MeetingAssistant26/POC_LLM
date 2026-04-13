@@ -1,0 +1,9 @@
+{
+  "query": "what did sara work on?",
+  "retrieved_chunks": [
+    "Sara: وأنا هسجل النتائج في جدول علشان نقارن. Ahmed: خلوا performance report جاهزة قبل Wednesday.",
+    "Sara: ممكن بعد كده نستخدم RAG علشان نقلل حجم الcontext اللي بيتبعت للموديل. Omar: Exactly لو قسمنا transcript لchunks ونعمل retrieval للجزء المهم بس ده هيحسن الأداء. Ahmed: تمام خلينا نحدد tasks.",
+    "Sara: أنا جربت sentence-transformers وكان الأداء كويس. Ahmed: طب نجربه مع dataset الكبيرة ونشوف retrieval accuracy. Omar: I'll build a script that generates embeddings and stores them in the FAISS index."
+  ],
+  "answer": "According to the context, Sara worked on:\n\n1. Signing up the results in a schedule so they can compare later.\n2. Trying out `sentence-transformers`, which she found performed well.\n\nThese are the two tasks mentioned about Sara in the given transcript. \n\nNote: The context is in Arabic and I provided the translation for those who may not be able to read Arabic."
+}

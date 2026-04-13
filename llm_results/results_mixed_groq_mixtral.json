@@ -1,0 +1,1296 @@
+[
+  {
+    "meeting_id": 1,
+    "summary": " The meeting discussed reviewing user feedback received recently. Sara will summarize all comments before Thursday, categorizing them by issue and urgency. Ahmed requested the report to be ready by Friday, including problems and proposed solutions, and to prepare a small presentation for management. Mariam will complete the notifications flow test by Wednesday, documenting all issues for the team to follow up easily.",
+    "tasks": [
+      {
+        "task": "review User Feedback",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "prepare report and presentation for management",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      },
+      {
+        "task": "finish testing notifications flow",
+        "responsible_person": "Mariam",
+        "deadline": "Wednesday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 2,
+    "summary": "The meeting focused on reviewing the data pipeline and ETL jobs. Key tasks include: Salma will review and fix any issues in the ETL scripts by Thursday, ensuring data accuracy, proper order, and creating logs for each step. Mariam will test the mobile build, check for crashes before Sunday, write a report on identified issues, and propose solutions for improvement. Khaled emphasized completing all tasks by Friday and conducting a double-check on logs to ensure no issues on production.",
+    "tasks": [
+      {
+        "task": "discuss Data Pipeline and review ETL jobs",
+        "responsible_person": "Khaled",
+        "deadline": null
+      },
+      {
+        "task": "review ETL scripts and fix issues before Thursday",
+        "responsible_person": "Salma",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "test mobile build and ensure no crashes before Sunday",
+        "responsible_person": "Mariam",
+        "deadline": "Sunday"
+      },
+      {
+        "task": "write reports and propose solutions for issues",
+        "responsible_person": "Mariam",
+        "deadline": "Sunday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 3,
+    "summary": "The team discussed improving Search Optimization and reviewed slow queries. Ahmed will profile database queries, fix slow ones before Wednesday, and also review current indexes. The goal is to finish before Friday and ensure all improvements are working on the staging environment. Sara will review logs with the team before Monday and prepare a report showing new metrics.",
+    "tasks": [
+      {
+        "task": "start improving Search Optimization and review slow queries",
+        "responsible_person": "Omar",
+        "deadline": null
+      },
+      {
+        "task": "do profiling for database queries and fix the slow ones before Wednesday",
+        "responsible_person": "Ahmed",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "review indexes that are currently in use",
+        "responsible_person": "Ahmed",
+        "deadline": null
+      },
+      {
+        "task": "finish before Friday and make sure all improvements are working on the staging environment",
+        "responsible_person": "Khaled",
+        "deadline": "Friday"
+      },
+      {
+        "task": "review logs with the team and create a report showing new metrics",
+        "responsible_person": "Sara",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 4,
+    "summary": " In the meeting, the team discussed Marketing Campaign Planning and organizing promotional emails. Key tasks include Ahmed preparing email drafts and reviewing copy for all messages by Tuesday, Mariam designing social media graphics and ensuring brand visual identity compatibility by Thursday, and all work being finalized and shared with the team by Friday.",
+    "tasks": [
+      {
+        "task": "discuss Marketing Campaign Planning",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "prepare email drafts",
+        "responsible_person": "Ahmed",
+        "deadline": "Tuesday"
+      },
+      {
+        "task": "review copy for all messages",
+        "responsible_person": "Ahmed",
+        "deadline": "Tuesday"
+      },
+      {
+        "task": "design images for social media",
+        "responsible_person": "Mariam",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "ensure everything is ready",
+        "responsible_person": "Khaled",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share final copies with the team",
+        "responsible_person": "Khaled",
+        "deadline": "Friday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 5,
+    "summary": "In the meeting, Sara will continue QA testing and send a report with detailed notes on identified issues before Thursday. Omar will focus on automation tests, finishing them by Wednesday and updating test scripts as needed. Fatima will record all bugs and share them before Thursday, also suggesting clear steps for resolving each issue.",
+    "tasks": [
+      {
+        "task": "continue QA Testing and review discovered issues",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "start new tests and send report before Thursday",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "handle automation tests and finish before Wednesday",
+        "responsible_person": "Omar",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "log all bugs and share before Thursday",
+        "responsible_person": "Fatima",
+        "deadline": "Thursday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 6,
+    "summary": " The team reviewed the client presentation and will refine it before Tuesday. Ahmed will go over the slides and add key points, ensuring all information is clear. Omar will prepare the demo environment by Tuesday and confirm all demos are functional. Fatima will prepare the Arabic content by Thursday and ensure it's compatible with the English version.",
+    "tasks": [
+      {
+        "task": "prepare presentation for client",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "review slides",
+        "responsible_person": "Sara",
+        "deadline": null
+      },
+      {
+        "task": "add important points and review information before Tuesday",
+        "responsible_person": "Ahmed",
+        "deadline": "Tuesday"
+      },
+      {
+        "task": "set up demo environment and ensure all demos are working without issues by Tuesday",
+        "responsible_person": "Omar",
+        "deadline": "Tuesday"
+      },
+      {
+        "task": "prepare Arabic content and ensure compatibility with English version by Thursday",
+        "responsible_person": "Fatima",
+        "deadline": "Thursday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 7,
+    "summary": " The team discussed the continuation of Backend Deployment, reviewing all endpoints. Sara will test the API endpoints, fix issues, and ensure logs are properly recorded by Wednesday. Omar will prepare Docker containers and confirm all configurations by Friday. The goal is to have all settings ready by Monday and ensure a smooth deployment.",
+    "tasks": [
+      {
+        "task": "continue Backend Deployment",
+        "responsible_person": "Ahmed",
+        "deadline": null
+      },
+      {
+        "task": "test API endpoints and fix issues",
+        "responsible_person": "Sara",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "prepare Docker containers",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "ensure all settings are ready",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 8,
+    "summary": "The team discussed the progress of the Website Redesign project. Sara will prepare wireframes by Thursday and add necessary improvements. Mariam will review design assets by Friday to ensure compatibility with the new design. The goal is to have everything ready by Monday and finalize the version for QA.",
+    "tasks": "[\n  {\n    \"task\": \"complete Website Redesign\",\n    \"responsible_person\": null,\n    \"deadline\": \"النهاردة\"\n  },\n  {\n    \"task\": \"prepare wireframes\",\n    \"responsible_person\": \"Sara\",\n    \"deadline\": \"النهاردة\"\n  },\n  {\n    \"task\": \"review assets of the design\","
+  },
+  {
+    "meeting_id": 9,
+    "summary": "In the meeting, Ahmed agreed to set up tracking and send a report by Thursday, also reviewing important events. Sara will review data integrity and confirm the accuracy of all metrics by Friday. Mariam plans to set up dashboards and ensure all visualizations are working correctly by Wednesday.",
+    "tasks": [
+      {
+        "task": "Analytics Setup",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "set up tracking and send report",
+        "responsible_person": "Ahmed",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "review data integrity and check metrics",
+        "responsible_person": "Sara",
+        "deadline": "Friday"
+      },
+      {
+        "task": "set up dashboards and check visualizations",
+        "responsible_person": "Mariam",
+        "deadline": "Wednesday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 10,
+    "summary": " At the Feature Planning meeting, Sara agreed to prepare feature specs and share them with the team before Thursday, ensuring all important details are covered. Omar will review the implementation details and confirm all dependencies by Friday. The team decided that all tasks need to be completed by Monday to proceed with a sync for final verification.",
+    "tasks": [
+      {
+        "task": "Feature Planning",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "Prepare feature specs and send to the team",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "Review implementation details",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "Finish all tasks",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 11,
+    "summary": "The team discussed conducting a Sprint Retrospective, focusing on what succeeded in the recent sprint and areas for improvement. Sara will gather data and create a summary by Wednesday, while Mariam will review lessons learned and note improvements. By Friday, Khaled will share the summary with management, highlighting key points for the team.",
+    "tasks": [
+      {
+        "task": "do Sprint Retrospective",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "collect all data from the team and make a summary before Wednesday",
+        "responsible_person": "Sara",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "review all lessons learned and write notes before Wednesday",
+        "responsible_person": "Mariam",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "share summary before Friday and prepare it for the management",
+        "responsible_person": "Khaled",
+        "deadline": "Friday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 12,
+    "summary": " In the meeting, it was discussed that Sara and Ahmed will finalize details and user stories for the New Feature. Ahmed will prepare complete user stories along with acceptance criteria before Wednesday. Omar will review the implementation plan by Friday and ensure all dependencies are available. Fatima will prepare prototypes before Monday and share them with the team for review.",
+    "tasks": [
+      {
+        "task": "discuss New Feature",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "prepare complete user stories and clarify acceptance criteria",
+        "responsible_person": "Ahmed",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "review implementation plan",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "prepare prototypes and share with the team for review",
+        "responsible_person": "Fatima",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 13,
+    "summary": "The team discussed UX Review and examined user flows and design patterns. Key tasks include Salma reviewing all user flows and sharing findings by Tuesday, highlighting potential issues affecting user experience. Mariam will review design patterns and provide improvement suggestions by Wednesday. Ahmed will compile and share the results with the entire team by Friday.",
+    "tasks": [
+      {
+        "task": "UX Review",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "review all user flows",
+        "responsible_person": "Salma",
+        "deadline": "Monday"
+      },
+      {
+        "task": "review design patterns",
+        "responsible_person": "Mariam",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "share results",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 14,
+    "summary": "In the meeting, Sara discussed improving slow functions and reviewing heavy queries before Thursday, while Khaled planned to adjust DB indexes and ensure fast transactions by Friday. Ahmed agreed to conduct final tests before Monday and document all results.",
+    "tasks": [
+      {
+        "task": "discuss Performance Tuning and check bottlenecks in the application",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "improve slow functions",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "set DB indexes and ensure all transactions are fast",
+        "responsible_person": "Khaled",
+        "deadline": "Friday"
+      },
+      {
+        "task": "do final tests and document all results",
+        "responsible_person": "Ahmed",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 15,
+    "summary": " The team discussed the Security Audit findings. Sara will review all vulnerabilities before Wednesday and identify critical ones. Omar will fix critical issues by Friday and ensure patches are working properly. Khaled will document fixes by Monday and share them with the team.",
+    "tasks": [
+      {
+        "task": "Security Audit",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "review all vulnerabilities",
+        "responsible_person": "Sara",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "fix critical issues",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "document fixes",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 16,
+    "summary": " The team discussed API Expansion and determined new endpoints. Ahmed will prepare a plan for the new endpoints by Thursday and clarify all required parameters. Khaled will test the new API routes by Friday to ensure their stability. Mariam will share detailed documentation by Monday so that the entire team is aware of the details.",
+    "tasks": [
+      {
+        "task": "discuss API Expansion and determine new endpoints",
+        "responsible_person": "Sara",
+        "deadline": null
+      },
+      {
+        "task": "prepare new endpoints plan and clarify all required parameters",
+        "responsible_person": "Ahmed",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "test new API routes",
+        "responsible_person": "Khaled",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share detailed documentation",
+        "responsible_person": "Mariam",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 17,
+    "summary": "In the meeting, it was discussed to confirm the readiness of new schemas for Database Migration. Sara will diagram schema changes before Wednesday and review for any potential conflicts. Ahmed will create a full DB backup before Friday and ensure all data is secure. Fatima will test rollback procedures before Monday and confirm they are functional in any scenario.",
+    "tasks": [
+      {
+        "task": "discuss Database Migration",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "draw schema changes",
+        "responsible_person": "Sara",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "make full backup for DB",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      },
+      {
+        "task": "test rollback procedures",
+        "responsible_person": "Fatima",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 18,
+    "summary": " The team discussed Mobile Integration and API sync jobs between the mobile and backend. Sara will test all API sync jobs by Wednesday to ensure no data loss. Mariam will review UI compatibility by Thursday to confirm all screens are working well on different mobile devices. Omar will prepare the final build by Friday and send it to the team for final testing.",
+    "tasks": [
+      {
+        "task": "Mobile Integration",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "review API sync jobs",
+        "responsible_person": "Sara",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "test UI compatibility",
+        "responsible_person": "Mariam",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "prepare final build and send to the team for final tests",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 19,
+    "summary": " In the meeting, the team discussed Error Logging Improvement. Khaled mentioned the need to ensure all errors are clearly logged. Salma will update logging levels by Wednesday and add any potential errors. Ahmed will add alert triggers for critical errors by Friday. Sara will review the logs with the team before Monday and document all improvements.",
+    "tasks": [
+      {
+        "task": "discuss Error Logging Improvement",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "update logging levels and add possible errors",
+        "responsible_person": "Salma",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "add alert triggers for critical errors",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      },
+      {
+        "task": "review logs with the team",
+        "responsible_person": "Sara",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 20,
+    "summary": " At the Release Planning meeting, it was discussed that necessary documents for the upcoming release are being prepared. Ahmed will prepare the release notes before Thursday and detail all new changes. Omar will arrange deployments before Friday and ensure all environments are ready. Khaled confirmed that everything will be ready for the rollout by Monday.",
+    "tasks": [
+      {
+        "task": "Release Planning",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "prepare release notes",
+        "responsible_person": "Ahmed",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "deployments",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "rollout",
+        "responsible_person": null,
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 21,
+    "summary": "The meeting focused on following up on Customer Support Feedback. Sara will gather all tickets and provide a summary by Wednesday, highlighting major issues. Mariam will review responses before Friday and suggest improvements in customer handling. Khaled requested to share the report by Monday with the whole team.",
+    "tasks": [
+      {
+        "task": "continue with Customer Support Feedback and ensure follow-up",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "collect all tickets and make a summary before Wednesday",
+        "responsible_person": "Sara",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "review the responses before Friday and suggest improvements for customer handling",
+        "responsible_person": "Mariam",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share report",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 22,
+    "summary": "In the meeting, Sara agreed to review all logs and identify any spikes before Wednesday. Ahmed will update the alert system and ensure all critical notifications are working by Friday. Khaled requested a comprehensive report to be shared with the entire team by Monday.",
+    "tasks": [
+      {
+        "task": "continue Server Monitoring",
+        "responsible_person": "Omar",
+        "deadline": null
+      },
+      {
+        "task": "review all logs and determine any spikes",
+        "responsible_person": "Sara",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "update alert system and ensure all critical notifications are working",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share comprehensive report",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 23,
+    "summary": "The meeting discussed conducting a Feature Retrospective, focusing on successful features and areas needing improvement. Sara will gather data and provide a summary of the team's issues by Thursday. Mariam will determine priorities for improvements and write clear notes for the team by Friday. A complete presentation will be ready for the team and managers by Monday.",
+    "tasks": [
+      {
+        "task": "do Feature Retrospective",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "collect data and make summary",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "set priorities for improvements",
+        "responsible_person": "Mariam",
+        "deadline": "Friday"
+      },
+      {
+        "task": "give presentation",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 24,
+    "summary": "The group discussed API documentation comprehensiveness. Ahmed will detail all endpoints with their parameters and responses by Wednesday. Omar will review examples by Thursday to ensure clarity for all developers. The team aims to have the documentation ready by Friday.",
+    "tasks": [
+      {
+        "task": "discuss API Documentation",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "write all endpoints and explain parameters and responses",
+        "responsible_person": "Ahmed",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "review examples",
+        "responsible_person": "Omar",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "ensure all documentation is ready",
+        "responsible_person": "Khaled",
+        "deadline": "Friday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 25,
+    "summary": "In the meeting, it was decided that Sara will test all flows and document any UI bugs by Wednesday. Ahmed will review responsive design and ensure all screens work on all devices by Friday. Khaled will share a complete report with the team by Monday.",
+    "tasks": [
+      {
+        "task": "UI Testing and review all screens and determine any layout issues",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "try all flows and document any bugs before Wednesday",
+        "responsible_person": "Sara",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "review responsive design and ensure all screens work on all devices before Friday",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share complete report with the team",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 26,
+    "summary": "The team discussed the Content Update. Sara will review articles and pages by Thursday and correct any errors. Mariam will add new images by Friday and ensure they match the design. Khaled confirmed that all updates need to be completed before Monday.",
+    "tasks": [
+      {
+        "task": "continue Content Update",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "review articles and pages",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "add new images and ensure they match the design",
+        "responsible_person": "Mariam",
+        "deadline": "Friday"
+      },
+      {
+        "task": "finish all updates",
+        "responsible_person": null,
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 27,
+    "summary": "In the meeting, it was decided that Sara will review all tickets and determine critical ones before Wednesday, while Omar will fix high priority bugs and ensure their testing by Friday. Khaled will prepare a comprehensive report on all low priority bugs for the team before Monday.",
+    "tasks": [
+      {
+        "task": "do Bug Triage and confirm priorities",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "review all tickets and determine critical ones",
+        "responsible_person": "Sara",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "fix high priority bugs and ensure their testing",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "prepare a comprehensive report for all low priority bugs",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 28,
+    "summary": " The team discussed preparing the Release Candidate, ensuring stability before release. Ahmed will review all test cases by Thursday and make necessary adjustments. Sara will conduct regression tests by Friday and document any issues. Khaled will share the full report with the team by Monday before release.",
+    "tasks": [
+      {
+        "task": "work on necessary adjustments",
+        "responsible_person": "Ahmed",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "conduct regression tests",
+        "responsible_person": "Sara",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share full report",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 29,
+    "summary": " The meeting discussed Load Testing on the servers to examine their performance under pressure. Sara will prepare all scenarios and set thresholds for each service before Wednesday. Ahmed will monitor metrics and document any bottlenecks before Friday. Khaled confirmed that a complete presentation of the results will be ready for the whole team by Monday.",
+    "tasks": [
+      {
+        "task": "do Load Testing on the servers and check their performance under pressure",
+        "responsible_person": "Omar",
+        "deadline": null
+      },
+      {
+        "task": "prepare all scenarios before Wednesday and set thresholds for each service",
+        "responsible_person": "Sara",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "monitor the metrics and document any bottlenecks before Friday",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      },
+      {
+        "task": "give a full presentation of the results to the team",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 30,
+    "summary": "The team reviewed the marketing copies for the upcoming campaign and planned revisions. Ahmed will proofread all copies by Thursday, providing feedback on errors or improvements. Mariam will suggest headline changes by Friday, ensuring alignment with the brand tone. Khaled emphasized that all final copies must be ready by Monday.",
+    "tasks": [
+      {
+        "task": "review Marketing Copy for the upcoming campaign and finalize the texts",
+        "responsible_person": "Sara",
+        "deadline": null
+      },
+      {
+        "task": "review all copies before Thursday and mark any errors or improvements",
+        "responsible_person": "Ahmed",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "suggest edits for the headlines before Friday and ensure they align with brand tone",
+        "responsible_person": "Mariam",
+        "deadline": "Friday"
+      },
+      {
+        "task": "ensure all final copies are ready before Monday",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 31,
+    "summary": "At the meeting, it was confirmed that Database Backup will be checked and its safety ensured. Sara will review all backups before Wednesday and test restore each one to ensure. Omar will document all results before Friday and report any issues. Khaled stated that a comprehensive report will be shared with the entire team before Monday.",
+    "tasks": [
+      {
+        "task": "confirm Database Backup",
+        "responsible_person": "Ahmed",
+        "deadline": null
+      },
+      {
+        "task": "review all backups and try restore each one",
+        "responsible_person": "Sara",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "document results and report any issues",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share comprehensive report with the whole team",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 32,
+    "summary": " The team discussed Feature Rollout Planning. Ahmed will finalize the timeline along with the dependencies for each feature by Wednesday. Omar will review the readiness of every environment and confirm all requirements are met by Friday. It's crucial that all team members are aware of the schedule by Monday.",
+    "tasks": [
+      {
+        "task": "discuss Feature Rollout Planning",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "prepare timeline and clarify dependencies for each feature",
+        "responsible_person": "Ahmed",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "review readiness of each environment",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "be aware of the schedule",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 33,
+    "summary": " The meeting discussed a code review session, where all open pull requests will be reviewed. Sara will review all PRs before Thursday, noting any issues or improvements needed. Mariam plans to propose refactoring for certain modules requiring improvement by Friday, and a complete report will be shared with the team by Monday.",
+    "tasks": [
+      {
+        "task": "do Code Review",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "review all PRs",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "refactoring for some modules",
+        "responsible_person": "Mariam",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share full report with the team",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 34,
+    "summary": "The team discussed the continuation of Client Onboarding. Sara will prepare complete documentation by Wednesday, and clarify all steps. Ahmed will review account settings by Friday to ensure they are functioning correctly. Mariam will share a task list with the team by Monday so everyone knows their responsibilities.",
+    "tasks": [
+      {
+        "task": "continue Client Onboarding",
+        "responsible_person": "Omar",
+        "deadline": null
+      },
+      {
+        "task": "prepare complete documentation",
+        "responsible_person": "Sara",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "review account settings",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share list of tasks with the team",
+        "responsible_person": "Mariam",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 35,
+    "summary": "In the meeting, it was decided that Sara will review all UI Component Library components before Thursday and make necessary improvements. Ahmed will test the integration of all components before Friday. Khaled will ensure complete documentation is ready for the team by Monday.",
+    "tasks": [
+      {
+        "task": "continue UI Component Library Update",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "review all components",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "try integration for all components",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      },
+      {
+        "task": "complete full documentation",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 36,
+    "summary": " The meeting discussed Performance Benchmarking. Sara will gather all data by Wednesday and highlight any differences. Omar will conduct stress tests before Friday and document any bottlenecks. Khaled confirmed that a comprehensive presentation of all results will be ready by Monday.",
+    "tasks": [
+      {
+        "task": "Performance Benchmarking",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "gather all data",
+        "responsible_person": "Sara",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "run stress tests",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "present comprehensive results",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 37,
+    "summary": "The team discussed the Security Patch Deployment. Sara will apply all patches before Thursday and ensure there are no errors. Omar will test the stability after the update and confirm any issues before Friday. The goal is to have all servers fully updated by Monday.",
+    "tasks": [
+      {
+        "task": "continue Security Patch Deployment",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "apply all patches",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "test stability after update",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "ensure all servers are fully updated",
+        "responsible_person": null,
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 38,
+    "summary": "The meeting discussed the analysis of the recent Customer Survey. Ahmed will prepare a comprehensive summary by Wednesday, focusing on key feedback. Mariam will determine main improvement points and propose solutions by Friday. Khaled will share a complete report with the whole team by Monday.",
+    "tasks": [
+      {
+        "task": "analyze Customer Survey",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "prepare complete summary of feedback",
+        "responsible_person": "Ahmed",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "determine key points for improvement and propose solutions",
+        "responsible_person": "Mariam",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share complete report with the team",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 39,
+    "summary": " The team discussed beta testing for the Mobile App, focusing on reviewing new features. Sara will test all flows and document any bugs by Thursday. Ahmed will review the app's performance and ensure all crashes are resolved by Friday. Mariam plans to submit a complete report with all observations for the team by Monday.",
+    "tasks": [
+      {
+        "task": "Mobile App Beta Testing and review all new features",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "Try all flows and document any bugs",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "Review performance and ensure all crashes are resolved",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      },
+      {
+        "task": "Provide a complete report with all notes to the team",
+        "responsible_person": "Mariam",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 40,
+    "summary": "The meeting discussed an internal training session. Sara will prepare slides by Wednesday, outlining all steps. Omar will prepare a demo of all tools by Friday to share with the team. Khaled confirmed that all training will be ready and direct before Monday.",
+    "tasks": [
+      {
+        "task": "Internal Training Session",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "prepare slides",
+        "responsible_person": "Sara",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "prepare demo for all tools",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "review training",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 41,
+    "summary": " The team discussed the Marketing Analytics Review. Ahmed will prepare dashboards by Thursday, focusing on recent metrics and any discrepancies. Mariam will review all reports by Friday and highlight any issues. Khaled suggested sharing a comprehensive final report with the team and directors by Monday.",
+    "tasks": [
+      {
+        "task": "continue Marketing Analytics Review and check all the metrics for the recent period",
+        "responsible_person": "Sara",
+        "deadline": null
+      },
+      {
+        "task": "prepare dashboards before Thursday and explain any differences",
+        "responsible_person": "Ahmed",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "review all reports before Friday and point out any issues",
+        "responsible_person": "Mariam",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share a comprehensive final report before Monday with the team and managers",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 42,
+    "summary": "The team planned a Feature Freeze Review, with Sara reviewing all features before Thursday and reporting any issues, while Omar will test all functionalities before Friday to ensure stability. Khaled confirmed that the final report will be ready by Monday for the group.",
+    "tasks": [
+      {
+        "task": "Feature Freeze Review",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "review all features",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "test all features",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "prepare final report",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 43,
+    "summary": " The team discussed conducting a System Health Check, with Mariam focusing on reviewing system performance and Ahmed tasked to review all logs by Wednesday, noting any anomalies. Sara will test all endpoints by Friday and document any errors. Khaled requested that the full health report be shared with the entire team by Monday.",
+    "tasks": [
+      {
+        "task": "do System Health Check and check performance of all services",
+        "responsible_person": "Mariam",
+        "deadline": null
+      },
+      {
+        "task": "review all logs and point out any anomalies",
+        "responsible_person": "Ahmed",
+        "deadline": "Wednesday"
+      },
+      {
+        "task": "test all endpoints and document any errors",
+        "responsible_person": "Sara",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share full health report",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 44,
+    "summary": "The group discussed preparing Release Notes for the upcoming release. Ahmed will gather all details and clarify changes by Thursday. Omar will review the texts before Friday to ensure clarity for both the team and clients. Khaled suggested sharing the final draft by Monday.",
+    "tasks": [
+      {
+        "task": "جمع المعلومات وكتابة Release Notes للإصدار القادم",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "جهز كل التفاصيل ووضح كل التغييرات",
+        "responsible_person": "Ahmed",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "راجع النصوص وتأكد من وضوحها لكل الفريق والعملاء",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share final draft",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 45,
+    "summary": " In the meeting, it was discussed that all bugs found in the latest version need to be confirmed fixed. Sara will review all bugs before Thursday and ensure the fixes are correct. Mariam will test the fixes before Friday and document any additional issues. Khaled requested a complete report for the team by Monday.",
+    "tasks": [
+      {
+        "task": "confirm all discovered bugs in the latest version",
+        "responsible_person": "Ahmed",
+        "deadline": null
+      },
+      {
+        "task": "review all bugs and ensure fixes before Thursday",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "test fixes and document any additional issues before Friday",
+        "responsible_person": "Mariam",
+        "deadline": "Friday"
+      },
+      {
+        "task": "submit complete report to the team",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 46,
+    "summary": "The team discussed Data Migration Testing, with Sara tasked to review all data before Thursday and perform a restore for each batch. Ahmed will monitor logs and document any issues before Friday. Khaled will share a full report with the team by Monday.",
+    "tasks": [
+      {
+        "task": "Data Migration Testing",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "review all data",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "check logs and document any issues",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share full report",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 47,
+    "summary": "The meeting discussed API Versioning, reviewing all new and old endpoints. Ahmed will review all versions and highlight any breaking changes before Thursday. Omar will test backward compatibility by Friday and ensure all clients are functioning. Khaled will complete the documentation by Monday for the team.",
+    "tasks": [
+      {
+        "task": "discuss API Versioning",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "review all new and old endpoints",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "review all versions",
+        "responsible_person": "Ahmed",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "examine backward compatibility",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "complete full documentation",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 48,
+    "summary": "The meeting discussed the Internal Tool Update. Sara will test all new features before Thursday and report any issues. Ahmed will review the performance and ensure all workflows are functioning by Friday. Khaled will share the final update report by Monday.",
+    "tasks": [
+      {
+        "task": "Internal Tool Update",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "try all features",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "review performance",
+        "responsible_person": "Ahmed",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share final update report",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 49,
+    "summary": " The meeting discussed the Content Strategy for the upcoming period and prioritized key points. Sara will gather all proposals and create a summary by Thursday. Mariam will determine major topics and suggest an execution plan by Friday, while Khaled will prepare a comprehensive presentation for the whole team by Monday.",
+    "tasks": [
+      {
+        "task": "discuss Content Strategy for the near future and set priorities",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "collect all proposals and make a summary",
+        "responsible_person": "Sara",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "determine important topics and propose implementation plan",
+        "responsible_person": "Mariam",
+        "deadline": "Friday"
+      },
+      {
+        "task": "prepare complete presentation for the team",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  },
+  {
+    "meeting_id": 50,
+    "summary": "The team discussed reviewing all accomplishments and issues from the Final Sprint. Ahmed will summarize all tasks before Thursday, outlining completed and remaining items. Omar will document any pending issues by Friday and propose solutions. Khaled will share a comprehensive final report to the team and managers by Monday.",
+    "tasks": [
+      {
+        "task": "Final Sprint Review",
+        "responsible_person": null,
+        "deadline": null
+      },
+      {
+        "task": "prepare summary of tasks",
+        "responsible_person": "Ahmed",
+        "deadline": "Thursday"
+      },
+      {
+        "task": "document pending issues",
+        "responsible_person": "Omar",
+        "deadline": "Friday"
+      },
+      {
+        "task": "share final report",
+        "responsible_person": "Khaled",
+        "deadline": "Monday"
+      }
+    ]
+  }
+]

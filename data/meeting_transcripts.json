@@ -1,0 +1,52 @@
+[
+  {
+    "meeting_id": 1,
+    "topic": "Backend Deployment Planning",
+    "transcript": "Ahmed: We need to deploy the recommendation model to production by Friday. Sara: I will review the dataset pipeline today and make sure it's clean. Ahmed: Good. Also, can you check the API endpoints are working? Sara: Sure, I'll handle that as well. Omar: I'll set up the Docker containers by Wednesday."
+  },
+  {
+    "meeting_id": 2,
+    "topic": "Model Evaluation Review",
+    "transcript": "Nour: The evaluation results for the new model are ready. We need to compare Mixtral and DeepSeek outputs by end of week. Omar: I will prepare the full evaluation report by tomorrow. Sara: I'll run the benchmark tests on the test dataset today. Nour: Great, please share the results in the shared drive."
+  },
+  {
+    "meeting_id": 3,
+    "topic": "UI Dashboard Update",
+    "transcript": "Laila: The dashboard needs a new section for real-time meeting summaries. Omar: I will design the new UI components by Thursday. Laila: Also we need to update the color scheme to match the new branding. Ahmed: I can review the design mockups on Friday. Omar: I'll send the Figma file to everyone by Wednesday."
+  },
+  {
+    "meeting_id": 4,
+    "topic": "Testing Sprint Kickoff",
+    "transcript": "Sara: We have 3 new features to test this sprint. Nour: I will write the test cases for the transcription module by Monday. Ahmed: I'll handle integration testing for the embedding pipeline. Sara: Can someone take the API load testing? Omar: I'll do the load testing and report back by Thursday."
+  },
+  {
+    "meeting_id": 5,
+    "topic": "Documentation and Reporting",
+    "transcript": "Laila: We need to document the full LLM POC workflow before the next demo. Ahmed: I will write the technical documentation for the prompt templates by Wednesday. Nour: I'll update the README with setup instructions today. Laila: Also prepare a summary report for the stakeholders. Sara: I can handle the stakeholder report, I'll have it ready by Friday."
+  },
+  {
+    "meeting_id": 6,
+    "topic": "Model Deployment Pipeline",
+    "transcript": "Omar: The CI/CD pipeline for model deployment needs to be updated. Ahmed: I'll refactor the deployment scripts by Tuesday. Sara: I need to test the rollback mechanism before we go live. Nour: I'll document the deployment steps and create a runbook by Thursday. Omar: Let's schedule a dry run deployment on Wednesday."
+  },
+  {
+    "meeting_id": 7,
+    "topic": "Frontend Integration",
+    "transcript": "Laila: The frontend team needs the new API contract by Monday. Ahmed: I will finalize the API documentation and share it today. Omar: I'll update the React components to match the new endpoints. Laila: We also need to add loading states to the summary UI. Omar: I'll handle the loading states and have a PR ready by Wednesday."
+  },
+  {
+    "meeting_id": 8,
+    "topic": "Data Quality and Testing",
+    "transcript": "Nour: We found some noise in the meeting transcripts dataset. Sara: I will clean and re-validate the dataset by tomorrow. Ahmed: We should also add more edge case transcripts for better coverage. Nour: I'll create 20 edge case samples by end of week. Sara: Once done, I'll re-run the evaluation pipeline."
+  },
+  {
+    "meeting_id": 9,
+    "topic": "System Performance Review",
+    "transcript": "Omar: The system latency is higher than expected for long transcripts. Ahmed: I'll profile the bottlenecks in the embedding generation step today. Sara: I can optimize the vector database queries, I'll look into it by Thursday. Nour: I'll prepare a performance report comparing before and after optimization. Omar: Let's review the results in the next standup on Friday."
+  },
+  {
+    "meeting_id": 10,
+    "topic": "Final POC Presentation Prep",
+    "transcript": "Laila: We need to prepare the final POC presentation for next Monday. Ahmed: I'll compile the model comparison results into slides by Friday. Nour: I will record a demo video showing the full pipeline in action. Sara: I'll prepare the evaluation summary and key findings section. Omar: I'll review the full presentation on Sunday and make final edits. Laila: Great, let's make sure everything is ready by Saturday."
+  }
+]

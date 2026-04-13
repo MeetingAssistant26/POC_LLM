@@ -1,0 +1,147 @@
+[
+  {
+    "meeting_id": 1,
+    "llm_output": {
+      "summary": "The meeting discussed reviewing User Feedback, preparing a summary report, and a presentation for management. The report should include problems and proposed solutions, and be ready by Friday.",
+      "tasks": [
+        {
+          "task": "Review User Feedback",
+          "responsible_person": "Sara",
+          "deadline": null
+        },
+        {
+          "task": "Prepare detailed summary report",
+          "responsible_person": "Sara",
+          "deadline": "ثursday"
+        },
+        {
+          "task": "Prepare presentation for management",
+          "responsible_person": "Sara and Ahmed",
+          "deadline": "Friday"
+        },
+        {
+          "task": "Test notifications flow",
+          "responsible_person": "Mariam",
+          "deadline": "Wednesday"
+        }
+      ]
+    }
+  },
+  {
+    "meeting_id": 2,
+    "llm_output": {
+      "summary": "Khaled and team will review and finalize data pipeline tasks, ensure ETL jobs are working correctly, and complete double-check on logs before Friday. Salma will review ETL scripts and fix issues before Thursday. Mariam will test mobile build and report any issues with proposed solutions.",
+      "tasks": [
+        {
+          "task": "Review ETL scripts and fix issues",
+          "responsible_person": "Salma",
+          "deadline": "Thursday"
+        },
+        {
+          "task": "Double-check logs",
+          "responsible_person": "Khaled",
+          "deadline": "Friday"
+        },
+        {
+          "task": "Test mobile build",
+          "responsible_person": "Mariam",
+          "deadline": "Sunday"
+        },
+        {
+          "task": "Write report for issues and propose solutions",
+          "responsible_person": "Mariam",
+          "deadline": "no mention"
+        }
+      ]
+    }
+  },
+  {
+    "meeting_id": 3,
+    "llm_output": {
+      "summary": "The team met to discuss Search Optimization improvements. They agreed to work on database query profiling, query optimization, and index review. Key deliverables are due before Thursday and the staging environment must be updated.",
+      "tasks": [
+        {
+          "task": "Profile database queries",
+          "responsible_person": "Ahmed",
+          "deadline": "Wednesday"
+        },
+        {
+          "task": "Optimize slow queries",
+          "responsible_person": "Ahmed",
+          "deadline": "Wednesday"
+        },
+        {
+          "task": "Review current indexes",
+          "responsible_person": "Ahmed",
+          "deadline": "Wednesday"
+        },
+        {
+          "task": "Update staging environment",
+          "responsible_person": "null",
+          "deadline": "Friday"
+        },
+        {
+          "task": "Review logs with the team",
+          "responsible_person": "Sara",
+          "deadline": "Monday"
+        },
+        {
+          "task": "Prepare report to display new metrics",
+          "responsible_person": "Sara",
+          "deadline": "null"
+        },
+        {
+          "task": "Complete improvements",
+          "responsible_person": "Khaled",
+          "deadline": "Friday"
+        }
+      ]
+    }
+  },
+  {
+    "meeting_id": 4,
+    "llm_output": {
+      "summary": "Discussion about Marketing Campaign Planning, message advertising organization, and final preparations were made. Email drafts need to be prepared and reviewed. Design for social media and brand identity compatibility need to be prepared before Thursday and Friday.",
+      "tasks": [
+        {
+          "task": "Prepare email drafts",
+          "responsible_person": "Ahmed",
+          "deadline": "Tuesday"
+        },
+        {
+          "task": "Design social media graphics",
+          "responsible_person": "Mariam",
+          "deadline": "Thursday"
+        },
+        {
+          "task": "Prepare final campaign documents",
+          "responsible_person": "Khaled",
+          "deadline": "null"
+        }
+      ]
+    }
+  },
+  {
+    "meeting_id": 5,
+    "llm_output": {
+      "summary": "Today's meeting focused on QA Testing and reviewing discovered errors. The team members will conduct tests, provide reports, and propose fixes. Key tasks and deadlines were discussed.",
+      "tasks": [
+        {
+          "task": "Start QA Testing and send report before Thursday",
+          "responsible_person": "Sara",
+          "deadline": "Thursday"
+        },
+        {
+          "task": "Conduct automation tests and finalize before Wednesday",
+          "responsible_person": "Omar",
+          "deadline": "Wednesday"
+        },
+        {
+          "task": "Record bugs and share before Thursday",
+          "responsible_person": "Fatima",
+          "deadline": "Thursday"
+        }
+      ]
+    }
+  }
+]
