@@ -9,11 +9,26 @@ from sentence_transformers import SentenceTransformer, CrossEncoder
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from groq import Groq
+import subprocess
 
 # Import internal python files
 from RAG.chunking import run_chunking
 from RAG.embeddings import run_embeddings
 from RAG.vector_store import run_vector_store
+
+def generate_audio(text):
+    print("🚀 Running TTS subprocess...")
+
+    result = subprocess.run(
+        ["venv_tts\\Scripts\\python.exe", "TTS/coqui_tts.py", text],
+        capture_output=False,  
+        text=True
+    )
+
+    print("✅ TTS finished")
+
+    return "done"
+
 def run_pipeline():
     print("Inside run_pipeline function")
     
@@ -74,7 +89,7 @@ def run_pipeline():
         return unique_meetings[:top_k]
 
     # 🔵 STEP 2: Retrieve chunks
-    def retrieve_chunks_hierarchical(query, query_embedding, meeting_ids, top_k=8):
+    def retrieve_chunks_hierarchical(query, query_embedding, meeting_ids, top_k=3):
         all_texts = []
         all_metas = []
 
@@ -142,6 +157,13 @@ def run_pipeline():
             query = input("Ask a question: ")
             query_lower = query.lower()
 
+            if "summary" in query_lower:
+                mode = "summary"
+            elif "task" in query_lower:
+                mode = "tasks"
+            else:
+                mode = "qa"
+
             matches = re.findall(r'meeting\s*(\d+)|\b(\d+)\b', query.lower())
 
             meeting_ids = []
@@ -201,6 +223,11 @@ def run_pipeline():
 
         prompt = f"""
 You are an AI meeting assistant.
+IMPORTANT:
+
+- If the question asks about "goal" or "goals", return ONLY the goal directly.
+- Do NOT generate a full summary unless explicitly asked.
+- If mode is "qa", NEVER return a summary.
 
 Instructions:
 
@@ -288,6 +315,7 @@ Previous conversation:
 {history_text}
 Meeting context:
 {context}
+Mode: {mode}
 Question:
 {query}
 """
@@ -298,6 +326,12 @@ Question:
         )
 
         answer = response.choices[0].message.content
+        print("✅ Answer generated")
+        print(answer)
+
+        print("➡️ Going to TTS...")
+        audio_path = generate_audio(answer)
+
         print("\nFinal Answer:\n", answer)
 
         conversation_history.append({
@@ -322,7 +356,8 @@ Question:
                 "meeting_id": meeting_id,
                 "question": query,
                 "answer": answer,
-                "context_used": retrieved_chunks  # Useful for verifying the source of the AI's answer
+                "audio_path": audio_path,
+                "context_used": retrieved_chunks
             }, f, ensure_ascii=False, indent=2)
 
         print(f"📂 Result saved to: {file_path}")
