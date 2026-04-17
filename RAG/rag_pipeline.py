@@ -149,13 +149,16 @@ def run_pipeline():
             meeting_num = input("Enter meeting number (1-10): ")
             meeting_id = int(meeting_num)
             query = f"Summarize meeting {meeting_num}"
+            mode = "summary"
         elif choice == "2":
             meeting_num = input("Enter meeting number (1-10): ")
             meeting_id = int(meeting_num)
             query = f"Extract tasks from meeting {meeting_num}"
+            mode = "tasks"
         elif choice == "3":
             query = input("Ask a question: ")
             query_lower = query.lower()
+            mode="qa
 
             if "summary" in query_lower:
                 mode = "summary"
