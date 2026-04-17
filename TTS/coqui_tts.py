@@ -9,11 +9,14 @@ tts = TTS("tts_models/en/ljspeech/tacotron2-DDC")
 
 
 def clean_for_tts(text):
-    text = re.sub(r'\s+', ' ', text)
+    text = text.replace("**", "")           #remove bold
+    text = text.replace("*", "")            # remove italic  
+    text = re.sub(r'^\s*[-•]\s*', '', text, flags=re.MULTILINE)  # remove bullet points
+    text = re.sub(r'\s+', ' ', text)        #remove extra spaces
     return text.strip()
 
 
-def split_text(text, max_len=500):
+def split_text(text, max_len=200):
     sentences = re.split(r'(?<=[.!?]) +', text)
 
     chunks = []
