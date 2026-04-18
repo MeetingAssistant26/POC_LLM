@@ -1,86 +1,37 @@
-from TTS.api import TTS
+import asyncio
+import edge_tts
+import sys
+import time
 import os
 import re
-import time
-import wave
-import sys
-
-tts = TTS("tts_models/en/ljspeech/tacotron2-DDC")
-
 
 def clean_for_tts(text):
-    text = text.replace("**", "")           #remove bold
-    text = text.replace("*", "")            # remove italic  
-    text = re.sub(r'^\s*[-•]\s*', '', text, flags=re.MULTILINE)  # remove bullet points
-    text = re.sub(r'\s+', ' ', text)        #remove extra spaces
+    text = text.replace("**", "")
+    text = text.replace("*", "")
+    text = re.sub(r'^\s*[-•]\s*', '', text, flags=re.MULTILINE)
+    text = re.sub(r'\s+', ' ', text)
     return text.strip()
 
+def detect_language(text):
+    arabic_chars = re.findall(r'[\u0600-\u06FF]', text)
+    if len(arabic_chars) > len(text) * 0.3:
+        return "ar"
+    return "en"
 
-def split_text(text, max_len=200):
-    sentences = re.split(r'(?<=[.!?]) +', text)
-
-    chunks = []
-    current = ""
-
-    for s in sentences:
-        if len(current) + len(s) <= max_len:
-            current += " " + s
-        else:
-            chunks.append(current.strip())
-            current = s
-
-    if current.strip():
-        chunks.append(current.strip())
-
-    return chunks
-
-
-def merge_wav_files(input_files, output_file):
-    data = []
-    params = None
-
-    for file in input_files:
-        with wave.open(file, 'rb') as w:
-            if params is None:
-                params = w.getparams()
-            data.append(w.readframes(w.getnframes()))
-
-    with wave.open(output_file, 'wb') as output:
-        output.setparams(params)
-        for frames in data:
-            output.writeframes(frames)
-
-
-def run_tts(text):
-    print("Generating audio...")
+async def run_tts_async(text):
     os.makedirs("RAG/audio_results", exist_ok=True)
-
     clean_text = clean_for_tts(text)
-    chunks = split_text(clean_text)
-
-    audio_files = []
-
-    for i, chunk in enumerate(chunks):
-        print(f"🎤 Processing chunk {i}")
-        temp_audio = f"RAG/audio_results/temp_{i}.wav"
-
-        tts.tts_to_file(
-            text=chunk,
-            file_path=temp_audio
-        )
-
-        audio_files.append(temp_audio)
-
-    final_audio = f"RAG/audio_results/audio_{int(time.time())}.wav"
-    merge_wav_files(audio_files, final_audio)
-
-    for f in audio_files:
-        if os.path.exists(f):
-            os.remove(f)
-
-    return final_audio
+    
+    lang = detect_language(clean_text)
+    voice = "ar-EG-ShakirNeural" if lang == "ar" else "en-US-JennyNeural"
+    
+    output_file = f"RAG/audio_results/audio_{int(time.time())}.mp3"
+    communicate = edge_tts.Communicate(clean_text, voice)
+    await communicate.save(output_file)
+    print(f"✅ Audio saved: {output_file}")
+    return output_file
 
 if __name__ == "__main__":
     text = sys.argv[1]
-    output = run_tts(text)
+    output = asyncio.run(run_tts_async(text))
     print(output)
