@@ -32,4 +32,6 @@ def fix_all_encodings(folder="transcripts"):
             else:
                 print(f"✓ Already UTF-8: {filename}")
 
+
+
 fix_all_encodings()
