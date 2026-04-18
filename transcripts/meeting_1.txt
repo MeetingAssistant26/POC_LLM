@@ -1,34 +1,34 @@
-[0.11-1.09] SPEAKER_01:  Good morning, everyone.
-[1.19-10.82] SPEAKER_01: Before we start training the model this week, I think we really need to review the data set again carefully because some new data was added recently and we need to make sure everything is consistent.
-[11.06-11.62] SPEAKER_00: Good morning.
-[12.30-23.18] SPEAKER_00: I actually started reviewing part of the data set yesterday, especially the Arabic text section, and I noticed there are some missing values and a few formatting issues that might affect preprocessing later.
-[23.55-25.55] SPEAKER_01:  That is exactly what I was worried about.
-[25.79-30.49] SPEAKER_01: Sarah, can you please focus on cleaning the Arabic section and fixing the missing entries?
-[30.83-34.73] SPEAKER_01: Try to finish that before Wednesday at 5 p.m. so we can move to the next step.
-[35.01-39.01] SPEAKER_02: While Sarah is working on that, I can review the English text in the dataset.
-[39.43-46.02] SPEAKER_02: I will check punctuation, capitalization, and also remove any duplicate rows that might cause problems during training.
-[46.45-47.34] SPEAKER_01: That sounds good.
-[47.56-53.44] SPEAKER_01: Omar, please try to finish that task before Wednesday noon and send me a short summary of the changes you made.
-[53.82-60.37] SPEAKER_00:  After Omar finishes the English part, I will run another full check on the dataset just to make sure everything looks good.
-[60.61-65.14] SPEAKER_00: I will also prepare a report explaining what problems we found and how we fixed them.
-[65.36-65.86] SPEAKER_01:  Perfect.
-[66.18-69.88] SPEAKER_01: Once the dataset is clean, we can run the preprocessing pipeline.
-[70.12-75.44] SPEAKER_01: That includes text normalization, tokenization, and preparing the final training format.
-[75.74-81.96] SPEAKER_02: I can also test the preprocessing scripts on a small sample of the data first just to make sure everything works without errors.
-[82.38-82.98] SPEAKER_01: Good idea.
-[83.06-85.33] SPEAKER_01: Please run that test before Thursday morning.
-[85.44-90.23] SPEAKER_01: If everything works well, we will run the full preprocessing pipeline on the entire dataset.
-[90.53-98.83] SPEAKER_00:  And after preprocessing is done, we should schedule another meeting on Thursday afternoon to review the process data before starting the training step.
-[99.06-100.56] SPEAKER_01:  Yes, that would be helpful.
-[100.82-106.63] SPEAKER_01: During that meeting we can also decide whether the data set is ready for training or if we still need to make additional adjustments.
-[106.99-111.43] SPEAKER_02: If everything looks good after pre-processing, I can start preparing the training environment.
-[111.83-116.33] SPEAKER_02: I will set up the GPU server and make sure all dependencies are installed correctly.
-[116.63-116.95] SPEAKER_01: Great.
-[117.29-124.19] SPEAKER_01: Omar, please prepare the training environment before Friday morning so we can start the training process immediately after the review meeting.
-[124.43-130.89] SPEAKER_00:  I will also document the preprocessing steps we used so that the whole process is clear and reproducible later.
-[131.23-131.71] SPEAKER_01: Perfect.
-[131.95-137.63] SPEAKER_01: Please finish the documentation before Friday afternoon and share it with the team so everyone can review it.
-[138.04-145.14] SPEAKER_02: Once the training starts, I will monitor the logs and track the training metrics like loss and accuracy to make sure everything is running smoothly.
-[145.50-153.20] SPEAKER_00: And when the first training run finishes, we should generate an evaluation report so we can compare the results with the previous model version.
-[153.62-154.24] SPEAKER_01:  Exactly.
-[154.42-160.38] SPEAKER_01: Let's plan another short meeting on Monday morning to review the training results and decide the next improvements for the model.
+[0.11-1.09] SPEAKER_01: صباح الخير يا جماعة.
+[1.19-10.82] SPEAKER_01: قبل ما نبدأ تدريب الموديل الأسبوع ده، أعتقد إننا محتاجين نراجع الداتاسيت تاني بعناية، لأنه اتضاف داتا جديدة مؤخراً وعايزين نتأكد إن كل حاجة متسقة.
+[11.06-11.62] SPEAKER_00: صباح الخير.
+[12.30-23.18] SPEAKER_00: أنا فعلاً بدأت أراجع جزء من الداتاسيت امبارح، خصوصاً قسم النص العربي، ولاحظت إن فيه قيم ناقصة وبعض مشاكل في التنسيق ممكن تأثر على الـ preprocessing بعدين.
+[23.55-25.55] SPEAKER_01: ده بالظبط اللي كنت قلقان منه.
+[25.79-30.49] SPEAKER_01: سارة، ممكن تركزي على تنظيف القسم العربي وتصليح الإدخالات الناقصة؟
+[30.83-34.73] SPEAKER_01: حاولي تخلصي ده قبل الأربع الساعة 5 المساء عشان نقدر ننتقل للخطوة الجاية.
+[35.01-39.01] SPEAKER_02: وأنا في نفس الوقت اللي سارة شغالة فيه، أقدر أراجع النص الإنجليزي في الداتاسيت.
+[39.43-46.02] SPEAKER_02: هراجع علامات الترقيم والحروف الكبيرة، وكمان هشيل أي صفوف مكررة ممكن تعمل مشاكل أثناء التدريب.
+[46.45-47.34] SPEAKER_01: ده كلام كويس.
+[47.56-53.44] SPEAKER_01: عمر، من فضلك حاول تخلص المهمة دي قبل الأربع الضهر وابعتلي ملخص قصير للتغييرات اللي عملتها.
+[53.82-60.37] SPEAKER_00: بعد ما عمر يخلص الجزء الإنجليزي، هعمل مراجعة كاملة تانية على الداتاسيت عشان أتأكد إن كل حاجة تمام.
+[60.61-65.14] SPEAKER_00: هحضر كمان تقرير بيشرح المشاكل اللي لقيناها وإزاي عالجناها.
+[65.36-65.86] SPEAKER_01: ممتاز.
+[66.18-69.88] SPEAKER_01: بعد ما الداتاسيت يبقى نظيف، نقدر نشغل الـ preprocessing pipeline.
+[70.12-75.44] SPEAKER_01: ده بيشمل تنظيف النصوص والـ tokenization وتجهيز الـ training format النهائي.
+[75.74-81.96] SPEAKER_02: أنا كمان أقدر أتيست الـ preprocessing scripts على عينة صغيرة من الداتا الأول عشان أتأكد إن كل حاجة شغالة من غير أخطاء.
+[82.38-82.98] SPEAKER_01: فكرة كويسة.
+[83.06-85.33] SPEAKER_01: من فضلك عمل الاختبار ده قبل الخميس الصبح.
+[85.44-90.23] SPEAKER_01: لو كل حاجة اشتغلت كويس، هنشغل الـ preprocessing pipeline الكامل على الداتاسيت كله.
+[90.53-98.83] SPEAKER_00: وبعد ما الـ preprocessing يخلص، المفروض نحدد اجتماع تاني الخميس بعد الضهر نراجع فيه الداتا المعالجة قبل ما نبدأ خطوة التدريب.
+[99.06-100.56] SPEAKER_01: آه، ده هيبقى مفيد.
+[100.82-106.63] SPEAKER_01: في الاجتماع ده نقدر كمان نقرر إذا كان الداتاسيت جاهز للتدريب ولا لسه محتاجين تعديلات إضافية.
+[106.99-111.43] SPEAKER_02: لو كل حاجة تمام بعد الـ preprocessing، أقدر أبدأ أجهز بيئة التدريب.
+[111.83-116.33] SPEAKER_02: هجهز الـ GPU server وأتأكد إن كل الـ dependencies اتنصبت صح.
+[116.63-116.95] SPEAKER_01: عظيم.
+[117.29-124.19] SPEAKER_01: عمر، من فضلك جهز بيئة التدريب قبل الجمعة الصبح عشان نقدر نبدأ عملية التدريب فوراً بعد اجتماع المراجعة.
+[124.43-130.89] SPEAKER_00: هوثق كمان خطوات الـ preprocessing اللي استخدمناها عشان العملية كلها تبقى واضحة وقابلة للتكرار بعدين.
+[131.23-131.71] SPEAKER_01: ممتاز.
+[131.95-137.63] SPEAKER_01: من فضلك خلص التوثيق ده قبل الجمعة بعد الضهر وشاركه مع الفريق عشان الكل يراجعه.
+[138.04-145.14] SPEAKER_02: بعد ما التدريب يبدأ، هراقب الـ logs وأتابع مقاييس التدريب زي الـ loss والـ accuracy عشان أتأكد إن كل حاجة ماشية كويس.
+[145.50-153.20] SPEAKER_00: ولما أول run للتدريب يخلص، المفروض نعمل تقرير تقييم عشان نقدر نقارن النتايج بالإصدار السابق من الموديل.
+[153.62-154.24] SPEAKER_01: بالظبط.
+[154.42-160.38] SPEAKER_01: خلينا نخطط لاجتماع قصير تاني الاتنين الصبح نراجع فيه نتايج التدريب ونحدد التحسينات الجاية للموديل.
