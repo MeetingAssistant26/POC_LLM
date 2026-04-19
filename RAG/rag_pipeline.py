@@ -9,11 +9,26 @@ from sentence_transformers import SentenceTransformer, CrossEncoder
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from groq import Groq
+import subprocess
 
 # Import internal python files
 from RAG.chunking import run_chunking
 from RAG.embeddings import run_embeddings
 from RAG.vector_store import run_vector_store
+
+def generate_audio(text):
+    print("🚀 Running TTS subprocess...")
+
+    result = subprocess.run(
+        ["venv_tts\\Scripts\\python.exe", "TTS/coqui_tts.py", text],
+        capture_output=False,  
+        text=True
+    )
+
+    print("✅ TTS finished")
+
+    return "done"
+
 def run_pipeline():
     print("Inside run_pipeline function")
     
@@ -74,7 +89,7 @@ def run_pipeline():
         return unique_meetings[:top_k]
 
     # 🔵 STEP 2: Retrieve chunks
-    def retrieve_chunks_hierarchical(query, query_embedding, meeting_ids, top_k=8):
+    def retrieve_chunks_hierarchical(query, query_embedding, meeting_ids, top_k=3):
         all_texts = []
         all_metas = []
 
@@ -134,13 +149,23 @@ def run_pipeline():
             meeting_num = input("Enter meeting number (1-10): ")
             meeting_id = int(meeting_num)
             query = f"Summarize meeting {meeting_num}"
+            mode = "summary" 
         elif choice == "2":
             meeting_num = input("Enter meeting number (1-10): ")
             meeting_id = int(meeting_num)
             query = f"Extract tasks from meeting {meeting_num}"
+            mode = "tasks"
         elif choice == "3":
             query = input("Ask a question: ")
             query_lower = query.lower()
+            mode = "qa"
+
+            if "summary" in query_lower:
+                mode = "summary"
+            elif "task" in query_lower:
+                mode = "tasks"
+            else:
+                mode = "qa"
 
             matches = re.findall(r'meeting\s*(\d+)|\b(\d+)\b', query.lower())
 
@@ -199,13 +224,23 @@ def run_pipeline():
         for turn in conversation_history[-3:]:
             history_text += f"Q: {turn['question']}\nA: {turn['answer']}\n\n"
 
+
+        arabic_chars = sum(1 for c in context if '\u0600' <= c <= '\u06FF')
+        lang_instruction = "The meeting context is in Arabic. You MUST respond in Arabic only." if arabic_chars > len(context) * 0.1 else "Respond in English."
         prompt = f"""
 You are an AI meeting assistant.
+{lang_instruction}
+IMPORTANT:
+
+- If the question asks about "goal" or "goals", return ONLY the goal directly.
+- Do NOT generate a full summary unless explicitly asked.
+- If mode is "qa", NEVER return a summary.
 
 Instructions:
 
 - If the question is asking for a summary:
   Provide a clear and structured summary of the meeting.
+  
 
   Focus ONLY on:
   - Main goal
@@ -219,52 +254,40 @@ Instructions:
   - Do NOT include responsibilities of individuals.
   - Keep the summary high-level and descriptive only.
   - Convert any task-like statements into general discussion points (do NOT mention names or assignments).
+  
+  
 
 - If the question is asking for tasks:
   Extract ONLY actionable tasks explicitly assigned in the meeting.
-
+  Output MUST be in valid JSON format only.
+  JSON Structure:
+  {{
+    "tasks": [
+      {{
+        "assignee": "Person Name",
+        "task": "task description",
+        "due_date": "deadline if mentioned, otherwise empty string"
+      }}
+    ]
+  }}
   Rules:
-  - A task must be a clear action (e.g., prepare, fix, review, test, run, document).
-  - Only include tasks explicitly assigned to a specific person.
-  - If the task owner is not clearly mentioned, DO NOT include the task.
-
-  - ALWAYS merge all similar names into ONE fixed name: "Sara".
-  - Each person must appear ONLY once.
-  - Do NOT create multiple sections for the same person.
-
-  - Do NOT include any task that contains "decide".
-  - Do NOT include discussions, observations, or past actions.
-  - Do NOT infer or generate new tasks.
-
-  - Merge similar or repeated tasks into ONE concise task.
-  - Do NOT duplicate or rephrase the same task.
-  - Do NOT split one task into multiple similar tasks.
-
-  - Output tasks as a flat list (no nested bullets).
-  - Output ONLY the task list.
-  - Do NOT include explanations, notes, comments, or reasoning.
-  - Do NOT mention removed or excluded tasks.
-  - Prefer active tasks (e.g., "review", "prepare") and avoid passive ones (e.g., "receive").
-  - Output MUST follow the exact format strictly.
-  - Do NOT use bold formatting (**).
-  - Each person name MUST start with "- " and end with ":".
-  - Example:
-    - Sara:
-      - Task 1
-    
-  - STRICT RULE: Remove any task that contains "decide".
-  - Only include tasks that are clearly assigned using direct instructions (e.g., "please", "try to", "can you").
-  - Do NOT include general responsibilities (e.g., monitoring, observing).
- 
-   Format:
-  - Person Name:
-    - Task 1
-    - Task 2
-
-  If no tasks are found, return: "No tasks found."
+  - A task must be a clear action (review, clean, test, prepare, fix, document).
+  - Only include tasks explicitly assigned to a person.
+  - If no assignee is mentioned, ignore the task.
+  - ALWAYS normalize all names to: "Sara".
+  - Do NOT include tasks containing "decide".
+  - Do NOT include discussions or observations.
+  - Merge similar tasks into one.
+  - Keep task description short and clear.
+  - Output ONLY the JSON, no text before or after.
+  If no tasks found return:
+  {{
+    "tasks": []
+  }}
 
 - If the question is a general question:
   Answer using ONLY information explicitly mentioned in the meeting context.
+  
 
   Rules:
   - Do NOT add any information that is not clearly stated.
@@ -278,6 +301,7 @@ Instructions:
     apply the SAME strict task extraction rules.
   - Only return tasks that are explicitly assigned to that person.
   - When comparing, clearly highlight differences instead of similarities unless explicitly stated.
+  
 
 General rules:
 - Do NOT repeat information.
@@ -288,6 +312,7 @@ Previous conversation:
 {history_text}
 Meeting context:
 {context}
+Mode: {mode}
 Question:
 {query}
 """
@@ -298,6 +323,12 @@ Question:
         )
 
         answer = response.choices[0].message.content
+        print("✅ Answer generated")
+        print(answer)
+
+        print("➡️ Going to TTS...")
+        audio_path = generate_audio(answer)
+
         print("\nFinal Answer:\n", answer)
 
         conversation_history.append({
@@ -322,7 +353,8 @@ Question:
                 "meeting_id": meeting_id,
                 "question": query,
                 "answer": answer,
-                "context_used": retrieved_chunks  # Useful for verifying the source of the AI's answer
+                "audio_path": audio_path,
+                "context_used": retrieved_chunks
             }, f, ensure_ascii=False, indent=2)
 
         print(f"📂 Result saved to: {file_path}")
