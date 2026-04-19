@@ -1,2 +1,8 @@
-TTS==0.21.3
-numpy==1.22.0
+edge-tts==6.1.12
+faster-whisper==1.0.3
+ctranslate2==4.4.0
+torch==2.1.2
+torchaudio==2.1.2
+numpy==1.24.3
+soundfile==0.12.1
+tqdm==4.66.1
