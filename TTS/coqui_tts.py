@@ -1,9 +1,8 @@
-import asyncio
-import edge_tts
-import sys
-import time
+from gtts import gTTS
 import os
+import time
 import re
+import sys
 
 def clean_for_tts(text):
     text = text.replace("**", "")
@@ -18,20 +17,30 @@ def detect_language(text):
         return "ar"
     return "en"
 
-async def run_tts_async(text):
-    os.makedirs("RAG/audio_results", exist_ok=True)
-    clean_text = clean_for_tts(text)
-    
-    lang = detect_language(clean_text)
-    voice = "ar-EG-ShakirNeural" if lang == "ar" else "en-US-JennyNeural"
-    
-    output_file = f"RAG/audio_results/audio_{int(time.time())}.mp3"
-    communicate = edge_tts.Communicate(clean_text, voice)
-    await communicate.save(output_file)
-    print(f"✅ Audio saved: {output_file}")
-    return output_file
+def run_tts(text):
+    try:
+        os.makedirs("RAG/audio_results", exist_ok=True)
+
+        clean_text = clean_for_tts(text)
+        lang = detect_language(clean_text)
+
+        output_file = f"RAG/audio_results/audio_{int(time.time())}.mp3"
+
+        tts = gTTS(text=clean_text, lang=lang)
+        tts.save(output_file)
+
+        print(f"✅ Audio saved: {output_file}")
+
+        return output_file
+
+    except Exception as e:
+        print("❌ TTS Error:", e)
+        return None
+
 
 if __name__ == "__main__":
-    text = sys.argv[1]
-    output = asyncio.run(run_tts_async(text))
-    print(output)
+    if len(sys.argv) < 2:
+        print("❌ Please provide text")
+    else:
+        text = sys.argv[1]
+        run_tts(text)
