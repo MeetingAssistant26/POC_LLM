@@ -4,4 +4,4 @@ venv310/
 venv_tts/
 __pycache__/
 .env
-RAG/audio_results/
+#RAG/audio_results/
