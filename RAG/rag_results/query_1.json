@@ -1,9 +1,0 @@
-{
-  "query": "What tasks were assigned?",
-  "retrieved_chunks": [
-    "Ahmed: صح، لازم نحط rule إن summary يبقى 2 أو 3 جمل بس. Mariam: بالنسبة لل tasks extraction الموديل أحيانًا بيخترع tasks. Sara: علشان كده لازم نقول explicitly don't guess tasks.",
-    "Sara: ممكن بعد كده نستخدم RAG علشان نقلل حجم الcontext اللي بيتبعت للموديل. Omar: Exactly لو قسمنا transcript لchunks ونعمل retrieval للجزء المهم بس ده هيحسن الأداء. Ahmed: تمام خلينا نحدد tasks.",
-    "Omar: Exactly والsystem يرجع relevant chunks بس. Mariam: وبعد كده الLLM يولد summary أو task extraction من الchunks دي. Ahmed: كده يبقى عندنا pipeline كاملة."
-  ],
-  "answer": "According to the meeting transcript, the following tasks were assigned:\n\n1. Explicitly stating not to let the model guess tasks.\n2. Limiting the context size by using RAG (probably referring to Retrieval-Augmented Generator).\n3. Splitting the transcript into chunks and performing retrieval on the important chunks to improve the system's performance.\n4. Defining the tasks to be performed.\n5. Implementing a complete pipeline:\n\n   - The system returns relevant chunks.\n   - An LLM (Large Language Model) generates a summary or task extraction from the chunks."
-}

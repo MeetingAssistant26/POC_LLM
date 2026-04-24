@@ -11,8 +11,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-ELEVENLABS_API_KEY = "sk_437f4e4e843a0221ee0cb79ef43bd61ecdf4149b6ebbc539"
-ELEVENLABS_AR_VOICE = "4Yzux6y32TCeK1R32lEa"
+ELEVENLABS_API_KEY = "sk_78987933ffbe1db6723b25d7c048fc767e23de6ae4627425"
+ELEVENLABS_AR_VOICE = "XSgDtfUfQcFCMgyf6Viu"
 
 
 # ── تنظيف النص ───────────────────────────────────────────────
@@ -36,6 +36,7 @@ def call_groq(text):
 You are a STRICT Egyptian spoken Arabic converter.
 
 RULES:
+- Keep "SPEAKER_00", "SPEAKER_01", "SPEAKER_02" etc. exactly as is, do NOT translate or change them
 - Convert to NATURAL Egyptian spoken Arabic ONLY
 - Do NOT use Modern Standard Arabic
 - Keep technical words in English (dataset, preprocessing, pipeline, scripts)
@@ -85,24 +86,15 @@ def tasks_to_speech_text(text):
             return text
 
         lines = []
-        female_names = ["سارة", "مريم", "نور", "هدى", "رنا", "دينا", "Sara", "sara"]
 
         for task in data["tasks"]:
             assignee = task.get("assignee", "")
             task_text = task.get("task", "")
             due = task.get("due_date", "")
 
-            # تحديد التذكير والتأنيث
-            if any(name in assignee for name in female_names):
-                gender = "مسؤولة"
-                verb = "تخلصها"
-            else:
-                gender = "مسؤول"
-                verb = "يخلصها"
-
-            line = f"{assignee} {gender} عن {task_text}"
+            line = f"{assignee} هيعمل {task_text}"
             if due:
-                line += f" ومفروض {verb} {due}"
+                line += f" ولازم يخلص {due}"
 
             lines.append(line)
 

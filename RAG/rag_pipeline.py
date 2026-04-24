@@ -227,15 +227,20 @@ def run_pipeline():
         total_chars = len(context.replace(" ", ""))
         arabic_ratio = arabic_chars / total_chars if total_chars > 0 else 0
 
-        colloquial_words = ['عايز', 'مش', 'كده', 'إيه', 'عشان', 'بتاع', 'هنعمل', 'بيجي', 'لقيت', 'هبدأ', 'يالا', 'تمام', 'ممتاز', 'هعمل', 'هتيست', 'هراجع']
+        colloquial_words = ['عايز', 'مش', 'كده', 'إيه', 'عشان', 'بتاع', 'هنعمل', 'بيجي', 
+                    'لقيت', 'هبدأ', 'يالا', 'تمام', 'ممتاز', 'هعمل', 'هتيست', 
+                    'هراجع', 'دلوقتي', 'إحنا', 'احنا', 'بيعمل', 'هيعمل', 'مفيش',
+                    'فيه', 'عليه', 'بقى', 'كمان', 'لو', 'ده', 'دي', 'هنا']
         colloquial_count = sum(1 for w in colloquial_words if w in context)
 
         if arabic_ratio > 0.1:
-            if colloquial_count >= 2:
+            if colloquial_count >= 1:
                 lang_instruction = """The meeting is in Egyptian Arabic dialect (عامية مصرية).
 You MUST respond in Egyptian spoken Arabic.
 
 RULES:
+- Never use formal words like: يجب، اتضح، ينبغي، حيث، إذ
+- Use instead: لازم، اتكلموا عن، عشان، لما
 - Use simple natural Egyptian Arabic like you are telling a friend
 - Keep technical words in English (onboarding, push notifications, backend, mockups)
 - Avoid formal Arabic words like: تم، هذه، هذا، حيث، إذ، لذلك
@@ -247,7 +252,18 @@ For summary:
 - No bullet points or stars
 - Only use information from the context, do not add anything
 
-For tasks: output ONLY valid JSON"""
+For tasks: output ONLY valid JSON
+
+For general question:
+Rules:
+  - Always answer in a full sentence, never return a name or word alone.
+  - If the answer is a person, say "X هو المسؤول عن..." or "X is responsible for..."
+  - Do NOT add any information that is not clearly stated.
+  - Do NOT infer, assume, or generate new tasks.
+
+
+"""
+
             else:
                 lang_instruction = """The meeting is in Modern Standard Arabic (فصحى).
 You MUST respond in Modern Standard Arabic only.
@@ -282,12 +298,17 @@ Instructions:
   - Important decisions
 
   STRICT RULES:
+  - Start with: "الميتينج كان عن..." if Arabic, or "The meeting was about..." if English
+  - Write 2 to 3 simple sentences only
+  - No bullet points or stars
   - Do NOT list tasks.
   - Do NOT mention any assigned work.
   - Do NOT include sentences with future actions (e.g., "will", "should", "plan to").
   - Do NOT include responsibilities of individuals.
   - Keep the summary high-level and descriptive only.
   - Convert any task-like statements into general discussion points (do NOT mention names or assignments).
+  - NEVER use these Arabic words: يجب، اتضح، ينبغي، حيث، إذ، لذلك، نظراً
+  - Use instead: لازم، اتكلموا، عشان، وكمان
 
 - If the question is asking for tasks:
   Extract ONLY actionable tasks explicitly assigned in the meeting.
@@ -313,6 +334,7 @@ Instructions:
   - Do NOT include discussions or observations.
   - Merge similar tasks into one.
   - Keep task description short and clear.
+  - Write task description in third person (e.g., "يعمل full audit" not "أعمل full audit")
   - Output ONLY the JSON, no text before or after.
   - Do NOT infer tasks that are not explicitly stated in the meeting.
   - Do NOT rephrase or creatively rewrite tasks beyond the original meaning.
@@ -329,6 +351,8 @@ Instructions:
   Answer using ONLY information explicitly mentioned in the meeting context.
 
   Rules:
+  - Always answer in a full sentence, never return a name or word alone.
+  - If the answer is a person, say "X هو المسؤول عن..." or "X is responsible for..."
   - Do NOT add any information that is not clearly stated.
   - Do NOT infer, assume, or generate new tasks.
   - Do NOT expand beyond the given context.

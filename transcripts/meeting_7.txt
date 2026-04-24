@@ -1,19 +1,0 @@
-[0.25-8.18] SPEAKER_02:  Finally, we should plan for a small feedback session with our team to brainstorm any creative ideas that can differentiate this campaign from previous ones.
-[8.60-9.48] SPEAKER_00: Good morning team.
-[9.78-23.48] SPEAKER_00: Today we need to brainstorm ideas for our upcoming marketing campaign focusing on social media content, email newsletters, influencer collaborations, and engagement strategies that will help us reach our target audience effectively.
-[23.68-24.58] SPEAKER_01:  Good morning Sarah.
-[24.68-35.26] SPEAKER_01: I can start by analyzing data from previous campaigns to identify which content types, posting times, and messaging strategies performed best, so we can adapt them for the new campaign.
-[35.54-45.27] SPEAKER_02: I will research potential influencers and brand partners who align with our values, have strong engagement rates, and can help increase our reach and credibility with the target demographic.
-[45.61-56.91] SPEAKER_00:  I will also draft several content concepts, including sample posts, email templates, and video script, making sure the tone is consistent across all platforms and matches our brand identity.
-[57.32-57.84] SPEAKER_01:  Excellent.
-[58.22-65.97] SPEAKER_01: Please have the draft content ready before Wednesday at 3 p.m. so we can review it and make any necessary adjustments before sending it to design.
-[66.23-75.81] SPEAKER_02: I will prepare a comparison sheet of influencer engagement metrics, audience demographics and estimated costs so we can prioritize which collaborations to pursue first.
-[76.39-87.57] SPEAKER_00:  Once the content drafts are approved, I will coordinate with the design team to finalize graphics, animations, and any visual assets required for posts, stories, and email headers.
-[87.87-88.17] SPEAKER_01: Good.
-[88.41-96.19] SPEAKER_01: Ensure all finalized content is ready before Thursday noon so we can start scheduling posts and emails according to the campaign timeline.
-[96.45-105.69] SPEAKER_00: After the launch, I will review user comments, feedback, and interaction trends to identify patterns, successes, and areas for improvement in the next campaign.
-[105.93-106.44] SPEAKER_01:  Perfect.
-[106.81-115.08] SPEAKER_01: Let's plan a follow-up meeting on Friday afternoon to review results, assess KPIs, and decide on any immediate adjustments or optimizations.
-[115.40-123.63] SPEAKER_02: During that review, we should also discuss additional content ideas, scheduling improvements, and opportunities for boosting engagement with influencers.
-[124.03-132.20] SPEAKER_00: We should document all lessons learned, including what worked well and what didn't, and assign deadlines for implementing changes in future campaigns.
-[132.55-140.78] SPEAKER_01:  Additionally, let's create a checklist for next week's tasks, ensuring everyone knows their responsibilities and deadlines for each part of the campaign.
