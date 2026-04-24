@@ -20,25 +20,23 @@ def generate_audio(text):
     print("🚀 Running TTS subprocess...")
 
     result = subprocess.run(
-        ["venv_tts\\Scripts\\python.exe", "TTS/coqui_tts.py", text],
-        capture_output=False,  
+        ["venv\\Scripts\\python.exe", "TTS/coqui_tts.py", text],
+        capture_output=False,
         text=True
     )
 
     print("✅ TTS finished")
-
     return "done"
 
 def run_pipeline():
     print("Inside run_pipeline function")
-    
 
     # ── Setup ──
     load_dotenv()
-    
+
     # ── Smart Check: ──
     db_path = "RAG/chroma_db"
-    
+
     if not os.path.exists(db_path) or len(os.listdir(db_path)) == 0:
         print(" First time setup: Preparing data pipeline (Indexing documents)...")
         run_chunking()
@@ -61,13 +59,12 @@ def run_pipeline():
 
     collection = chroma_client.get_or_create_collection("meeting_chunks")
     if collection.count() == 0:
-         print("⚠️ Collection empty, rebuilding...")
-         run_chunking()
-         run_embeddings()
-         run_vector_store()
+        print("⚠️ Collection empty, rebuilding...")
+        run_chunking()
+        run_embeddings()
+        run_vector_store()
+        collection = chroma_client.get_collection("meeting_chunks")
 
-         # 🔥 reload collection
-         collection = chroma_client.get_collection("meeting_chunks")
     all_data = collection.get()
     metadatas_all = all_data["metadatas"]
 
@@ -144,18 +141,23 @@ def run_pipeline():
             print("Goodbye!")
             break
 
+        meeting_id = None
         meeting_ids = None
+
         if choice == "1":
             meeting_num = input("Enter meeting number (1-10): ")
             meeting_id = int(meeting_num)
             query = f"Summarize meeting {meeting_num}"
+            mode = "summary"
         elif choice == "2":
             meeting_num = input("Enter meeting number (1-10): ")
             meeting_id = int(meeting_num)
             query = f"Extract tasks from meeting {meeting_num}"
+            mode = "tasks"
         elif choice == "3":
             query = input("Ask a question: ")
             query_lower = query.lower()
+            mode = "qa"
 
             if "summary" in query_lower:
                 mode = "summary"
@@ -205,8 +207,7 @@ def run_pipeline():
         print("[DEBUG] retrieved_chunks:", len(retrieved_chunks))
 
         grouped_context = {}
-
-        for text, meta in zip(retrieved_chunks, retrieved_metas ):
+        for text, meta in zip(retrieved_chunks, retrieved_metas):
             m_id = meta["meeting_id"]
             if m_id not in grouped_context:
                 grouped_context[m_id] = []
@@ -221,8 +222,49 @@ def run_pipeline():
         for turn in conversation_history[-3:]:
             history_text += f"Q: {turn['question']}\nA: {turn['answer']}\n\n"
 
+        # ── Language Detection ──
+        arabic_chars = sum(1 for c in context if '\u0600' <= c <= '\u06FF')
+        total_chars = len(context.replace(" ", ""))
+        arabic_ratio = arabic_chars / total_chars if total_chars > 0 else 0
+
+        colloquial_words = ['عايز', 'مش', 'كده', 'إيه', 'عشان', 'بتاع', 'هنعمل', 'بيجي', 'لقيت', 'هبدأ', 'يالا', 'تمام', 'ممتاز', 'هعمل', 'هتيست', 'هراجع']
+        colloquial_count = sum(1 for w in colloquial_words if w in context)
+
+        if arabic_ratio > 0.1:
+            if colloquial_count >= 2:
+                lang_instruction = """The meeting is in Egyptian Arabic dialect (عامية مصرية).
+You MUST respond in Egyptian spoken Arabic.
+
+RULES:
+- Use simple natural Egyptian Arabic like you are telling a friend
+- Keep technical words in English (onboarding, push notifications, backend, mockups)
+- Avoid formal Arabic words like: تم، هذه، هذا، حيث، إذ، لذلك
+- Use instead: اتعمل، ده، دي، عشان، لما
+
+For summary:
+- Start with: "الميتينج كان عن..."
+- Write 2 to 3 simple sentences only
+- No bullet points or stars
+- Only use information from the context, do not add anything
+
+For tasks: output ONLY valid JSON"""
+            else:
+                lang_instruction = """The meeting is in Modern Standard Arabic (فصحى).
+You MUST respond in Modern Standard Arabic only.
+- Keep technical words in English
+- For summary: write in flowing sentences, no bullet points or stars (*)
+- Do NOT invent information not explicitly in the context
+- For tasks: output ONLY valid JSON"""
+        else:
+            lang_instruction = """The meeting is in English.
+Respond in English only.
+- For summary: write in flowing sentences, no bullet points or stars (*)
+- Do NOT invent information not explicitly in the context
+- For tasks: output ONLY valid JSON"""
+
         prompt = f"""
 You are an AI meeting assistant.
+{lang_instruction}
 IMPORTANT:
 
 - If the question asks about "goal" or "goals", return ONLY the goal directly.
@@ -249,46 +291,39 @@ Instructions:
 
 - If the question is asking for tasks:
   Extract ONLY actionable tasks explicitly assigned in the meeting.
+  Output MUST be in valid JSON format only.
 
+  JSON Structure:
+  {{
+    "tasks": [
+      {{
+        "assignee": "Person Name",
+        "task": "task description",
+        "due_date": "deadline if mentioned, otherwise empty string"
+      }}
+    ]
+  }}
   Rules:
-  - A task must be a clear action (e.g., prepare, fix, review, test, run, document).
-  - Only include tasks explicitly assigned to a specific person.
-  - If the task owner is not clearly mentioned, DO NOT include the task.
-
-  - ALWAYS merge all similar names into ONE fixed name: "Sara".
-  - Each person must appear ONLY once.
-  - Do NOT create multiple sections for the same person.
-
-  - Do NOT include any task that contains "decide".
-  - Do NOT include discussions, observations, or past actions.
-  - Do NOT infer or generate new tasks.
-
-  - Merge similar or repeated tasks into ONE concise task.
-  - Do NOT duplicate or rephrase the same task.
-  - Do NOT split one task into multiple similar tasks.
-
-  - Output tasks as a flat list (no nested bullets).
-  - Output ONLY the task list.
-  - Do NOT include explanations, notes, comments, or reasoning.
-  - Do NOT mention removed or excluded tasks.
-  - Prefer active tasks (e.g., "review", "prepare") and avoid passive ones (e.g., "receive").
-  - Output MUST follow the exact format strictly.
-  - Do NOT use bold formatting (**).
-  - Each person name MUST start with "- " and end with ":".
-  - Example:
-    - Sara:
-      - Task 1
-    
-  - STRICT RULE: Remove any task that contains "decide".
-  - Only include tasks that are clearly assigned using direct instructions (e.g., "please", "try to", "can you").
-  - Do NOT include general responsibilities (e.g., monitoring, observing).
- 
-   Format:
-  - Person Name:
-    - Task 1
-    - Task 2
-
-  If no tasks are found, return: "No tasks found."
+  - A task must be a clear action (review, clean, test, prepare, fix, document).
+  - Only include tasks explicitly assigned to a person.
+  - If no assignee is mentioned, ignore the task.
+  - Keep original names as they appear in the transcript.
+  - Do NOT normalize or change any names.
+  - Do NOT include tasks containing "decide".
+  - Do NOT include discussions or observations.
+  - Merge similar tasks into one.
+  - Keep task description short and clear.
+  - Output ONLY the JSON, no text before or after.
+  - Do NOT infer tasks that are not explicitly stated in the meeting.
+  - Do NOT rephrase or creatively rewrite tasks beyond the original meaning.
+  - Use only information directly present in the provided context.
+  - Do NOT add new tasks even if they seem logically implied.
+  - Preserve exact meaning of due dates as written in the text (do not reformat or "clean" them).
+  - Do NOT correct or modify names in any way except normalization to "Sara".
+  If no tasks found return:
+  {{
+    "tasks": []
+  }}
 
 - If the question is a general question:
   Answer using ONLY information explicitly mentioned in the meeting context.
@@ -319,9 +354,10 @@ Mode: {mode}
 Question:
 {query}
 """
+
         # API Call
         response = groq_client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}]
         )
 
@@ -342,14 +378,12 @@ Question:
 
         # --- Save results to the rag_results folder ---
         results_dir = "RAG/rag_results"
-        os.makedirs(results_dir, exist_ok=True)  # Ensure the directory exists
+        os.makedirs(results_dir, exist_ok=True)
 
-        # Determine the file number based on existing files in the directory
         current_files = os.listdir(results_dir)
         file_count = len([f for f in current_files if f.endswith('.json')]) + 1
         file_path = f"{results_dir}/result_{file_count}.json"
 
-        # Save data to a JSON file
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump({
                 "query_number": file_count,

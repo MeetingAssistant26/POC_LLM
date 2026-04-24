@@ -1,5 +1,7 @@
 chroma_db/
 venv/
 venv310/
+venv_tts/
 __pycache__/
 .env
+RAG/audio_results/
