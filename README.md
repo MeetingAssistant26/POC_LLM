@@ -21,10 +21,12 @@ Contains meeting transcript datasets used for testing the models and the RAG sys
 - `meeting_transcripts_audio.json` — dataset generated from real audio transcripts
 
 ### 📂 prompts
-Prompt templates used for:
-- Meeting summarization
-- Task extraction
-- Mixed-language transcript understanding
+Prompt templates loaded dynamically by the RAG pipeline at runtime.
+- `meeting_summary_prompt.txt` — structured summary prompt with format per language/dialect
+- `task_extraction_prompt.txt` — task extraction prompt with strict assignee, task, and deadline rules
+- `mixed_language_prompt.txt` — mixed-language transcript understanding
+
+> ✅ Prompts are loaded from files — edit them directly without touching the code.
 
 ### 📂 llm_testing
 Python scripts used to test different **LLM models**.
@@ -38,7 +40,7 @@ Contains outputs generated from the tested LLM models.
 
 ### 📂 RAG
 Core modules implementing the **Retrieval-Augmented Generation pipeline**.
-- **chunking.py** → splits meeting transcripts into smaller chunks
+- **chunking.py** → splits transcripts by speaker turns (not fixed word count) with overlap
 - **embeddings.py** → generates vector embeddings using `all-MiniLM-L6-v2`
 - **vector_store.py** → stores embeddings in ChromaDB with cosine similarity
 - **rag_pipeline.py** → retrieves relevant context and generates answers using Groq LLM
@@ -52,7 +54,7 @@ Single pipeline script that handles the full audio processing flow.
 
 ### 📂 TTS
 Text-to-Speech module using ElevenLabs and edge-tts as fallback.
-- **coqui_tts.py** → detects language, converts tasks JSON to speech, calls ElevenLabs API
+- **coqui_tts.py** → detects language, converts answer/tasks to Egyptian Arabic speech, calls ElevenLabs API
 
 ### 📂 audio_clean
 Contains preprocessed audio files ready for transcription.
@@ -78,13 +80,17 @@ audio_pipeline.py
   ├── WhisperX Transcription (speech-to-text + speaker diarization)
   └── JSON Dataset Builder (transcripts → meeting_transcripts_audio.json)
         ↓
-Chunking → Embeddings → ChromaDB
+Chunking (by speaker turns + overlap)
+        ↓
+Embeddings → ChromaDB
         ↓
 User Query
         ↓
-Similarity Search (top-k relevant chunks)
+Similarity Search (top-k chunks — 10 for summary/tasks, 6 for QA)
         ↓
-Groq LLM (llama-3.3-70b-versatile)
+Prompt File loaded from prompts/
+        ↓
+Groq LLM (llama-3.3-70b-versatile, temperature=0.2)
         ↓
 Generated Answer
         ↓
@@ -96,12 +102,15 @@ Audio Response (RAG/audio_results/)
 ---
 
 # 🚀 Features
-- **Meeting summarization** in the same language as the meeting
-- **Task extraction** *(task, responsible person, deadline)*
+- **Meeting summarization** — structured bullet-point format in the same language/dialect as the meeting
+- **Task extraction** *(task, responsible person, deadline)* — strict rules, JSON output only
 - **Question answering** about meeting content
-- Support for **Arabic (Egyptian dialect) and English** transcripts
-- **Automatic language detection** — responds in Egyptian Arabic or English based on context
+- Support for **Arabic (Egyptian dialect), Modern Standard Arabic, and English** transcripts
+- **Automatic language detection** — responds in Egyptian Arabic, formal Arabic, or English based on context
 - **RAG-based semantic search** over meeting content
+- **Speaker-turn chunking** — splits transcripts by speaker turns with overlap for better retrieval
+- **Dynamic top-k retrieval** — 10 chunks for summary/tasks, 6 for QA
+- **Prompt files** — prompts loaded from `prompts/` folder, editable without touching code
 - **Audio-to-transcript pipeline** using WhisperX
 - **Speaker diarization** (identifying who said what via SPEAKER_00, SPEAKER_01, etc.)
 - **TTS with Egyptian Arabic voice** via ElevenLabs
@@ -195,15 +204,15 @@ POC_LLM
 │   └── llm_test_mixtral.py
 │
 ├── prompts
-│   ├── meeting_summary_prompt.txt
-│   ├── task_extraction_prompt.txt
+│   ├── meeting_summary_prompt.txt  ← structured summary prompt (edit freely)
+│   ├── task_extraction_prompt.txt  ← task extraction prompt (edit freely)
 │   └── mixed_language_prompt.txt
 │
 ├── RAG
-│   ├── chunking.py
+│   ├── chunking.py                 ← speaker-turn chunking with overlap
 │   ├── embeddings.py
 │   ├── vector_store.py
-│   ├── rag_pipeline.py
+│   ├── rag_pipeline.py             ← loads prompts from files dynamically
 │   ├── chunks.json
 │   ├── embeddings.json
 │   ├── chroma_db/
@@ -293,6 +302,35 @@ python main.py
 
 ---
 
+## ⚠️ Rebuilding the Database
+
+If you add new meetings to `data/meeting_transcripts_audio.json`, delete the ChromaDB folder and restart:
+
+```bash
+# Windows
+rmdir /s /q RAG\chroma_db
+python main.py
+
+# Mac/Linux
+rm -rf RAG/chroma_db
+python main.py
+```
+
+---
+
+## ✏️ Editing Prompts
+
+Prompts are stored in the `prompts/` folder and loaded at runtime — no code changes needed.
+
+| File | Purpose |
+|---|---|
+| `meeting_summary_prompt.txt` | Controls summary format and language rules |
+| `task_extraction_prompt.txt` | Controls task/assignee/deadline extraction rules |
+
+Just edit the `.txt` file and re-run `main.py` — changes take effect immediately.
+
+---
+
 # 📊 Current Status
 
 | Component | Status |
@@ -310,6 +348,9 @@ python main.py
 | Egyptian Arabic TTS (ElevenLabs) | ✅ Complete |
 | Language auto-detection | ✅ Complete |
 | Skip logic (no re-processing) | ✅ Complete |
+| Speaker-turn chunking | ✅ Complete |
+| Dynamic top-k retrieval | ✅ Complete |
+| Prompt files (editable without code changes) | ✅ Complete |
 
 ---
 
@@ -318,4 +359,4 @@ python main.py
 - Hierarchical RAG
 - Speaker name identification using LLM (replace SPEAKER_XX labels automatically)
 - Multi-meeting search across all sessions simultaneously
-- Larger chunk size for better deadline detection
+- Evaluation framework for summary and task extraction quality
