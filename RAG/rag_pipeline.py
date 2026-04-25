@@ -2,6 +2,7 @@ import os
 import json
 import re
 import numpy as np
+np.float_ = np.float64
 from dotenv import load_dotenv
 import chromadb
 from chromadb.config import Settings
@@ -9,7 +10,6 @@ from sentence_transformers import SentenceTransformer, CrossEncoder
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from groq import Groq
-import subprocess
 
 # Import internal python files
 from RAG.chunking import run_chunking
@@ -24,15 +24,21 @@ def load_prompt(filename):
         return f.read()
 
 
+# TTS is disabled — uncomment below and remove the stub to re-enable
+# import subprocess
+# def generate_audio(text):
+#     print("🚀 Running TTS subprocess...")
+#     subprocess.run(
+#         ["venv\\Scripts\\python.exe", "TTS/coqui_tts.py", text],
+#         capture_output=False,
+#         text=True
+#     )
+#     print("✅ TTS finished")
+#     return "done"
+
 def generate_audio(text):
-    print("🚀 Running TTS subprocess...")
-    subprocess.run(
-        ["venv\\Scripts\\python.exe", "TTS/coqui_tts.py", text],
-        capture_output=False,
-        text=True
-    )
-    print("✅ TTS finished")
-    return "done"
+    print("🔇 TTS is currently disabled.")
+    return "disabled"
 
 
 def run_pipeline():
@@ -68,7 +74,7 @@ def run_pipeline():
 
     collection = chroma_client.get_or_create_collection("meeting_chunks")
     if collection.count() == 0:
-        print("⚠️ Collection empty, rebuilding...")
+        print(" Collection empty, rebuilding...")
         run_chunking()
         run_embeddings()
         run_vector_store()
@@ -79,10 +85,15 @@ def run_pipeline():
     conversation_history = []
 
     # ── STEP 1: Get top meetings ──
-    def get_relevant_meetings(query_embedding, top_k=3):
+    # FIX: Increased candidate pool (n_results) and top_k so more meetings
+    # are considered for open-ended questions that don't name a meeting.
+    def get_relevant_meetings(query_embedding, top_k=5):
+        total_chunks = collection.count()
+        # Pull a large candidate pool so no relevant meeting is missed
+        n_candidates = min(total_chunks, 100)
         results = collection.query(
             query_embeddings=[query_embedding],
-            n_results=30
+            n_results=n_candidates
         )
         meeting_ids = [meta["meeting_id"] for meta in results["metadatas"][0]]
         seen = set()
@@ -94,18 +105,32 @@ def run_pipeline():
         return unique_meetings[:top_k]
 
     # ── STEP 2: Retrieve chunks ──
-    def retrieve_chunks_hierarchical(query, query_embedding, meeting_ids, top_k=8):
+    # FIX: When no meeting is specified (search_all=True) we query ALL
+    # meetings in one go instead of looping per meeting ID, then rerank.
+    def retrieve_chunks_hierarchical(query, query_embedding, meeting_ids,
+                                     top_k=8, search_all=False):
         all_texts = []
         all_metas = []
 
-        for meeting_id in meeting_ids:
+        if search_all:
+            # Query across the entire collection without a meeting filter
+            total_chunks = collection.count()
+            n_candidates = min(total_chunks, 60)
             vector_results = collection.query(
                 query_embeddings=[query_embedding],
-                n_results=20,
-                where={"meeting_id": meeting_id}
+                n_results=n_candidates
             )
             all_texts.extend(vector_results["documents"][0])
             all_metas.extend(vector_results["metadatas"][0])
+        else:
+            for meeting_id in meeting_ids:
+                vector_results = collection.query(
+                    query_embeddings=[query_embedding],
+                    n_results=20,
+                    where={"meeting_id": meeting_id}
+                )
+                all_texts.extend(vector_results["documents"][0])
+                all_metas.extend(vector_results["metadatas"][0])
 
         if not all_texts:
             return [], []
@@ -116,7 +141,7 @@ def run_pipeline():
         query_vec = vectorizer.transform([query])
         cos_scores = cosine_similarity(query_vec, tfidf_matrix)[0]
 
-        top_indices_tfidf = np.argsort(-cos_scores)[:15]
+        top_indices_tfidf = np.argsort(-cos_scores)[:20]
         tfidf_texts = [all_texts[i] for i in top_indices_tfidf]
         tfidf_metas = [all_metas[i] for i in top_indices_tfidf]
 
@@ -131,9 +156,12 @@ def run_pipeline():
 
         # Rerank with CrossEncoder
         scores = reranker.predict([[query, t] for t in final_texts])
-        top_indices_final = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k]
+        top_indices_final = sorted(
+            range(len(scores)), key=lambda i: scores[i], reverse=True
+        )[:top_k]
 
-        return [final_texts[i] for i in top_indices_final], [final_metas[i] for i in top_indices_final]
+        return [final_texts[i] for i in top_indices_final], \
+               [final_metas[i] for i in top_indices_final]
 
     # ── Language Detection ──
     def detect_language(context):
@@ -167,14 +195,16 @@ You are an AI meeting assistant.
 {lang_instruction}
 
 Answer the question using ONLY information explicitly mentioned in the meeting context.
+The context may contain chunks from multiple different meetings — use all of them.
 
 Rules:
 - Always answer in a full sentence, never return a name or word alone.
 - If the answer is a person, say "X is responsible for..." or "X هو المسؤول عن..."
+- If the answer spans multiple meetings, mention which meeting each fact comes from.
 - Do NOT add information not clearly stated in the context.
 - Do NOT infer or assume anything beyond what is written.
 - Keep the answer concise and directly relevant to the question.
-- If no relevant info found, say: "I don't have enough information about this in the meeting."
+- If no relevant info found, say: "I don't have enough information about this in the meetings."
 
 Previous conversation:
 {history_text}
@@ -201,6 +231,8 @@ Question: {query}
 
         meeting_id = None
         meeting_ids = None
+        # FIX: track whether user asked about a specific meeting or not
+        search_all = False
 
         if choice == "1":
             meeting_num = input("Enter meeting number (1-10): ")
@@ -220,7 +252,7 @@ Question: {query}
             query = input("Ask a question: ")
             query_lower = query.lower()
 
-            if "summary" in query_lower:
+            if "summary" in query_lower or "summarize" in query_lower:
                 mode = "summary"
                 retrieval_top_k = 10
             elif "task" in query_lower:
@@ -228,9 +260,10 @@ Question: {query}
                 retrieval_top_k = 10
             else:
                 mode = "qa"
-                retrieval_top_k = 6
+                retrieval_top_k = 8  # slightly more chunks for cross-meeting search
 
-            matches = re.findall(r'meeting\s*(\d+)|\b(\d+)\b', query.lower())
+            # Extract explicit meeting numbers from the query
+            matches = re.findall(r'meeting\s*(\d+)|\b(\d+)\b', query_lower)
             meeting_ids = []
             for m1, m2 in matches:
                 if m1:
@@ -238,40 +271,64 @@ Question: {query}
                 elif m2:
                     meeting_ids.append(int(m2))
 
-            if not meeting_ids:
-                meeting_ids = None
+            if meeting_ids:
+                # User asked about specific meeting(s)
+                meeting_id = meeting_ids[0]
+            else:
+                # ── FIX: No meeting number mentioned ──
+                # Check if it's a follow-up referencing a previous meeting
+                follow_up_words = ['he', 'she', 'his', 'her', 'they', 'their',
+                                   'it', 'this', 'that', 'هو', 'هي', 'ده', 'دي']
+                is_follow_up = any(
+                    word in query_lower.split() for word in follow_up_words
+                )
 
-            follow_up_words = ['he', 'she', 'his', 'her', 'they', 'their', 'it', 'this', 'that']
-            is_follow_up = any(word in query.lower().split() for word in follow_up_words)
+                if is_follow_up and conversation_history:
+                    # Re-use last known meeting for follow-ups
+                    for turn in reversed(conversation_history):
+                        if turn.get("meeting_id") is not None:
+                            meeting_id = turn["meeting_id"]
+                            meeting_ids = [meeting_id]
+                            print(f"[INFO] Follow-up detected — using meeting {meeting_id}")
+                            break
 
-            if not matches and is_follow_up:
-                for turn in reversed(conversation_history):
-                    if turn.get("meeting_id") is not None:
-                        meeting_id = turn["meeting_id"]
-                        break
+                if not meeting_ids:
+                    # No specific meeting + not a follow-up → search everything
+                    search_all = True
+                    meeting_ids = None
+                    print("[INFO] No meeting specified — searching across all meetings.")
         else:
             continue
 
         print("\nQuery Processing:", query)
         query_embedding = embed_model.encode(query).tolist()
 
-        # Selection Logic
-        if meeting_ids is not None:
-            pass
-        elif meeting_id is not None:
-            meeting_ids = [meeting_id]
+        # ── Selection Logic ──
+        if search_all:
+            # Retrieve directly across all meetings without pre-filtering
+            retrieved_chunks, retrieved_metas = retrieve_chunks_hierarchical(
+                query, query_embedding, meeting_ids=None,
+                top_k=retrieval_top_k, search_all=True
+            )
         else:
-            meeting_ids = get_relevant_meetings(query_embedding)
-            if not meeting_ids:
-                meeting_ids = list(set([m["meeting_id"] for m in metadatas_all]))
+            if meeting_ids:
+                pass  # already set above
+            elif meeting_id is not None:
+                meeting_ids = [meeting_id]
+            else:
+                meeting_ids = get_relevant_meetings(query_embedding)
+                if not meeting_ids:
+                    meeting_ids = list(set([m["meeting_id"] for m in metadatas_all]))
 
-        print("[DEBUG] meeting_ids:", meeting_ids)
-        retrieved_chunks, retrieved_metas = retrieve_chunks_hierarchical(
-            query, query_embedding, meeting_ids, top_k=retrieval_top_k
-        )
+            print("[DEBUG] meeting_ids:", meeting_ids)
+            retrieved_chunks, retrieved_metas = retrieve_chunks_hierarchical(
+                query, query_embedding, meeting_ids,
+                top_k=retrieval_top_k, search_all=False
+            )
+
         print("[DEBUG] retrieved_chunks:", len(retrieved_chunks))
 
-        # Build context
+        # Build context grouped by meeting
         grouped_context = {}
         for text, meta in zip(retrieved_chunks, retrieved_metas):
             m_id = meta["meeting_id"]
@@ -292,15 +349,10 @@ Question: {query}
 
         # ── Build prompt from file or inline ──
         if mode == "summary":
-            # قراءة الـ prompt من الملف وحقن الـ context مكان {transcript}
             prompt = summary_prompt_template.replace("{transcript}", context)
-
         elif mode == "tasks":
-            # قراءة الـ prompt من الملف وحقن الـ context مكان {transcript}
             prompt = task_prompt_template.replace("{transcript}", context)
-
         else:
-            # QA — inline prompt
             prompt = build_qa_prompt(query, context, history_text, lang)
 
         # ── API Call ──
@@ -314,7 +366,7 @@ Question: {query}
         print("✅ Answer generated")
         print(answer)
 
-        print("➡️ Going to TTS...")
+        # TTS disabled — to re-enable, uncomment generate_audio import above
         audio_path = generate_audio(answer)
 
         print("\nFinal Answer:\n", answer)

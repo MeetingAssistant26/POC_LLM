@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 ELEVENLABS_API_KEY = "sk_1134ff3756aac7d4f1f3753992e73dcfa63bb6d0f57aeae5"
-ELEVENLABS_AR_VOICE = "DWMVT5WflKt0P8OPpIrY"
+ELEVENLABS_AR_VOICE = "EGYKu1CV0vikeTYK5zoc"
 
 
 # ── تنظيف النص ───────────────────────────────────────────────
@@ -92,9 +92,9 @@ def tasks_to_speech_text(text):
             task_text = task.get("task", "")
             due = task.get("due_date", "")
 
-            line = f"{assignee} هيعمل {task_text}"
+            line = f"{assignee} {task_text}"
             if due:
-                line += f" ولازم يخلص {due}"
+                line += f" وده لازم يكون جاهز {due}"
 
             lines.append(line)
 
