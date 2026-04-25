@@ -1,0 +1,8 @@
+{
+  "query_number": 9,
+  "meeting_id": 2,
+  "question": "Summarize meeting 2",
+  "answer": "The meeting was about: discussion of the new project and its implementation\n\nKey discussion points:\n- The importance of creating a comprehensive dataset for the project\n- The need to improve the backend infrastructure to support the project's requirements\n- The role of the onboarding process in ensuring a smooth transition for new team members\n- The potential benefits of using NLP in enhancing the project's overall performance",
+  "audio_path": "done",
+  "context_used": []
+}

@@ -11,8 +11,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-ELEVENLABS_API_KEY = "sk_78987933ffbe1db6723b25d7c048fc767e23de6ae4627425"
-ELEVENLABS_AR_VOICE = "XSgDtfUfQcFCMgyf6Viu"
+ELEVENLABS_API_KEY = "sk_1134ff3756aac7d4f1f3753992e73dcfa63bb6d0f57aeae5"
+ELEVENLABS_AR_VOICE = "DWMVT5WflKt0P8OPpIrY"
 
 
 # ── تنظيف النص ───────────────────────────────────────────────

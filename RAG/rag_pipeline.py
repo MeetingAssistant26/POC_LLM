@@ -16,29 +16,38 @@ from RAG.chunking import run_chunking
 from RAG.embeddings import run_embeddings
 from RAG.vector_store import run_vector_store
 
+
+# ── Load prompt templates from files ──────────────────────────
+def load_prompt(filename):
+    prompt_path = os.path.join("prompts", filename)
+    with open(prompt_path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
 def generate_audio(text):
     print("🚀 Running TTS subprocess...")
-
-    result = subprocess.run(
+    subprocess.run(
         ["venv\\Scripts\\python.exe", "TTS/coqui_tts.py", text],
         capture_output=False,
         text=True
     )
-
     print("✅ TTS finished")
     return "done"
+
 
 def run_pipeline():
     print("Inside run_pipeline function")
 
-    # ── Setup ──
     load_dotenv()
 
-    # ── Smart Check: ──
-    db_path = "RAG/chroma_db"
+    # ── Load prompts once at startup ──
+    summary_prompt_template = load_prompt("meeting_summary_prompt.txt")
+    task_prompt_template = load_prompt("task_extraction_prompt.txt")
 
+    # ── Smart Check ──
+    db_path = "RAG/chroma_db"
     if not os.path.exists(db_path) or len(os.listdir(db_path)) == 0:
-        print(" First time setup: Preparing data pipeline (Indexing documents)...")
+        print("First time setup: Preparing data pipeline...")
         run_chunking()
         run_embeddings()
         run_vector_store()
@@ -67,10 +76,9 @@ def run_pipeline():
 
     all_data = collection.get()
     metadatas_all = all_data["metadatas"]
-
     conversation_history = []
 
-    # 🟢 STEP 1: Get top meetings
+    # ── STEP 1: Get top meetings ──
     def get_relevant_meetings(query_embedding, top_k=3):
         results = collection.query(
             query_embeddings=[query_embedding],
@@ -85,15 +93,15 @@ def run_pipeline():
                 unique_meetings.append(m)
         return unique_meetings[:top_k]
 
-    # 🔵 STEP 2: Retrieve chunks
-    def retrieve_chunks_hierarchical(query, query_embedding, meeting_ids, top_k=3):
+    # ── STEP 2: Retrieve chunks ──
+    def retrieve_chunks_hierarchical(query, query_embedding, meeting_ids, top_k=8):
         all_texts = []
         all_metas = []
 
         for meeting_id in meeting_ids:
             vector_results = collection.query(
                 query_embeddings=[query_embedding],
-                n_results=10,
+                n_results=20,
                 where={"meeting_id": meeting_id}
             )
             all_texts.extend(vector_results["documents"][0])
@@ -108,7 +116,7 @@ def run_pipeline():
         query_vec = vectorizer.transform([query])
         cos_scores = cosine_similarity(query_vec, tfidf_matrix)[0]
 
-        top_indices_tfidf = np.argsort(-cos_scores)[:10]
+        top_indices_tfidf = np.argsort(-cos_scores)[:15]
         tfidf_texts = [all_texts[i] for i in top_indices_tfidf]
         tfidf_metas = [all_metas[i] for i in top_indices_tfidf]
 
@@ -121,11 +129,61 @@ def run_pipeline():
         final_texts = list(unique.keys())
         final_metas = list(unique.values())
 
-        # Final Rerank with CrossEncoder
+        # Rerank with CrossEncoder
         scores = reranker.predict([[query, t] for t in final_texts])
         top_indices_final = sorted(range(len(scores)), key=lambda i: scores[i], reverse=True)[:top_k]
 
         return [final_texts[i] for i in top_indices_final], [final_metas[i] for i in top_indices_final]
+
+    # ── Language Detection ──
+    def detect_language(context):
+        arabic_chars = sum(1 for c in context if '\u0600' <= c <= '\u06FF')
+        total_chars = len(context.replace(" ", ""))
+        arabic_ratio = arabic_chars / total_chars if total_chars > 0 else 0
+
+        colloquial_words = [
+            'عايز', 'مش', 'كده', 'إيه', 'عشان', 'بتاع', 'هنعمل', 'بيجي',
+            'لقيت', 'هبدأ', 'يالا', 'تمام', 'هعمل', 'هتيست', 'هراجع',
+            'دلوقتي', 'إحنا', 'احنا', 'بيعمل', 'هيعمل', 'مفيش',
+            'فيه', 'عليه', 'بقى', 'كمان', 'لو', 'ده', 'دي', 'هنا'
+        ]
+        colloquial_count = sum(1 for w in colloquial_words if w in context)
+
+        if arabic_ratio > 0.1:
+            return "ar_colloquial" if colloquial_count >= 1 else "ar_formal"
+        return "en"
+
+    # ── Build QA prompt (inline, not from file) ──
+    def build_qa_prompt(query, context, history_text, lang):
+        if lang == "ar_colloquial":
+            lang_instruction = "اللغة: عامية مصرية. رد بالعامية المصرية الطبيعية دايماً."
+        elif lang == "ar_formal":
+            lang_instruction = "اللغة: عربي فصحى. رد بالعربي الفصحى."
+        else:
+            lang_instruction = "Language: English. Always respond in English."
+
+        return f"""
+You are an AI meeting assistant.
+{lang_instruction}
+
+Answer the question using ONLY information explicitly mentioned in the meeting context.
+
+Rules:
+- Always answer in a full sentence, never return a name or word alone.
+- If the answer is a person, say "X is responsible for..." or "X هو المسؤول عن..."
+- Do NOT add information not clearly stated in the context.
+- Do NOT infer or assume anything beyond what is written.
+- Keep the answer concise and directly relevant to the question.
+- If no relevant info found, say: "I don't have enough information about this in the meeting."
+
+Previous conversation:
+{history_text}
+
+Context:
+{context}
+
+Question: {query}
+"""
 
     # ── MAIN LOOP ──
     print("✅ AI Meeting Assistant is now active.")
@@ -149,25 +207,30 @@ def run_pipeline():
             meeting_id = int(meeting_num)
             query = f"Summarize meeting {meeting_num}"
             mode = "summary"
+            retrieval_top_k = 10
+
         elif choice == "2":
             meeting_num = input("Enter meeting number (1-10): ")
             meeting_id = int(meeting_num)
             query = f"Extract tasks from meeting {meeting_num}"
             mode = "tasks"
+            retrieval_top_k = 10
+
         elif choice == "3":
             query = input("Ask a question: ")
             query_lower = query.lower()
-            mode = "qa"
 
             if "summary" in query_lower:
                 mode = "summary"
+                retrieval_top_k = 10
             elif "task" in query_lower:
                 mode = "tasks"
+                retrieval_top_k = 10
             else:
                 mode = "qa"
+                retrieval_top_k = 6
 
             matches = re.findall(r'meeting\s*(\d+)|\b(\d+)\b', query.lower())
-
             meeting_ids = []
             for m1, m2 in matches:
                 if m1:
@@ -203,9 +266,12 @@ def run_pipeline():
                 meeting_ids = list(set([m["meeting_id"] for m in metadatas_all]))
 
         print("[DEBUG] meeting_ids:", meeting_ids)
-        retrieved_chunks, retrieved_metas = retrieve_chunks_hierarchical(query, query_embedding, meeting_ids)
+        retrieved_chunks, retrieved_metas = retrieve_chunks_hierarchical(
+            query, query_embedding, meeting_ids, top_k=retrieval_top_k
+        )
         print("[DEBUG] retrieved_chunks:", len(retrieved_chunks))
 
+        # Build context
         grouped_context = {}
         for text, meta in zip(retrieved_chunks, retrieved_metas):
             m_id = meta["meeting_id"]
@@ -216,173 +282,32 @@ def run_pipeline():
         context = ""
         for m_id, texts in grouped_context.items():
             context += f"\n### Meeting {m_id}:\n"
-            context += "\n".join(texts[:4])
+            context += "\n".join(texts)
 
         history_text = ""
         for turn in conversation_history[-3:]:
             history_text += f"Q: {turn['question']}\nA: {turn['answer']}\n\n"
 
-        # ── Language Detection ──
-        arabic_chars = sum(1 for c in context if '\u0600' <= c <= '\u06FF')
-        total_chars = len(context.replace(" ", ""))
-        arabic_ratio = arabic_chars / total_chars if total_chars > 0 else 0
+        lang = detect_language(context)
 
-        colloquial_words = ['عايز', 'مش', 'كده', 'إيه', 'عشان', 'بتاع', 'هنعمل', 'بيجي', 
-                    'لقيت', 'هبدأ', 'يالا', 'تمام', 'ممتاز', 'هعمل', 'هتيست', 
-                    'هراجع', 'دلوقتي', 'إحنا', 'احنا', 'بيعمل', 'هيعمل', 'مفيش',
-                    'فيه', 'عليه', 'بقى', 'كمان', 'لو', 'ده', 'دي', 'هنا']
-        colloquial_count = sum(1 for w in colloquial_words if w in context)
+        # ── Build prompt from file or inline ──
+        if mode == "summary":
+            # قراءة الـ prompt من الملف وحقن الـ context مكان {transcript}
+            prompt = summary_prompt_template.replace("{transcript}", context)
 
-        if arabic_ratio > 0.1:
-            if colloquial_count >= 1:
-                lang_instruction = """The meeting is in Egyptian Arabic dialect (عامية مصرية).
-You MUST respond in Egyptian spoken Arabic.
+        elif mode == "tasks":
+            # قراءة الـ prompt من الملف وحقن الـ context مكان {transcript}
+            prompt = task_prompt_template.replace("{transcript}", context)
 
-RULES:
-- Never use formal words like: يجب، اتضح، ينبغي، حيث، إذ
-- Use instead: لازم، اتكلموا عن، عشان، لما
-- Use simple natural Egyptian Arabic like you are telling a friend
-- Keep technical words in English (onboarding, push notifications, backend, mockups)
-- Avoid formal Arabic words like: تم، هذه، هذا، حيث، إذ، لذلك
-- Use instead: اتعمل، ده، دي، عشان، لما
-
-For summary:
-- Start with: "الميتينج كان عن..."
-- Write 2 to 3 simple sentences only
-- No bullet points or stars
-- Only use information from the context, do not add anything
-
-For tasks: output ONLY valid JSON
-
-For general question:
-Rules:
-  - Always answer in a full sentence, never return a name or word alone.
-  - If the answer is a person, say "X هو المسؤول عن..." or "X is responsible for..."
-  - Do NOT add any information that is not clearly stated.
-  - Do NOT infer, assume, or generate new tasks.
-
-
-"""
-
-            else:
-                lang_instruction = """The meeting is in Modern Standard Arabic (فصحى).
-You MUST respond in Modern Standard Arabic only.
-- Keep technical words in English
-- For summary: write in flowing sentences, no bullet points or stars (*)
-- Do NOT invent information not explicitly in the context
-- For tasks: output ONLY valid JSON"""
         else:
-            lang_instruction = """The meeting is in English.
-Respond in English only.
-- For summary: write in flowing sentences, no bullet points or stars (*)
-- Do NOT invent information not explicitly in the context
-- For tasks: output ONLY valid JSON"""
+            # QA — inline prompt
+            prompt = build_qa_prompt(query, context, history_text, lang)
 
-        prompt = f"""
-You are an AI meeting assistant.
-{lang_instruction}
-IMPORTANT:
-
-- If the question asks about "goal" or "goals", return ONLY the goal directly.
-- Do NOT generate a full summary unless explicitly asked.
-- If mode is "qa", NEVER return a summary.
-
-Instructions:
-
-- If the question is asking for a summary:
-  Provide a clear and structured summary of the meeting.
-
-  Focus ONLY on:
-  - Main goal
-  - Key discussion points
-  - Important decisions
-
-  STRICT RULES:
-  - Start with: "الميتينج كان عن..." if Arabic, or "The meeting was about..." if English
-  - Write 2 to 3 simple sentences only
-  - No bullet points or stars
-  - Do NOT list tasks.
-  - Do NOT mention any assigned work.
-  - Do NOT include sentences with future actions (e.g., "will", "should", "plan to").
-  - Do NOT include responsibilities of individuals.
-  - Keep the summary high-level and descriptive only.
-  - Convert any task-like statements into general discussion points (do NOT mention names or assignments).
-  - NEVER use these Arabic words: يجب، اتضح، ينبغي، حيث، إذ، لذلك، نظراً
-  - Use instead: لازم، اتكلموا، عشان، وكمان
-
-- If the question is asking for tasks:
-  Extract ONLY actionable tasks explicitly assigned in the meeting.
-  Output MUST be in valid JSON format only.
-
-  JSON Structure:
-  {{
-    "tasks": [
-      {{
-        "assignee": "Person Name",
-        "task": "task description",
-        "due_date": "deadline if mentioned, otherwise empty string"
-      }}
-    ]
-  }}
-  Rules:
-  - A task must be a clear action (review, clean, test, prepare, fix, document).
-  - Only include tasks explicitly assigned to a person.
-  - If no assignee is mentioned, ignore the task.
-  - Keep original names as they appear in the transcript.
-  - Do NOT normalize or change any names.
-  - Do NOT include tasks containing "decide".
-  - Do NOT include discussions or observations.
-  - Merge similar tasks into one.
-  - Keep task description short and clear.
-  - Write task description in third person (e.g., "يعمل full audit" not "أعمل full audit")
-  - Output ONLY the JSON, no text before or after.
-  - Do NOT infer tasks that are not explicitly stated in the meeting.
-  - Do NOT rephrase or creatively rewrite tasks beyond the original meaning.
-  - Use only information directly present in the provided context.
-  - Do NOT add new tasks even if they seem logically implied.
-  - Preserve exact meaning of due dates as written in the text (do not reformat or "clean" them).
-  - Do NOT correct or modify names in any way except normalization to "Sara".
-  If no tasks found return:
-  {{
-    "tasks": []
-  }}
-
-- If the question is a general question:
-  Answer using ONLY information explicitly mentioned in the meeting context.
-
-  Rules:
-  - Always answer in a full sentence, never return a name or word alone.
-  - If the answer is a person, say "X هو المسؤول عن..." or "X is responsible for..."
-  - Do NOT add any information that is not clearly stated.
-  - Do NOT infer, assume, or generate new tasks.
-  - Do NOT expand beyond the given context.
-  - Use the exact meaning from the context (no extra interpretation).
-  - Keep the answer concise and directly relevant to the question.
-  - If partial information is found, return only what is explicitly available.
-  - If no relevant information is found, say: "I don't have enough information."
-  - If the question asks about tasks for a specific person:
-    apply the SAME strict task extraction rules.
-  - Only return tasks that are explicitly assigned to that person.
-  - When comparing, clearly highlight differences instead of similarities unless explicitly stated.
-
-General rules:
-- Do NOT repeat information.
-- Do NOT mention context or sources.
-- Do NOT include explanations outside the required format.
-
-Previous conversation:
-{history_text}
-Meeting context:
-{context}
-Mode: {mode}
-Question:
-{query}
-"""
-
-        # API Call
+        # ── API Call ──
         response = groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}]
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2
         )
 
         answer = response.choices[0].message.content
@@ -400,10 +325,9 @@ Question:
             "meeting_id": meeting_id
         })
 
-        # --- Save results to the rag_results folder ---
+        # Save results
         results_dir = "RAG/rag_results"
         os.makedirs(results_dir, exist_ok=True)
-
         current_files = os.listdir(results_dir)
         file_count = len([f for f in current_files if f.endswith('.json')]) + 1
         file_path = f"{results_dir}/result_{file_count}.json"
