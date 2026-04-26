@@ -10,6 +10,7 @@ from sentence_transformers import SentenceTransformer, CrossEncoder
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from groq import Groq
+import subprocess
 
 # Import internal python files
 from RAG.chunking import run_chunking
@@ -24,17 +25,33 @@ def load_prompt(filename):
         return f.read()
 
 
-# TTS is disabled — uncomment below and remove the stub to re-enable
-# import subprocess
-# def generate_audio(text):
-#     print("🚀 Running TTS subprocess...")
-#     subprocess.run(
-#         ["venv\\Scripts\\python.exe", "TTS/coqui_tts.py", text],
-#         capture_output=False,
-#         text=True
-#     )
-#     print("✅ TTS finished")
-#     return "done"
+# ── Check if question is meeting-related or general knowledge ──
+def is_meeting_related(query, groq_client):
+    response = groq_client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[{
+            "role": "user",
+            "content": f"""Is this question about a specific meeting, person, task, 
+            or discussion that happened in a meeting?
+            The question could be in Arabic or English.
+            Answer ONLY with 'yes' or 'no'.
+            Question: {query}"""
+                    }],
+        temperature=0
+    )
+    answer = response.choices[0].message.content.strip().lower()
+    return "yes" in answer
+
+"""
+def generate_audio(text):
+    print("🚀 Running TTS subprocess...")
+    subprocess.run(
+        ["venv\\Scripts\\python.exe", "TTS/coqui_tts.py", text],
+        capture_output=False,
+        text=True
+    )
+    print("✅ TTS finished")
+    return "done" """
 
 def generate_audio(text):
     print("🔇 TTS is currently disabled.")
@@ -49,6 +66,7 @@ def run_pipeline():
     # ── Load prompts once at startup ──
     summary_prompt_template = load_prompt("meeting_summary_prompt.txt")
     task_prompt_template = load_prompt("task_extraction_prompt.txt")
+    qa_prompt_template = load_prompt("QuestionAndAnswer_prompt.txt")  # ← جديد
 
     # ── Smart Check ──
     db_path = "RAG/chroma_db"
@@ -181,36 +199,21 @@ def run_pipeline():
             return "ar_colloquial" if colloquial_count >= 1 else "ar_formal"
         return "en"
 
-    # ── Build QA prompt (inline, not from file) ──
-    def build_qa_prompt(query, context, history_text, lang):
+    # ── Build General Knowledge prompt ──
+    def build_general_prompt(query, lang):
         if lang == "ar_colloquial":
-            lang_instruction = "اللغة: عامية مصرية. رد بالعامية المصرية الطبيعية دايماً."
+            lang_instruction = "رد بالعامية المصرية الطبيعية."
         elif lang == "ar_formal":
-            lang_instruction = "اللغة: عربي فصحى. رد بالعربي الفصحى."
+            lang_instruction = "رد بالعربي الفصحى."
         else:
-            lang_instruction = "Language: English. Always respond in English."
+            lang_instruction = "Respond in English."
 
         return f"""
-You are an AI meeting assistant.
+You are a helpful AI assistant.
 {lang_instruction}
 
-Answer the question using ONLY information explicitly mentioned in the meeting context.
-The context may contain chunks from multiple different meetings — use all of them.
-
-Rules:
-- Always answer in a full sentence, never return a name or word alone.
-- If the answer is a person, say "X is responsible for..." or "X هو المسؤول عن..."
-- If the answer spans multiple meetings, mention which meeting each fact comes from.
-- Do NOT add information not clearly stated in the context.
-- Do NOT infer or assume anything beyond what is written.
-- Keep the answer concise and directly relevant to the question.
-- If no relevant info found, say: "I don't have enough information about this in the meetings."
-
-Previous conversation:
-{history_text}
-
-Context:
-{context}
+Answer the following general question using your knowledge.
+Be concise and clear.
 
 Question: {query}
 """
@@ -259,8 +262,14 @@ Question: {query}
                 mode = "tasks"
                 retrieval_top_k = 10
             else:
-                mode = "qa"
-                retrieval_top_k = 8  # slightly more chunks for cross-meeting search
+                # Check if question is meeting-related or general knowledge
+                if is_meeting_related(query, groq_client):
+                    mode = "qa"
+                    print("[INFO] Meeting-related question detected.")
+                else:
+                    mode = "general"
+                    print("[INFO] General question detected — answering from knowledge.")
+                retrieval_top_k = 8
 
             # Extract explicit meeting numbers from the query
             matches = re.findall(r'meeting\s*(\d+)|\b(\d+)\b', query_lower)
@@ -292,7 +301,7 @@ Question: {query}
                             print(f"[INFO] Follow-up detected — using meeting {meeting_id}")
                             break
 
-                if not meeting_ids:
+                if not meeting_ids and mode != "general":
                     # No specific meeting + not a follow-up → search everything
                     search_all = True
                     meeting_ids = None
@@ -301,6 +310,45 @@ Question: {query}
             continue
 
         print("\nQuery Processing:", query)
+
+        # ── General mode: skip retrieval entirely ──
+        if mode == "general":
+            lang = detect_language(query)
+            prompt = build_general_prompt(query, lang)
+            response = groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.2
+            )
+            answer = response.choices[0].message.content
+            print("✅ Answer generated")
+            print(answer)
+            audio_path = generate_audio(answer)
+            print("\nFinal Answer:\n", answer)
+
+            conversation_history.append({
+                "question": query,
+                "answer": answer,
+                "meeting_id": None
+            })
+
+            results_dir = "RAG/rag_results"
+            os.makedirs(results_dir, exist_ok=True)
+            file_count = len([f for f in os.listdir(results_dir) if f.endswith('.json')]) + 1
+            file_path = f"{results_dir}/result_{file_count}.json"
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump({
+                    "query_number": file_count,
+                    "meeting_id": None,
+                    "question": query,
+                    "answer": answer,
+                    "audio_path": audio_path,
+                    "context_used": []
+                }, f, ensure_ascii=False, indent=2)
+            print(f"📂 Result saved to: {file_path}")
+            continue
+
+        # ── RAG mode: retrieve chunks then answer ──
         query_embedding = embed_model.encode(query).tolist()
 
         # ── Selection Logic ──
@@ -353,7 +401,11 @@ Question: {query}
         elif mode == "tasks":
             prompt = task_prompt_template.replace("{transcript}", context)
         else:
-            prompt = build_qa_prompt(query, context, history_text, lang)
+            # Use QA prompt from file
+            prompt = qa_prompt_template\
+                .replace("{context}", context)\
+                .replace("{history_text}", history_text)\
+                .replace("{query}", query)
 
         # ── API Call ──
         response = groq_client.chat.completions.create(
