@@ -66,7 +66,8 @@ def run_pipeline():
     # ── Load prompts once at startup ──
     summary_prompt_template = load_prompt("meeting_summary_prompt.txt")
     task_prompt_template = load_prompt("task_extraction_prompt.txt")
-    qa_prompt_template = load_prompt("QuestionAndAnswer_prompt.txt")  # ← جديد
+    qa_prompt_template = load_prompt("QuestionAndAnswer_prompt.txt")
+    personalized_summary_template = load_prompt("PersonalizedSummary_prompt.txt")  # ← جديد
 
     # ── Smart Check ──
     db_path = "RAG/chroma_db"
@@ -244,6 +245,11 @@ Question: {query}
             mode = "summary"
             retrieval_top_k = 10
 
+            # Ask if user wants personalized summaries per speaker
+            personalized = input("Generate personalized summaries per speaker? (y/n): ").strip().lower()
+            if personalized == "y":
+                mode = "personalized_summary"
+
         elif choice == "2":
             meeting_num = input("Enter meeting number (1-10): ")
             meeting_id = int(meeting_num)
@@ -398,6 +404,46 @@ Question: {query}
         # ── Build prompt from file or inline ──
         if mode == "summary":
             prompt = summary_prompt_template.replace("{transcript}", context)
+
+        elif mode == "personalized_summary":
+            # Extract unique speakers from context
+            speakers = sorted(set(re.findall(r'SPEAKER_\d+', context)))
+            print(f"\nFound speakers: {speakers}")
+
+            all_personalized = {}
+            for speaker in speakers:
+                print(f"\n--- Generating summary for {speaker} ---")
+                prompt = personalized_summary_template\
+                    .replace("{speaker}", speaker)\
+                    .replace("{transcript}", context)
+
+                response = groq_client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.2
+                )
+                speaker_answer = response.choices[0].message.content
+                print(speaker_answer)
+                all_personalized[speaker] = speaker_answer
+                audio_path = generate_audio(speaker_answer)
+
+            # Save all personalized summaries in one result file
+            results_dir = "RAG/rag_results"
+            os.makedirs(results_dir, exist_ok=True)
+            file_count = len([f for f in os.listdir(results_dir) if f.endswith('.json')]) + 1
+            file_path = f"{results_dir}/result_{file_count}.json"
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump({
+                    "query_number": file_count,
+                    "meeting_id": meeting_id,
+                    "question": query,
+                    "answer": all_personalized,
+                    "audio_path": "done",
+                    "context_used": retrieved_chunks
+                }, f, ensure_ascii=False, indent=2)
+            print(f"📂 Result saved to: {file_path}")
+            continue
+
         elif mode == "tasks":
             prompt = task_prompt_template.replace("{transcript}", context)
         else:
