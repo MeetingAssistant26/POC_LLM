@@ -24,7 +24,7 @@ Contains meeting transcript datasets used for testing the models and the RAG sys
 Prompt templates loaded dynamically by the RAG pipeline at runtime.
 - `meeting_summary_prompt.txt` — structured summary prompt with format per language/dialect
 - `task_extraction_prompt.txt` — task extraction prompt with strict assignee, task, and deadline rules
-- `mixed_language_prompt.txt` — mixed-language transcript understanding
+- `QuestionAndAnswer_prompt.txt` — QA prompt with language detection and strict answer rules
 
 > ✅ Prompts are loaded from files — edit them directly without touching the code.
 
@@ -86,7 +86,9 @@ Embeddings → ChromaDB
         ↓
 User Query
         ↓
-Similarity Search (top-k chunks — 10 for summary/tasks, 6 for QA)
+General Knowledge Detector (is question meeting-related?)
+        ↓
+   Yes → Similarity Search (top-k chunks)     No → Answer from LLM knowledge
         ↓
 Prompt File loaded from prompts/
         ↓
@@ -104,12 +106,14 @@ Audio Response (RAG/audio_results/)
 # 🚀 Features
 - **Meeting summarization** — structured bullet-point format in the same language/dialect as the meeting
 - **Task extraction** *(task, responsible person, deadline)* — strict rules, JSON output only
-- **Question answering** about meeting content
+- **Question answering** about meeting content — supports Arabic and English questions
+- **General knowledge Q&A** — detects if question is meeting-related or general and responds accordingly
+- **Bilingual question support** — questions can be asked in Arabic or English
 - Support for **Arabic (Egyptian dialect), Modern Standard Arabic, and English** transcripts
 - **Automatic language detection** — responds in Egyptian Arabic, formal Arabic, or English based on context
 - **RAG-based semantic search** over meeting content
 - **Speaker-turn chunking** — splits transcripts by speaker turns with overlap for better retrieval
-- **Dynamic top-k retrieval** — 10 chunks for summary/tasks, 6 for QA
+- **Dynamic top-k retrieval** — 10 chunks for summary/tasks, 8 for QA
 - **Prompt files** — prompts loaded from `prompts/` folder, editable without touching code
 - **Audio-to-transcript pipeline** using WhisperX
 - **Speaker diarization** (identifying who said what via SPEAKER_00, SPEAKER_01, etc.)
@@ -135,9 +139,9 @@ GROQ_API_KEY=your_groq_api_key_here
 3. Accept the terms for:
    - [pyannote/speaker-diarization-3.1](https://huggingface.co/pyannote/speaker-diarization-3.1)
    - [pyannote/segmentation-3.0](https://huggingface.co/pyannote/segmentation-3.0)
-4. Add the token in `audio_pipeline/audio_pipeline.py`:
-```python
-HF_TOKEN = "your_hf_token_here"
+4. Add the token in `.env`:
+```env
+HF_TOKEN=your_hf_token_here
 ```
 
 ### ElevenLabs API Key & Voice Setup
@@ -146,9 +150,10 @@ HF_TOKEN = "your_hf_token_here"
 1. Go to [elevenlabs.io](https://elevenlabs.io) and create an account
 2. Go to your Profile → API Keys
 3. Copy your API key
-4. Add it in `TTS/coqui_tts.py`:
-```python
-ELEVENLABS_API_KEY = "your_elevenlabs_api_key_here"
+4. Add it in `.env`:
+```env
+ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+ELEVENLABS_AR_VOICE=your_voice_id_here
 ```
 
 #### 2. Create an Egyptian Arabic Voice
@@ -169,10 +174,7 @@ no Egyptian dialect letter substitution
 5. Generate and preview the 3 voice options, pick the best one
 6. Click **Select Voice** and give it a name
 7. Go to **My Voices**, find your voice, and copy the **Voice ID**
-8. Add it in `TTS/coqui_tts.py`:
-```python
-ELEVENLABS_AR_VOICE = "your_voice_id_here"
-```
+8. Add the Voice ID to your `.env` file
 
 ---
 
@@ -181,7 +183,7 @@ ELEVENLABS_AR_VOICE = "your_voice_id_here"
 POC_LLM
 │
 ├── audio                          ← put your raw audio files here
-│   ├── meeting_11.mp3
+│   ├── meeting_1.mp3
 │   └── ...
 │
 ├── audio_clean                    ← auto-generated preprocessed WAV files
@@ -206,7 +208,7 @@ POC_LLM
 ├── prompts
 │   ├── meeting_summary_prompt.txt  ← structured summary prompt (edit freely)
 │   ├── task_extraction_prompt.txt  ← task extraction prompt (edit freely)
-│   └── mixed_language_prompt.txt
+│   └── QuestionAndAnswer_prompt.txt ← QA prompt (edit freely)
 │
 ├── RAG
 │   ├── chunking.py                 ← speaker-turn chunking with overlap
@@ -219,7 +221,7 @@ POC_LLM
 │   └── rag_results/
 │
 ├── transcripts                    ← auto-generated WhisperX transcripts
-│   ├── meeting_11.txt
+│   ├── meeting_1.txt
 │   └── ...
 │
 ├── TTS
@@ -279,10 +281,13 @@ venv\Scripts\activate
 pip install chromadb sentence-transformers groq python-dotenv edge-tts
 ```
 
-### 3️⃣ Add your API key
+### 3️⃣ Add your API keys
 Create a `.env` file in the project root:
 ```env
 GROQ_API_KEY=your_groq_api_key_here
+ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+ELEVENLABS_AR_VOICE=your_voice_id_here
+HF_TOKEN=your_hf_token_here
 ```
 
 ### 4️⃣ Run the assistant
@@ -326,6 +331,7 @@ Prompts are stored in the `prompts/` folder and loaded at runtime — no code ch
 |---|---|
 | `meeting_summary_prompt.txt` | Controls summary format and language rules |
 | `task_extraction_prompt.txt` | Controls task/assignee/deadline extraction rules |
+| `QuestionAndAnswer_prompt.txt` | Controls QA format and language rules |
 
 Just edit the `.txt` file and re-run `main.py` — changes take effect immediately.
 
@@ -351,6 +357,9 @@ Just edit the `.txt` file and re-run `main.py` — changes take effect immediate
 | Speaker-turn chunking | ✅ Complete |
 | Dynamic top-k retrieval | ✅ Complete |
 | Prompt files (editable without code changes) | ✅ Complete |
+| General knowledge detection | ✅ Complete |
+| Arabic question support | ✅ Complete |
+| QA prompt file | ✅ Complete |
 
 ---
 
