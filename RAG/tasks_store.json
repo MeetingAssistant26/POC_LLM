@@ -194,7 +194,7 @@
       "assignee": "SPEAKER_03",
       "task": "يعمل multi-stage preprocessing يشمل cleaning و normalization و segmentation و manual annotation لكل tasks و deadlines",
       "due_date": null,
-      "status": "pending"
+      "status": "done"
     },
     {
       "assignee": "SPEAKER_02",
@@ -212,7 +212,7 @@
       "assignee": "SPEAKER_02",
       "task": "يعمل redesign لfallback UI",
       "due_date": null,
-      "status": "pending"
+      "status": "done"
     },
     {
       "assignee": "SPEAKER_02",
