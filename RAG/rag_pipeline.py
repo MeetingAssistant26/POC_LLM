@@ -42,20 +42,62 @@ def is_meeting_related(query, groq_client):
     answer = response.choices[0].message.content.strip().lower()
     return "yes" in answer
 
-"""
-def generate_audio(text):
-    print("🚀 Running TTS subprocess...")
-    subprocess.run(
-        ["venv\\Scripts\\python.exe", "TTS/coqui_tts.py", text],
-        capture_output=False,
-        text=True
-    )
-    print("✅ TTS finished")
-    return "done" """
 
 def generate_audio(text):
     print("🔇 TTS is currently disabled.")
     return "disabled"
+
+
+# ── Tasks Store Helpers ────────────────────────────────────────
+TASKS_STORE_PATH = "RAG/tasks_store.json"
+
+def load_tasks_store():
+    if not os.path.exists(TASKS_STORE_PATH):
+        return {}
+    with open(TASKS_STORE_PATH, "r", encoding="utf-8") as f:
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            return {}
+
+def save_tasks_store(store):
+    os.makedirs(os.path.dirname(TASKS_STORE_PATH), exist_ok=True)
+    with open(TASKS_STORE_PATH, "w", encoding="utf-8") as f:
+        json.dump(store, f, ensure_ascii=False, indent=2)
+
+def save_tasks_for_meeting(meeting_id, tasks):
+    """حفظ الـ tasks في tasks_store.json مع merge للـ meetings الموجودة"""
+    store = load_tasks_store()
+    key = str(meeting_id)
+
+    if key not in store:
+        store[key] = []
+
+    existing_tasks = {t["task"]: t for t in store[key]}
+    for task in tasks:
+        task_name = task.get("task", "")
+        if task_name not in existing_tasks:
+            task.setdefault("status", "pending")
+            existing_tasks[task_name] = task
+
+    store[key] = list(existing_tasks.values())
+    save_tasks_store(store)
+    print(f"💾 Tasks saved to tasks_store.json for meeting {meeting_id}")
+
+
+def extract_tasks_from_answer(answer):
+    """Parse الـ JSON من الـ LLM answer"""
+    if isinstance(answer, str):
+        try:
+            clean = re.sub(r"```json|```", "", answer).strip()
+            parsed = json.loads(clean)
+        except (json.JSONDecodeError, ValueError):
+            return []
+    elif isinstance(answer, dict):
+        parsed = answer
+    else:
+        return []
+    return parsed.get("tasks", [])
 
 
 def run_pipeline():
@@ -67,7 +109,7 @@ def run_pipeline():
     summary_prompt_template = load_prompt("meeting_summary_prompt.txt")
     task_prompt_template = load_prompt("task_extraction_prompt.txt")
     qa_prompt_template = load_prompt("QuestionAndAnswer_prompt.txt")
-    personalized_summary_template = load_prompt("PersonalizedSummary_prompt.txt")  # ← جديد
+    personalized_summary_template = load_prompt("PersonalizedSummary_prompt.txt")
 
     # ── Smart Check ──
     db_path = "RAG/chroma_db"
@@ -104,11 +146,8 @@ def run_pipeline():
     conversation_history = []
 
     # ── STEP 1: Get top meetings ──
-    # FIX: Increased candidate pool (n_results) and top_k so more meetings
-    # are considered for open-ended questions that don't name a meeting.
     def get_relevant_meetings(query_embedding, top_k=5):
         total_chunks = collection.count()
-        # Pull a large candidate pool so no relevant meeting is missed
         n_candidates = min(total_chunks, 100)
         results = collection.query(
             query_embeddings=[query_embedding],
@@ -124,15 +163,12 @@ def run_pipeline():
         return unique_meetings[:top_k]
 
     # ── STEP 2: Retrieve chunks ──
-    # FIX: When no meeting is specified (search_all=True) we query ALL
-    # meetings in one go instead of looping per meeting ID, then rerank.
     def retrieve_chunks_hierarchical(query, query_embedding, meeting_ids,
                                      top_k=8, search_all=False):
         all_texts = []
         all_metas = []
 
         if search_all:
-            # Query across the entire collection without a meeting filter
             total_chunks = collection.count()
             n_candidates = min(total_chunks, 60)
             vector_results = collection.query(
@@ -154,7 +190,6 @@ def run_pipeline():
         if not all_texts:
             return [], []
 
-        # TF-IDF Re-ranking
         vectorizer = TfidfVectorizer()
         tfidf_matrix = vectorizer.fit_transform(all_texts)
         query_vec = vectorizer.transform([query])
@@ -164,7 +199,6 @@ def run_pipeline():
         tfidf_texts = [all_texts[i] for i in top_indices_tfidf]
         tfidf_metas = [all_metas[i] for i in top_indices_tfidf]
 
-        # Combine + Deduplicate
         unique = {}
         for text, meta in zip(all_texts + tfidf_texts, all_metas + tfidf_metas):
             if text not in unique:
@@ -173,7 +207,6 @@ def run_pipeline():
         final_texts = list(unique.keys())
         final_metas = list(unique.values())
 
-        # Rerank with CrossEncoder
         scores = reranker.predict([[query, t] for t in final_texts])
         top_indices_final = sorted(
             range(len(scores)), key=lambda i: scores[i], reverse=True
@@ -219,6 +252,40 @@ Be concise and clear.
 Question: {query}
 """
 
+    # ── Shared: run task extraction for a given meeting_id ──
+    def run_task_extraction(meeting_id, retrieval_top_k=10):
+        query = f"Extract tasks from meeting {meeting_id}"
+        query_embedding = embed_model.encode(query).tolist()
+
+        retrieved_chunks, retrieved_metas = retrieve_chunks_hierarchical(
+            query, query_embedding, [meeting_id],
+            top_k=retrieval_top_k, search_all=False
+        )
+
+        grouped_context = {}
+        for text, meta in zip(retrieved_chunks, retrieved_metas):
+            m_id = meta["meeting_id"]
+            grouped_context.setdefault(m_id, []).append(text)
+
+        context = ""
+        for m_id, texts in grouped_context.items():
+            context += f"\n### Meeting {m_id}:\n"
+            context += "\n".join(texts)
+
+        prompt = task_prompt_template.replace("{transcript}", context)
+
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2
+        )
+
+        answer = response.choices[0].message.content
+        tasks = extract_tasks_from_answer(answer)
+        save_tasks_for_meeting(meeting_id, tasks)
+
+        return answer, tasks, retrieved_chunks
+
     # ── MAIN LOOP ──
     print("✅ AI Meeting Assistant is now active.")
     while True:
@@ -226,16 +293,100 @@ Question: {query}
         print("1 - Generate Meeting Summary")
         print("2 - Extract Tasks")
         print("3 - Ask a Question")
-        print("4 - Exit")
+        print("4 - View Pending Tasks")
+        print("5 - Mark Task as Done")
+        print("6 - Exit")
 
-        choice = input("\nEnter choice (1/2/3/4): ")
-        if choice == "4":
+        choice = input("\nEnter choice (1/2/3/4/5/6): ")
+        if choice == "6":
             print("Goodbye!")
             break
 
+        # ── Option 4: View Pending Tasks ──
+        if choice == "4":
+            meeting_num = input("Enter meeting number (1-10): ").strip()
+            try:
+                meeting_id = int(meeting_num)
+            except ValueError:
+                print("⚠️ Invalid meeting number.")
+                continue
+
+            print(f"\n🔍 Extracting tasks from meeting {meeting_id}...")
+            _, tasks, _ = run_task_extraction(meeting_id)
+
+            pending = [t for t in tasks if t.get("status") == "pending"]
+
+            if not pending:
+                print(f"\n✅ No pending tasks in meeting {meeting_id}.")
+            else:
+                print(f"\n📋 Pending Tasks — Meeting {meeting_id} ({len(pending)} task(s)):\n")
+                for i, t in enumerate(pending, 1):
+                    due = f" — Due: {t['due_date']}" if t.get("due_date") else ""
+                    print(f"  {i}. {t['assignee']}: {t['task']}{due}")
+            continue
+
+        # ── Option 5: Mark Task as Done ──
+        if choice == "5":
+            store = load_tasks_store()
+            if not store:
+                print("⚠️ No tasks found yet. Use Option 5 first to extract tasks from a meeting.")
+                continue
+
+            all_pending = []
+            for m_id, tasks in store.items():
+                for t in tasks:
+                    if t.get("status") == "pending":
+                        all_pending.append((m_id, t))
+
+            if not all_pending:
+                print("\n✅ No pending tasks found.")
+                continue
+
+            print(f"\n📋 All Pending Tasks ({len(all_pending)} task(s)):\n")
+            for i, (m_id, t) in enumerate(all_pending, 1):
+                due = f" — Due: {t['due_date']}" if t.get("due_date") else ""
+                print(f"  {i}. [Meeting {m_id}] {t['assignee']}: {t['task']}{due}")
+
+            task_name = input("\nEnter task name to mark as done: ").strip()
+            if not task_name:
+                print("⚠️ No task name entered.")
+                continue
+
+            # دور على الـ task في كل الـ meetings
+            matches = []
+            for m_id, tasks in store.items():
+                for t in tasks:
+                    if task_name.lower() in t.get("task", "").lower():
+                        if t.get("status") == "pending":
+                            matches.append((m_id, t))
+
+            if not matches:
+                print(f"⚠️ No pending task found matching: \"{task_name}\"")
+                continue
+
+            # لو موجودة في أكتر من meeting — اسأل
+            if len(matches) > 1:
+                meeting_ids_found = [m_id for m_id, _ in matches]
+                print(f"\n⚠️ Found in multiple meetings: {', '.join(['Meeting ' + m for m in meeting_ids_found])}")
+                chosen = input("Which meeting? Enter meeting number: ").strip()
+                matches = [(m_id, t) for m_id, t in matches if m_id == chosen]
+                if not matches:
+                    print("⚠️ Invalid meeting number.")
+                    continue
+
+            # عمل done
+            for m_id, t in matches:
+                t["status"] = "done"
+                print(f"✅ Marked as done: \"{t['task']}\"")
+
+            save_tasks_store(store)
+            continue
+
+        # ────────────────────────────────────────────────────────
+        # Options 1 / 2 / 3
+        # ────────────────────────────────────────────────────────
         meeting_id = None
         meeting_ids = None
-        # FIX: track whether user asked about a specific meeting or not
         search_all = False
 
         if choice == "1":
@@ -245,7 +396,6 @@ Question: {query}
             mode = "summary"
             retrieval_top_k = 10
 
-            # Ask if user wants personalized summaries per speaker
             personalized = input("Generate personalized summaries per speaker? (y/n): ").strip().lower()
             if personalized == "y":
                 mode = "personalized_summary"
@@ -268,7 +418,6 @@ Question: {query}
                 mode = "tasks"
                 retrieval_top_k = 10
             else:
-                # Check if question is meeting-related or general knowledge
                 if is_meeting_related(query, groq_client):
                     mode = "qa"
                     print("[INFO] Meeting-related question detected.")
@@ -277,7 +426,6 @@ Question: {query}
                     print("[INFO] General question detected — answering from knowledge.")
                 retrieval_top_k = 8
 
-            # Extract explicit meeting numbers from the query
             matches = re.findall(r'meeting\s*(\d+)|\b(\d+)\b', query_lower)
             meeting_ids = []
             for m1, m2 in matches:
@@ -287,11 +435,8 @@ Question: {query}
                     meeting_ids.append(int(m2))
 
             if meeting_ids:
-                # User asked about specific meeting(s)
                 meeting_id = meeting_ids[0]
             else:
-                # ── FIX: No meeting number mentioned ──
-                # Check if it's a follow-up referencing a previous meeting
                 follow_up_words = ['he', 'she', 'his', 'her', 'they', 'their',
                                    'it', 'this', 'that', 'هو', 'هي', 'ده', 'دي']
                 is_follow_up = any(
@@ -299,7 +444,6 @@ Question: {query}
                 )
 
                 if is_follow_up and conversation_history:
-                    # Re-use last known meeting for follow-ups
                     for turn in reversed(conversation_history):
                         if turn.get("meeting_id") is not None:
                             meeting_id = turn["meeting_id"]
@@ -308,7 +452,6 @@ Question: {query}
                             break
 
                 if not meeting_ids and mode != "general":
-                    # No specific meeting + not a follow-up → search everything
                     search_all = True
                     meeting_ids = None
                     print("[INFO] No meeting specified — searching across all meetings.")
@@ -317,7 +460,7 @@ Question: {query}
 
         print("\nQuery Processing:", query)
 
-        # ── General mode: skip retrieval entirely ──
+        # ── General mode ──
         if mode == "general":
             lang = detect_language(query)
             prompt = build_general_prompt(query, lang)
@@ -354,19 +497,17 @@ Question: {query}
             print(f"📂 Result saved to: {file_path}")
             continue
 
-        # ── RAG mode: retrieve chunks then answer ──
+        # ── RAG mode ──
         query_embedding = embed_model.encode(query).tolist()
 
-        # ── Selection Logic ──
         if search_all:
-            # Retrieve directly across all meetings without pre-filtering
             retrieved_chunks, retrieved_metas = retrieve_chunks_hierarchical(
                 query, query_embedding, meeting_ids=None,
                 top_k=retrieval_top_k, search_all=True
             )
         else:
             if meeting_ids:
-                pass  # already set above
+                pass
             elif meeting_id is not None:
                 meeting_ids = [meeting_id]
             else:
@@ -382,7 +523,6 @@ Question: {query}
 
         print("[DEBUG] retrieved_chunks:", len(retrieved_chunks))
 
-        # Build context grouped by meeting
         grouped_context = {}
         for text, meta in zip(retrieved_chunks, retrieved_metas):
             m_id = meta["meeting_id"]
@@ -401,12 +541,10 @@ Question: {query}
 
         lang = detect_language(context)
 
-        # ── Build prompt from file or inline ──
         if mode == "summary":
             prompt = summary_prompt_template.replace("{transcript}", context)
 
         elif mode == "personalized_summary":
-            # Extract unique speakers from context
             speakers = sorted(set(re.findall(r'SPEAKER_\d+', context)))
             print(f"\nFound speakers: {speakers}")
 
@@ -427,7 +565,6 @@ Question: {query}
                 all_personalized[speaker] = speaker_answer
                 audio_path = generate_audio(speaker_answer)
 
-            # Save all personalized summaries in one result file
             results_dir = "RAG/rag_results"
             os.makedirs(results_dir, exist_ok=True)
             file_count = len([f for f in os.listdir(results_dir) if f.endswith('.json')]) + 1
@@ -447,7 +584,6 @@ Question: {query}
         elif mode == "tasks":
             prompt = task_prompt_template.replace("{transcript}", context)
         else:
-            # Use QA prompt from file
             prompt = qa_prompt_template\
                 .replace("{context}", context)\
                 .replace("{history_text}", history_text)\
@@ -464,10 +600,14 @@ Question: {query}
         print("✅ Answer generated")
         print(answer)
 
-        # TTS disabled — to re-enable, uncomment generate_audio import above
         audio_path = generate_audio(answer)
-
         print("\nFinal Answer:\n", answer)
+
+        # ── لو Option 2: احفظ الـ tasks في tasks_store.json ──
+        if mode == "tasks":
+            tasks = extract_tasks_from_answer(answer)
+            if tasks:
+                save_tasks_for_meeting(meeting_id, tasks)
 
         conversation_history.append({
             "question": query,
@@ -475,7 +615,6 @@ Question: {query}
             "meeting_id": meeting_id
         })
 
-        # Save results
         results_dir = "RAG/rag_results"
         os.makedirs(results_dir, exist_ok=True)
         current_files = os.listdir(results_dir)
