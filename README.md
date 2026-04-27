@@ -44,6 +44,7 @@ Core modules implementing the **Retrieval-Augmented Generation pipeline**.
 - **embeddings.py** → generates vector embeddings using `all-MiniLM-L6-v2`
 - **vector_store.py** → stores embeddings in ChromaDB with cosine similarity
 - **rag_pipeline.py** → retrieves relevant context and generates answers using Groq LLM
+- **tasks_store.json** → persistent store for all extracted tasks and their status across meetings
 
 ### 📂 audio_pipeline
 Single pipeline script that handles the full audio processing flow.
@@ -106,6 +107,8 @@ Audio Response (RAG/audio_results/)
 # 🚀 Features
 - **Meeting summarization** — structured bullet-point format in the same language/dialect as the meeting
 - **Task extraction** *(task, responsible person, deadline)* — strict rules, JSON output only
+- **Pending task tracking** — extracted tasks are saved with `status: pending` and can be marked as done per meeting
+- **Suggested assignees** — if no one explicitly accepts a task, the system infers the most suitable speaker based on their role and context, marked as `(suggested)`
 - **Question answering** about meeting content — supports Arabic and English questions
 - **General knowledge Q&A** — detects if question is meeting-related or general and responds accordingly
 - **Bilingual question support** — questions can be asked in Arabic or English
@@ -215,6 +218,7 @@ POC_LLM
 │   ├── embeddings.py
 │   ├── vector_store.py
 │   ├── rag_pipeline.py             ← loads prompts from files dynamically
+│   ├── tasks_store.json            ← persistent task tracking across all meetings
 │   ├── chunks.json
 │   ├── embeddings.json
 │   ├── chroma_db/
@@ -300,8 +304,16 @@ python main.py
 1 - Generate Meeting Summary
 2 - Extract Tasks
 3 - Ask a Question
-4 - Exit
+4 - View Pending Tasks
+5 - Mark Task as Done
+6 - Exit
 ```
+
+**Option 4 — View Pending Tasks**
+Extracts tasks from a specific meeting and displays all pending ones. Tasks are saved to `RAG/tasks_store.json` for tracking across sessions.
+
+**Option 5 — Mark Task as Done**
+Shows all pending tasks across all meetings. Enter any part of the task name to mark it as done. If the same task name exists in multiple meetings, the system will ask you to specify which meeting.
 
 > ✅ The system auto-builds the ChromaDB on first run. No manual chunking/embedding steps needed.
 
@@ -360,6 +372,8 @@ Just edit the `.txt` file and re-run `main.py` — changes take effect immediate
 | General knowledge detection | ✅ Complete |
 | Arabic question support | ✅ Complete |
 | QA prompt file | ✅ Complete |
+| Pending task tracking (View & Mark as Done) | ✅ Complete |
+| Suggested assignees based on role & context | ✅ Complete |
 
 ---
 
