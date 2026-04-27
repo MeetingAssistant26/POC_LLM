@@ -305,14 +305,17 @@ Question: {query}
         # ── Option 4: View Pending Tasks ──
         if choice == "4":
             meeting_num = input("Enter meeting number (1-10): ").strip()
-            try:
-                meeting_id = int(meeting_num)
-            except ValueError:
-                print("⚠️ Invalid meeting number.")
-                continue
+            meeting_id = int(meeting_num)
 
-            print(f"\n🔍 Extracting tasks from meeting {meeting_id}...")
-            _, tasks, _ = run_task_extraction(meeting_id)
+            store = load_tasks_store()
+            key = str(meeting_id)
+
+            if key in store and store[key]:
+                print(f"\n📋 Loading tasks from store for meeting {meeting_id}...")
+                tasks = store[key]
+            else:
+                print(f"\n🔍 Extracting tasks from meeting {meeting_id}...")
+                _, tasks, _ = run_task_extraction(meeting_id)
 
             pending = [t for t in tasks if t.get("status") == "pending"]
 
@@ -352,7 +355,6 @@ Question: {query}
                 print("⚠️ No task name entered.")
                 continue
 
-            # دور على الـ task في كل الـ meetings
             matches = []
             for m_id, tasks in store.items():
                 for t in tasks:
@@ -364,7 +366,6 @@ Question: {query}
                 print(f"⚠️ No pending task found matching: \"{task_name}\"")
                 continue
 
-            # لو موجودة في أكتر من meeting — اسأل
             if len(matches) > 1:
                 meeting_ids_found = [m_id for m_id, _ in matches]
                 print(f"\n⚠️ Found in multiple meetings: {', '.join(['Meeting ' + m for m in meeting_ids_found])}")
@@ -374,7 +375,6 @@ Question: {query}
                     print("⚠️ Invalid meeting number.")
                     continue
 
-            # عمل done
             for m_id, t in matches:
                 t["status"] = "done"
                 print(f"✅ Marked as done: \"{t['task']}\"")
