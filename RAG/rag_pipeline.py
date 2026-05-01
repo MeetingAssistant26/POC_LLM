@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import time
 import numpy as np
 np.float_ = np.float64
 from dotenv import load_dotenv
@@ -98,6 +99,24 @@ def extract_tasks_from_answer(answer):
     else:
         return []
     return parsed.get("tasks", [])
+
+
+# ── Reminders Helpers ──────────────────────────────────────────
+REMINDERS_PATH = "RAG/reminders.json"
+
+def load_reminders():
+    if not os.path.exists(REMINDERS_PATH):
+        return []
+    with open(REMINDERS_PATH, "r", encoding="utf-8") as f:
+        try:
+            return json.load(f)
+        except json.JSONDecodeError:
+            return []
+
+def save_reminders(reminders):
+    os.makedirs(os.path.dirname(REMINDERS_PATH), exist_ok=True)
+    with open(REMINDERS_PATH, "w", encoding="utf-8") as f:
+        json.dump(reminders, f, ensure_ascii=False, indent=2)
 
 
 def run_pipeline():
@@ -288,6 +307,15 @@ Question: {query}
 
     # ── MAIN LOOP ──
     print("✅ AI Meeting Assistant is now active.")
+
+    # ── Show pending reminders at startup ──
+    reminders = load_reminders()
+    pending_reminders = [r for r in reminders if not r.get("done", False)]
+    if pending_reminders:
+        print(f"\n⏰ You have {len(pending_reminders)} pending reminder(s):")
+        for i, r in enumerate(pending_reminders, 1):
+            print(f"  {i}. {r['text']}  [{r['created_at']}]")
+
     while True:
         print("\nChoose an option:")
         print("1 - Generate Meeting Summary")
@@ -295,10 +323,11 @@ Question: {query}
         print("3 - Ask a Question")
         print("4 - View Pending Tasks")
         print("5 - Mark Task as Done")
-        print("6 - Exit")
+        print("6 - View / Mark Reminders Done")
+        print("7 - Exit")
 
-        choice = input("\nEnter choice (1/2/3/4/5/6): ")
-        if choice == "6":
+        choice = input("\nEnter choice (1/2/3/4/5/6/7): ")
+        if choice == "7":
             print("Goodbye!")
             break
 
@@ -332,7 +361,7 @@ Question: {query}
         if choice == "5":
             store = load_tasks_store()
             if not store:
-                print("⚠️ No tasks found yet. Use Option 5 first to extract tasks from a meeting.")
+                print("⚠️ No tasks found yet. Use Option 2 first to extract tasks from a meeting.")
                 continue
 
             all_pending = []
@@ -382,6 +411,26 @@ Question: {query}
             save_tasks_store(store)
             continue
 
+        # ── Option 6: View / Mark Reminders Done ──
+        if choice == "6":
+            reminders = load_reminders()
+            active = [r for r in reminders if not r.get("done", False)]
+
+            if not active:
+                print("\n✅ No pending reminders.")
+            else:
+                print(f"\n⏰ Pending Reminders ({len(active)}):\n")
+                for i, r in enumerate(active, 1):
+                    print(f"  {i}. {r['text']}  [{r['created_at']}]")
+
+                mark = input("\nMark as done? Enter number (or 0 to skip): ").strip()
+                if mark.isdigit() and 0 < int(mark) <= len(active):
+                    idx = reminders.index(active[int(mark) - 1])
+                    reminders[idx]["done"] = True
+                    save_reminders(reminders)
+                    print("✅ Reminder marked as done!")
+            continue
+
         # ────────────────────────────────────────────────────────
         # Options 1 / 2 / 3
         # ────────────────────────────────────────────────────────
@@ -410,6 +459,19 @@ Question: {query}
         elif choice == "3":
             query = input("Ask a question: ")
             query_lower = query.lower()
+
+            # ── Reminder detection ──
+            if "remind" in query_lower or "ذكرني" in query or "reminder" in query_lower:
+                reminder = {
+                    "text": query,
+                    "created_at": time.strftime("%Y-%m-%d %H:%M"),
+                    "done": False
+                }
+                reminders = load_reminders()
+                reminders.append(reminder)
+                save_reminders(reminders)
+                print("\n✅ تم حفظ الـ reminder بتاعك!")
+                continue
 
             if "summary" in query_lower or "summarize" in query_lower:
                 mode = "summary"
