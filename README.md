@@ -25,6 +25,7 @@ Prompt templates loaded dynamically by the RAG pipeline at runtime.
 - `meeting_summary_prompt.txt` — structured summary prompt with format per language/dialect
 - `task_extraction_prompt.txt` — task extraction prompt with strict assignee, task, and deadline rules
 - `QuestionAndAnswer_prompt.txt` — QA prompt with language detection and strict answer rules
+- `PersonalizedSummary_prompt.txt` — personalized summary prompt per speaker
 
 > ✅ Prompts are loaded from files — edit them directly without touching the code.
 
@@ -45,6 +46,7 @@ Core modules implementing the **Retrieval-Augmented Generation pipeline**.
 - **vector_store.py** → stores embeddings in ChromaDB with cosine similarity
 - **rag_pipeline.py** → retrieves relevant context and generates answers using Groq LLM
 - **tasks_store.json** → persistent store for all extracted tasks and their status across meetings
+- **reminders.json** → persistent store for all natural language reminders across sessions
 
 ### 📂 audio_pipeline
 Single pipeline script that handles the full audio processing flow.
@@ -106,9 +108,11 @@ Audio Response (RAG/audio_results/)
 
 # 🚀 Features
 - **Meeting summarization** — structured bullet-point format in the same language/dialect as the meeting
+- **Personalized summaries per speaker** — generates a separate summary for each speaker focusing only on what they said, their tasks, and their decisions
 - **Task extraction** *(task, responsible person, deadline)* — strict rules, JSON output only
 - **Pending task tracking** — extracted tasks are saved with `status: pending` and can be marked as done per meeting
 - **Suggested assignees** — if no one explicitly accepts a task, the system infers the most suitable speaker based on their role and context, marked as `(suggested)`
+- **Natural language reminders** — say "remind me to discuss X" or "ذكرني بـ X" and the system saves the reminder; pending reminders are shown automatically at startup
 - **Question answering** about meeting content — supports Arabic and English questions
 - **General knowledge Q&A** — detects if question is meeting-related or general and responds accordingly
 - **Bilingual question support** — questions can be asked in Arabic or English
@@ -209,9 +213,10 @@ POC_LLM
 │   └── llm_test_mixtral.py
 │
 ├── prompts
-│   ├── meeting_summary_prompt.txt  ← structured summary prompt (edit freely)
-│   ├── task_extraction_prompt.txt  ← task extraction prompt (edit freely)
-│   └── QuestionAndAnswer_prompt.txt ← QA prompt (edit freely)
+│   ├── meeting_summary_prompt.txt      ← structured summary prompt (edit freely)
+│   ├── task_extraction_prompt.txt      ← task extraction prompt (edit freely)
+│   ├── QuestionAndAnswer_prompt.txt    ← QA prompt (edit freely)
+│   └── PersonalizedSummary_prompt.txt  ← per-speaker summary prompt (edit freely)
 │
 ├── RAG
 │   ├── chunking.py                 ← speaker-turn chunking with overlap
@@ -219,6 +224,7 @@ POC_LLM
 │   ├── vector_store.py
 │   ├── rag_pipeline.py             ← loads prompts from files dynamically
 │   ├── tasks_store.json            ← persistent task tracking across all meetings
+│   ├── reminders.json              ← persistent reminder tracking across all sessions
 │   ├── chunks.json
 │   ├── embeddings.json
 │   ├── chroma_db/
@@ -306,14 +312,23 @@ python main.py
 3 - Ask a Question
 4 - View Pending Tasks
 5 - Mark Task as Done
-6 - Exit
+6 - View / Mark Reminders Done
+7 - Exit
 ```
 
+**Option 1 — Generate Meeting Summary**
+Generates a structured summary for a specific meeting. You can also choose to generate a personalized summary per speaker — each speaker gets a separate summary focusing only on what they said, their tasks, and their decisions.
+
 **Option 4 — View Pending Tasks**
-Extracts tasks from a specific meeting and displays all pending ones. Tasks are saved to `RAG/tasks_store.json` for tracking across sessions.
+Extracts tasks from a specific meeting and displays all pending ones. If tasks were already extracted before, they are loaded from `RAG/tasks_store.json` without calling the LLM again.
 
 **Option 5 — Mark Task as Done**
 Shows all pending tasks across all meetings. Enter any part of the task name to mark it as done. If the same task name exists in multiple meetings, the system will ask you to specify which meeting.
+
+**Option 6 — View / Mark Reminders Done**
+Shows all pending reminders saved via natural language commands. You can mark any reminder as done by entering its number.
+
+> 💡 **Tip — Natural Language Reminders**: In Option 3 (Ask a Question), if your message contains "remind me", "reminder", or "ذكرني", the system will automatically save it as a reminder instead of searching the meetings. Pending reminders are shown automatically every time you start the assistant.
 
 > ✅ The system auto-builds the ChromaDB on first run. No manual chunking/embedding steps needed.
 
@@ -344,6 +359,7 @@ Prompts are stored in the `prompts/` folder and loaded at runtime — no code ch
 | `meeting_summary_prompt.txt` | Controls summary format and language rules |
 | `task_extraction_prompt.txt` | Controls task/assignee/deadline extraction rules |
 | `QuestionAndAnswer_prompt.txt` | Controls QA format and language rules |
+| `PersonalizedSummary_prompt.txt` | Controls per-speaker summary format and language rules |
 
 Just edit the `.txt` file and re-run `main.py` — changes take effect immediately.
 
@@ -356,6 +372,7 @@ Just edit the `.txt` file and re-run `main.py` — changes take effect immediate
 | LLM testing (Llama, Mixtral) | ✅ Complete |
 | Prompt engineering | ✅ Complete |
 | Meeting summarization | ✅ Complete |
+| Personalized summaries per speaker | ✅ Complete |
 | Task extraction | ✅ Complete |
 | RAG pipeline | ✅ Complete |
 | Semantic retrieval (ChromaDB) | ✅ Complete |
@@ -374,6 +391,7 @@ Just edit the `.txt` file and re-run `main.py` — changes take effect immediate
 | QA prompt file | ✅ Complete |
 | Pending task tracking (View & Mark as Done) | ✅ Complete |
 | Suggested assignees based on role & context | ✅ Complete |
+| Natural language reminders (save, view & mark done) | ✅ Complete |
 
 ---
 
