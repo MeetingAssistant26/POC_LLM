@@ -1,29 +1,49 @@
-[0.03-0.99] SPEAKER_01:  Good morning everyone.
-[1.09-5.96] SPEAKER_01: Today we need to discuss the progress of our Eye Meeting Assistant project and define the next steps.
-[6.46-7.02] SPEAKER_00: Good morning.
-[7.58-12.75] SPEAKER_00: I started working on the transcription module using Whisper and the basic setup is already working.
-[13.15-13.77] SPEAKER_01:  That's great.
-[14.01-20.66] SPEAKER_01: Sarah, please test the transcription accuracy on a few meeting recordings and share the results before Wednesday at 4 p.m.
-[21.12-26.40] SPEAKER_01: I can start working on the speaker identification part so the system can recognize different people in the meeting.
-[26.82-27.30] SPEAKER_01: Perfect.
-[27.60-32.52] SPEAKER_01: Omar, try to finish the first version of the speaker detection module before Thursday noon.
-[33.00-37.64] SPEAKER_00: After that, I can integrate the transcription output with the task extraction component.
-[37.95-38.52] SPEAKER_01:  Good idea.
-[38.62-42.28] SPEAKER_01: Please prepare a small demo for that integration before Thursday evening.
-[42.72-47.90] SPEAKER_01: I will also start preparing the backend API that will store meeting transcripts and extracted tasks.
-[48.44-48.94] SPEAKER_01: Excellent.
-[49.18-52.21] SPEAKER_01: Make sure the API is ready for testing before Friday morning.
-[52.67-58.03] SPEAKER_00: Once the API is ready, I will connect the transcription module to it and test the full pipeline.
-[58.24-58.74] SPEAKER_01:  Perfect.
-[58.96-64.04] SPEAKER_01: Let's schedule another meeting on Friday afternoon to review the first prototype of the iMeeting Assistant.
-[64.28-68.06] SPEAKER_01: During that meeting we can also test the system using a real meeting recording.
-[68.56-69.18] SPEAKER_01: Exactly.
-[69.42-73.08] SPEAKER_01: After that we can decide what improvements we need for the next version.
-[73.30-79.08] SPEAKER_00: I think one improvement could be adding automatic meeting summaries so users can quickly understand the discussion.
-[79.44-80.50] SPEAKER_01:  That's a great idea.
-[80.66-86.16] SPEAKER_01: Sarah, please research a few summarization models and prepare a comparison before Monday afternoon.
-[86.44-91.64] SPEAKER_01: I can also start building a simple summarization pipeline using the transcripts we already generate.
-[91.96-92.46] SPEAKER_01: Perfect.
-[92.74-97.64] SPEAKER_01: Omar, try to create a basic prototype of the summarization feature before Tuesday noon.
-[97.91-103.55] SPEAKER_00: Once we have the summaries, we could also highlight the extracted tasks and deadlines directly in the report.
-[103.86-109.16] SPEAKER_01:  I will also check if we can store summaries, transcripts, and tasks in the same database structure.
+[0.05-28.67] SPEAKER_01:  احنا محتاجين نركز في الفترة دي على تحسين التكامل بين back-end و front-end لأن المشروع كله بيعتمد على سرعة واستقرار تبادل البيانات بين الجانبين فهكلف أحمد إنه يراجع كل A BI endpoints الخاصة بالtasks و user actions ويشوف fin bottlenecks اللي بتأثر على performance وكمان يضيف validation layer أقوى تقلل الأخطاء اللي بترجع لل front-end ولازم التعديلات دي تكون جاهزة
+[28.97-34.59] SPEAKER_01:  ومجربة يوم الاتنين علشان نبدأ integration بشكل فعلي بدون مشاكل.
+[34.68-64.49] SPEAKER_00:  تمام أنا هبدأ أشتغل على تحسين API structure وهراجع database queries علشان أقل الليتنسي خاصةً في endpoints اللي بيستخدمها frontend بشكل مكثف وكمان هضيف catching للrequests المتكررة علشان نحسن الأداء وهكلف ليلة إنها تساعدني في testing باستخدام real user scenarios علشان نتأكد إن التغييرات فعلاً stable ولازم نخلص كل ده يوم الأحد علشان يبقى عندنا وقت نراجع قبل deadline يوم الاتنين
+[65.09-94.14] SPEAKER_03:  من ناحية front-end، أنا شايفة إن في مشكلة في handling API responses خاصة في حالات error و loading فهبدأ أشتغل على تحسين state management بحيث التطبيق يقدر يتعامل مع أي response بشكل consistent وكمان هضيف UI feedback أو ضح للمستخدم زي loading indicators و retry options وأحمد، أنا محتاجة منك توحيد شكل response علشان ما يبقاش فيه اختلاف بين endpoints وأنا هخلص الشغل ده يوم التلثاء
+[94.58-96.57] SPEAKER_03:  علشان نبدأ نربطه مع Backend.
+[96.61-107.49] SPEAKER_02: أنا هشتغل على إعداد testing scenarios مشتركة بين Backend و Frontend تشمل حالات زي slow responses أو missing data أو simultaneous requests علشان نختبر استقرار النظام.
+[107.53-116.06] SPEAKER_02: وكمان هجهز test cases تغطي كل user flows الأساسية في التطبيق وسيرة هحتاج منك build محدس من Frontend علشان نبدأ الاختبارات.
+[116.09-119.88] SPEAKER_02: ولازم يكون أول تقرير testing جاهز يوم الأربعة علشان الفريق يرجعه.
+[120.34-143.58] SPEAKER_01:  كمان هكلف سارة إنها تراجع UI Flow بالكامل بعد ما يتم الربط مع Backend علشان نتأكد إن كل حاجة شغالة بشكل سلس بدون glitches أو inconsistencies وكمان محتاجين نتأكد إن تجربة المستخدم واضحة حتى في حالات الفشل وده لازم يكون جاهز يوم الخميس علشان نقدر نبدأ مرحلة Polish النهائية
+[144.02-164.07] SPEAKER_00:  وأنا هكلف نفسي كمان إني أعمل monitoring بسيط على السيرفر علشان نتابع performance بعد integration ونشوف إذا كان في أي drops أو errors محتاجة تدخل سريع وكمان هضيف logging أوضح علشان نقدر نحل المشاكل بسرعة ولازم كل ده يكون شغال يوم الخميس مع بداية testing النهائي
+[164.53-188.62] SPEAKER_03:  بعد ما نخلص كل ده هنبدأ نعمل Final UI Adjustments بناءً على Feedback من Testing وهركز على تحسين التفاصيل الصغيرة زي Responsiveness وسرعة التفاعل مع المستخدم وكمان هتأكد ان كل Components متوافقة مع الأبي الجديد بدون أي مشاكل ولازم النسخة النهائية تكون جاهزة يوم الجمعة علشان نقدر نسلم المشروع في الوقت المحدد
+[189.06-204.20] SPEAKER_01:  دلوقتي بعد ما قربنا نخلص integration بين back-end و front-end، أنا هكلف أحمد أنه يعمل full security review على كل API endpoints ويتأكد أنه ما فيش vulnerabilities زي unauthorized access أو data leakage.
+[204.24-208.37] SPEAKER_01: وكمان يراجع authentication و authorization flow بالكامل.
+[208.41-217.03] SPEAKER_01: نضمن أن النظام آمن قبل الإطلاق، ولازم التقرير النهائي يكون جاهز يوم السبت شن نقدر نبدأ مرحلة pre-release checks.
+[217.63-244.14] SPEAKER_00:  تمام، أنا هبدأ في security testing باستخدام tools مختلفة علشان أكتشف أي vulnerabilities محتملة وكمان هراجع input validation و error handling علشان أتأكد إن ما فيش أي ثغرات ممكن تستغل وهكلف ليلة إنها تساعدني في running penetration test scenarios على النظام علشان نغطي أكبر عدد ممكن من الحالات ولازم نخلص كل الاختبارات دي يوم الجمعة علشان يكون عندنا وقت نحل أي مشاكل تظهر قبل السبت
+[244.52-270.81] SPEAKER_03:  من ناحية front-end أنا هشتغل على تحسين form validation و user input handling علشان ينقلل errors اللي بترجع من back-end وكمان هضيف visual feedback للمستخدم في حالة وجود مشكلة في البيانات المدخلة وأحمد محتاجة منك توضح لي كل validation rules علشان أطبقها بشكل consistent في الUI وأنا هخلص الشغل ده يوم الجمعة علشان يتماشى مع security test
+[271.23-293.19] SPEAKER_02:  أنا هبدأ أجهز end-to-end testing scenarios تشمل الرحلة الكاملة للمستخدم من تسجيل الدخول لحد تنفيذ tasks علشان نتأكد أن كل حاجة شغالة مع بعض بدون مشاكل وكمان هركز على الحالات اللي فيها failure أو interruptions علشان نشوف النظام بيتصرف إزاي ولازم يكون عندنا تقرير شامل بكل النتائج يوم الأحد علشان نقرر هل النظام جاهز للإطلاق ولا محتاج تحسينات إضافية
+[293.71-316.32] SPEAKER_01:  كمان هكلف سارة إنها تراجع performance بتاع front-end بعد كل التحديثات وخصوصاً في الصفحات اللي فيها Heavy Data Loading علشان نتأكد إن ما فيش lag أو slow rendering وكمان محتاجين نشوف تأثير التعديلات على User Experience بشكل عام وده لازم يكون جاهز يوم الأحر علشان ناخد قرار نهائي بخصوص Readiness.
+[316.58-326.93] SPEAKER_00:  وأنا هتابع مع الفريق Deployment Preparation وهجهز scripts الخاصة بالDeployment علشان نضمن إن عملية الإطلاق تتم بشكل سلس بدون downtime.
+[327.01-333.31] SPEAKER_00: وكمان هعمل dry run على السيرفر التجريبي علشان نتأكد إن كل حاجة شغالة قبل الإطلاق الفعلي.
+[333.37-337.81] SPEAKER_00: ولازم كل ده يكون جاهز يوم الاتنين علشان نكون مستعدين للإطلاق.
+[338.16-360.90] SPEAKER_03:  في النهاية أنا هعمل final UI review على كل الشاشات بعدما نخلص كل الاختبارات والتعديلات وهتأكد أن التصميم متناسق وسهل الاستخدام ومفيش أي glitches أو مشاكل في التفاعل وكمان هجهز نسخة demo نهائية نعرضها على الفريق قبل الأطلاق ولازم النسخة دي تكون جهزة يوم الاتنين علشان نكون ready لأي feedback أخير
+[361.91-384.20] SPEAKER_01:  بشكل عام، أنا شايف أن التحسينات الأخيرة في back-end و front-end بدأت تظهر بوضوح في تجربة المستخدم، خاصة في طريقة عرض البيانات والتعامل مع الحالات المختلفة، زي loading و errors، وده بيدي إحساس أن النظام بقى أقرب جداً أنه يكون production-ready.
+[384.54-412.07] SPEAKER_00:  وأنا متفق معك، خصوصاً أن تحسينات A ب-Eye Performance والDatabase Optimization بدأت تبان بشكل ملحوظ في سرعة الاستجابة وتقليل زمن تحميل البيانات، وكمان، بقى فيه consistency أكثر في responses اللي بترجع لل-frontend، وده خلّى النظام more reliable في التعامل مع عدد كبير من requests في نفس الوقت، وده مهم جداً لما نبدأ نشوف زيادة حقيقية في عدد المستخدمين بعد الإطلاق.
+[412.38-436.37] SPEAKER_02:  من ناحية testing أنا شايفة أن أغلب السيناريوهات اللي جربناها سواء كانت normal use cases أو edge cases كانت نتائجها إيجابية جدا حتى في الحالات اللي فيها ضغط عالي أو data غير مكتملة أو network instability النظام كان بيتصرف بشكل stable إلى حد كبير وكمان بدأنا نشوف أن الأخطاء بقت أقل وeasier to trace بسبب التحسينات في logging وده مؤشر قوي أننا قربنا جدا من مرحلة الاستقرار الكامل
+[436.79-437.35] SPEAKER_03:  تمام.
+[437.47-447.00] SPEAKER_03: وأنا كمان شايفة إن تجربة المستخدم بقت أوضح وأسهل في التنقل بين الصفحات بعد تحسين UI Flow وتنظيم العناصر بشكل أفضل.
+[447.06-450.78] SPEAKER_03: Especially في الصفحات اللي فيها تفاعل كبير مع البيانات.
+[450.94-458.64] SPEAKER_03: وكمان المستخدم بقى يقدر يفهم الحالة الحالية للنظام بسهولة سواء في loading أو error أو success states.
+[459.02-467.11] SPEAKER_03:  وده هيخلي on-boarding للمستخدمين القدود أسهل بكتير ويقلل أي confusion ممكن يحصل أثناء الاستخدام.
+[467.34-480.99] SPEAKER_01:  كمان لحظت إن بعد التحسينات الأخيرة في Backend Handling بقى في استقرار أكبر بكتير في التعامل مع Concurrent Request خصوصاً في السيناريوهات اللي بيكون فيها ضغط عالي جداً من المستخدمين.
+[481.05-492.04] SPEAKER_01: في نفس اللحظة سواء على نفس Endpoints أو على Endpoints مختلفة بتشارك نفس الموارد في ال-Database ودخل لنظام أكثر قدرة على التحمل بشكل واضح
+[493.24-520.10] SPEAKER_01:  لأننا قللنا بشكل كبير حالات ال-race conditions وحسن طريقة إدارة ال-threads وال-async operation وكمان اشتغلنا على تحسين ال-caching strategy بحيث نقلل الضغط على ال-database في العمليات المتكررة وده كله انعكس على تقليل ال-error rate بشكل ملحوظ جدا وخلى النظام يقدر يتعامل مع edge cases معقدة كانت قبل كده بتسبب crashes أو slow responses
+[520.80-530.59] SPEAKER_01:  وده بيدي إحساس قوي إن النظام فعلياً جاهز يتعرض لبيئة production فيها traffic حقيقي بدون ما ينهار أو يحصل degradation
+[531.18-553.62] SPEAKER_02:  ومن ناحية monitoring والتحليل، أنا شايفة إن وجود logging system متقدم وmetrix dashboard واضح بقى بيساعدنا نفهم behavior بتاع النظام بشكل أعمق بكتير من قبل كده، خصوصاً لما بيحصل any unexpected issue أو sudden performance drop في وقت معين، بقينا نقدر نرجع step by step لكل request ونشوف إزاي data تحركت داخل النظام من أول request لحد response النهائي.
+[553.91-575.54] SPEAKER_02:  وده بيساعدنا نحدد root cause بسرعة بدل منضيع وقت في التخمين وكمان بقى عندنا visibility أعلى على bottlenecks سواء في backend processing أو database queries أو حتى front-end rendering delays وده بيخلينا نقدر نعمل continuous improvement بشكل تدريجي ومنظم من غير ما نكسر أي جزء في النظام وبالتالي بنحافظ على stability وفي نفس الوقت بنطور الأداء بشكل مستمر
+[576.08-598.48] SPEAKER_01:  أنا هكلف أحمد إنه يدخل في مرحلة Final Performance Tuning للBackend System بشكل عميق جداً، يشمل تحسين database indexing strategies وإعادة مراجعة كل A ب-I endpoints اللي عليها load عالي، وكمان تحليل bottlenecks اللي بتظهر تحت الضغط في real-time traffic scenario سواءً في concurrent requests
+[599.10-606.39] SPEAKER_01:  أو Heavy Data Processing Operation لإضافة إلى تحسين Catching Layer وتقليل Unnecessary Database Hits.
+[606.47-614.00] SPEAKER_01: وده لازم يتنفس بشكل كامل مع load testing شامل يحاكي production level traffic علشان نتأكد أن النظام
+[614.36-626.49] SPEAKER_01:  يقدر يتحمل الإستخدام الفعلي بدون أي Degradation في الأداء أو زيادة في Latency، وكل النتائج والتحسينات دي لازم تكون جاهزة ومختبرة بشكل مستقل.
+[626.59-631.95] SPEAKER_01: يوم الخميسي القادم، قبل ما ندخل مرحلة Pre-Production Review النهائي.
+[632.20-649.78] SPEAKER_03:  وأنا هكلف ليلة أنها تشتغل على Final UI Regression Testing بشكل شامل جداً لكل أجزاء Frontend بعد آخر updates التي تعملت على Design System و State Management بحيث يتم اختبار كل screens و user flows بما فيها edge cases
+[650.18-654.51] SPEAKER_03:  مثل الوضع الأسفل والمشاركات المشاركة والمشاركات الخطوة.
+[654.63-657.35] SPEAKER_03: لكي نتأكد أن تجربة المستخدم لسهل.
+[657.47-662.67] SPEAKER_03: ولا يوجد أي تجربة مفتوحة أو مشاركة المشاركة أو تجربة المشاركة غير متوقفة في المشاركة.
+[662.75-664.11] SPEAKER_03: وكذلك تقوم بعمل تجربة المشاركة المفتوحة.
+[664.17-669.45] SPEAKER_03: يوجد كلاسيفيكيشن لكل مشاركة حسب سفرتي وتأثيره على UX مع تجربة المشاركة للإصلاح.
+[669.47-671.91] SPEAKER_03: يجب أن يتسلم كل هذا بشكل نهائي يوم الأربعاء القادم.
+[672.03-674.01] SPEAKER_03: لكي يكون هناك وقت كافي للفريق أن يقوم بعم

@@ -1,34 +1,25 @@
-[0.11-1.09] SPEAKER_01: صباح الخير يا جماعة.
-[1.19-10.82] SPEAKER_01: قبل ما نبدأ تدريب الموديل الأسبوع ده، أعتقد إننا محتاجين نراجع الداتاسيت تاني بعناية، لأنه اتضاف داتا جديدة مؤخراً وعايزين نتأكد إن كل حاجة متسقة.
-[11.06-11.62] SPEAKER_00: صباح الخير.
-[12.30-23.18] SPEAKER_00: أنا فعلاً بدأت أراجع جزء من الداتاسيت امبارح، خصوصاً قسم النص العربي، ولاحظت إن فيه قيم ناقصة وبعض مشاكل في التنسيق ممكن تأثر على الـ preprocessing بعدين.
-[23.55-25.55] SPEAKER_01: ده بالظبط اللي كنت قلقان منه.
-[25.79-30.49] SPEAKER_01: سارة، ممكن تركزي على تنظيف القسم العربي وتصليح الإدخالات الناقصة؟
-[30.83-34.73] SPEAKER_01: حاولي تخلصي ده قبل الأربع الساعة 5 المساء عشان نقدر ننتقل للخطوة الجاية.
-[35.01-39.01] SPEAKER_02: وأنا في نفس الوقت اللي سارة شغالة فيه، أقدر أراجع النص الإنجليزي في الداتاسيت.
-[39.43-46.02] SPEAKER_02: هراجع علامات الترقيم والحروف الكبيرة، وكمان هشيل أي صفوف مكررة ممكن تعمل مشاكل أثناء التدريب.
-[46.45-47.34] SPEAKER_01: ده كلام كويس.
-[47.56-53.44] SPEAKER_01: عمر، من فضلك حاول تخلص المهمة دي قبل الأربع الضهر وابعتلي ملخص قصير للتغييرات اللي عملتها.
-[53.82-60.37] SPEAKER_00: بعد ما عمر يخلص الجزء الإنجليزي، هعمل مراجعة كاملة تانية على الداتاسيت عشان أتأكد إن كل حاجة تمام.
-[60.61-65.14] SPEAKER_00: هحضر كمان تقرير بيشرح المشاكل اللي لقيناها وإزاي عالجناها.
-[65.36-65.86] SPEAKER_01: ممتاز.
-[66.18-69.88] SPEAKER_01: بعد ما الداتاسيت يبقى نظيف، نقدر نشغل الـ preprocessing pipeline.
-[70.12-75.44] SPEAKER_01: ده بيشمل تنظيف النصوص والـ tokenization وتجهيز الـ training format النهائي.
-[75.74-81.96] SPEAKER_02: أنا كمان أقدر أتيست الـ preprocessing scripts على عينة صغيرة من الداتا الأول عشان أتأكد إن كل حاجة شغالة من غير أخطاء.
-[82.38-82.98] SPEAKER_01: فكرة كويسة.
-[83.06-85.33] SPEAKER_01: من فضلك عمل الاختبار ده قبل الخميس الصبح.
-[85.44-90.23] SPEAKER_01: لو كل حاجة اشتغلت كويس، هنشغل الـ preprocessing pipeline الكامل على الداتاسيت كله.
-[90.53-98.83] SPEAKER_00: وبعد ما الـ preprocessing يخلص، المفروض نحدد اجتماع تاني الخميس بعد الضهر نراجع فيه الداتا المعالجة قبل ما نبدأ خطوة التدريب.
-[99.06-100.56] SPEAKER_01: آه، ده هيبقى مفيد.
-[100.82-106.63] SPEAKER_01: في الاجتماع ده نقدر كمان نقرر إذا كان الداتاسيت جاهز للتدريب ولا لسه محتاجين تعديلات إضافية.
-[106.99-111.43] SPEAKER_02: لو كل حاجة تمام بعد الـ preprocessing، أقدر أبدأ أجهز بيئة التدريب.
-[111.83-116.33] SPEAKER_02: هجهز الـ GPU server وأتأكد إن كل الـ dependencies اتنصبت صح.
-[116.63-116.95] SPEAKER_01: عظيم.
-[117.29-124.19] SPEAKER_01: عمر، من فضلك جهز بيئة التدريب قبل الجمعة الصبح عشان نقدر نبدأ عملية التدريب فوراً بعد اجتماع المراجعة.
-[124.43-130.89] SPEAKER_00: هوثق كمان خطوات الـ preprocessing اللي استخدمناها عشان العملية كلها تبقى واضحة وقابلة للتكرار بعدين.
-[131.23-131.71] SPEAKER_01: ممتاز.
-[131.95-137.63] SPEAKER_01: من فضلك خلص التوثيق ده قبل الجمعة بعد الضهر وشاركه مع الفريق عشان الكل يراجعه.
-[138.04-145.14] SPEAKER_02: بعد ما التدريب يبدأ، هراقب الـ logs وأتابع مقاييس التدريب زي الـ loss والـ accuracy عشان أتأكد إن كل حاجة ماشية كويس.
-[145.50-153.20] SPEAKER_00: ولما أول run للتدريب يخلص، المفروض نعمل تقرير تقييم عشان نقدر نقارن النتايج بالإصدار السابق من الموديل.
-[153.62-154.24] SPEAKER_01: بالظبط.
-[154.42-160.38] SPEAKER_01: خلينا نخطط لاجتماع قصير تاني الاتنين الصبح نراجع فيه نتايج التدريب ونحدد التحسينات الجاية للموديل.
+[0.07-14.26] SPEAKER_00:  إحنا دلوقتي داخلين على مرحلة تعتبر critical في تطوير AI Assistant، لأن الموضوع مش مجرد تحسين task extraction وخلاص، لكن إحنا بنتكلم عن system، لازم يفهم human conversation بشكل شبه contextual.
+[14.28-21.70] SPEAKER_00: Intelligence حقيقي يعني يقدر يقرأ ما بين الصطور ويفهم النواية hidden behind الكلام.
+[21.80-48.51] SPEAKER_00:  وكمان يربط بين أجزاء الميتينج اللي ممكن تكون متفرقة عبر الوقت فهبدأ أعمل full deep audit على architecture بتاع NLP pipeline من أول data preprocessing لحد inference layer وهراجع كل كومبوننت بالتفصيل علشان أشوف فين loss في المعلومات أو ضعف في understanding وهطلع technical report شامل جداً خلال الأسبوع ده فيه كل issues و recommendations
+[49.18-71.83] SPEAKER_02:  من ناحية UX و Product Design احنا محتاجين نعيد بناء التجربة بالكامل بطريقة تخلي المستخدم يحس ان AI Assistant مش مجرد tool بيطلع tasks لكن كأنه smart collaborator بيساعده يفهم الاجتماع كله بشكل بصري ومنظم فهشتغل على redesign كامل لل Dashboard بحيث يكون فيه intelligent grouping لل tasks
+[72.47-101.41] SPEAKER_02:  حسب context مش بس priority وكمان timeline interactive يوضح progression بتاع كل قرار في الاجتماع من لحظة ذكره لحد ما يتحول إلى task مع deadline وهضيف كذلك features زي drag and drop editing و quick approve system علشان المستخدم يقدر يتعامل مع النتائج بسهولة وهعمل user testing على design الجديد مع real users علشان نتأكد إن التجربة intuitive جداً قبل أي deployment
+[102.01-128.04] SPEAKER_03:  أنا مسؤوليتي الأساسية هنا هي data pipeline و data set engineering وده فعلياً أهم جزء لأن أي ضعف في البيانات هيأثر مباشرة على جودة AI assistant فهبدأ أجمع data set ضخم جداً من real world meetings في مجالات مختلفة زي corporate meetings و academic discussions و product planning sessions وكل ده هيكون في natural language mixing بين Arabic و English مع اختلاف styles و accents وبعد كده هعمل multi-stage preprocessing
+[128.50-144.53] SPEAKER_03:  يشمل cleaning و normalization و segmentation و manual annotation لكل tasks و deadlines سواء ان كانت explicit أو implicit و كمان هضيف edge cases معقدة جدا زي ambiguous statements و indirect decisions علشان نضمن ان النموذج يتعلم التعامل مع real world complexity
+[151.39-166.31] SPEAKER_00:  بالإضافة لكل ده لازم نبدأ نفكر بجدية في Scalability and System Robustness لأن لو النظام مش قادر يتحمل ضغط Real-time meetings فيها عشرات أو حتى مئات الجمل في الدقيقة يبقى كل اللي بنعمله مش هيكون عملي
+[166.69-194.38] SPEAKER_00:  فهعمل deep performance profiling لكل stage في pipeline من speech to text لو موجود لحد task extraction و output generation وهجيس latency و throughput و memory consumption في سيناريوهات مختلفة وكمان هحدد bottlenecks اللي بتسبب delays أو data loss وبعدها هحط optimization roadmap يشمل تحسين catching strategies و parallel processing علشان نوصل لأفضل أداء ممكن
+[194.82-219.82] SPEAKER_02:  كمان احنا محتاجين نفكر في user feedback loop بشكل أذكى لأن AI assistant لازم يتعلم من المستخدمين بشكل مستمر فهو صمم system يسمح للمستخدم أنه يعمل edit أو correction أو حتى add new task لو النظام فاتوا حاجة وده كله هيتسجل كfeedback data يتم استخدامه في تحسين النموذج لاحقا وكمان هضيف notification system متوازن جداً
+[220.50-233.15] SPEAKER_02:  بحيث المستخدم يفضل aware بكل updates بدون ما يحصل overload أو spam وهشتغل على تجربة تفاعل تكون smooth جداً وكأن المستخدم بيتعامل مع assistant ذكي مش مجرد software
+[240.95-270.82] SPEAKER_03:  نقطة مهمة جداً كمان هي data diversity لأن لو data set مش representative للواقع النظام هيبقى biased ومش هيقدر يتعامل مع different communication styles فهيضيف conversations فيها formal meetings و casual discussions و technical brainstorming sessions و كمان حالات فيها interruptions و interruptions over interruptions علشان نخلي النموزج يتعلم يتعامل مع noisy real environments و هيعمل annotation دقيقة جداً لكل حالة علشان نضمن high quality supervised learning data تساعد النموزج يفهم context بشكل أكثر
+[271.36-295.08] SPEAKER_00:  في مرحل التاستينج، احنا لازم نعمل سيموليشن لمجموعة كبيرة جداً من long duration meetings اللي ممكن تمتدل أكثر من ساعة أو ساعتين فيها topic switching مستمر وmultiple speakers بيتكلموا في نفس الوقت وهو راقب performance بتاع AI assistant في الحفاظ على consistency بتاع tasks وعدم فقدان أي معلومات مهمة أثناء التدخلات
+[295.50-310.14] SPEAKER_00:  وكمان هئيس متريكس زي precision و recall و f1 score في task extraction بالإضافة إلى accuracy في deadline prediction وده هيدين صورة واضحة جدا عن قوة النظام في real world scenarios.
+[310.74-333.35] SPEAKER_02:  كمان لازم نهتم جداً بمرحلة on-boarding للمستخدمين لأن لو التجربة الأولية مش واضحة المستخدم ممكن يسيب النظام حتى لو هو قوي جداً فهعمل guided on-boarding flow يشرح step by step إزاي المستخدم يتعامل مع AI Assistant سواء في قراءة tasks أو تعديلها أو متبع deadlines وكمان هجهز documentation
+[334.12-348.11] SPEAKER_02:  بسيطة جداً فيها real examples من meetings حقيقية علشان المستخدم يفهم value بتاع النظام بسرعة ويبدأ يستخدموه بدون أي confusion و هنخلص كل ده قبل اطلاق النسخة التجربية بخمسة ايام
+[355.54-376.21] SPEAKER_03:  تمام، أنا استلمت تأسك بتاع stress testing اللي كلّفني بي أحمد، وهبدأ أشتغل على إعداد simulated environments فيها noisy real-time data وmultiple overlapping speakers، وهقسم الاختبارات لسيناريوهات مختلفة علشان نقيس robustness بشكل دقيقي جداً، وهبدأ التنفيذ فوراً، وهنحاول نطلع initial results analysis خلال 3 أيام من بداية الشغل
+[376.52-392.78] SPEAKER_00:  وأنا هتابع مع ليلة progress بتاع testing phase بشكل مستمر جداً، وهنشتغل على real-time monitoring system يخلينا نشوف performance metrics لحظة بلحظة، زي latency، throughput، accuracy، and consistency في task extraction.
+[392.86-398.58] SPEAKER_00: وكمان هضيف alerts system ينوتيفي الفريق لو حصل أي drop في الأداء.
+[398.76-414.52] SPEAKER_00:  أو Anomalies أثناء التشغيل، وده يساعدنا نتصرف بسرعة قبل ما المشاكل تكبر، وهنعمل Initial Deep Review للنتائج بعد أربعة أيام من بداية الاختبارات مع break down كامل لكل سيناريو حصل فيه failure أو ضعف في الأداء.
+[414.96-430.75] SPEAKER_02:  من ناحية UX أنا شايفة النتائج الاسترس تستنج ممكن تكشف لنا مشاكل deeper في user interaction flow خصوصا في الحالات اللي فيها delayed or missing tasks فهشتغل على redesign لfallback UI بحيث النظام يفضل usable
+[431.52-453.07] SPEAKER_02:  حتى لو الأي أسيستنت ماقدرش يطلع كل المعلومات بشكل كامل وكمان هضيف Smart Loading States و Progressive Updates تخلي المستخدم فاهم إن النظام Still Processing وهراجع تجربة المستخدم بالكامل تحت High Load Scenarios علشان نضمن إن الستم يفضل Stable Visually و Functionally حتى في أصعب الظروف
+[453.29-482.94] SPEAKER_03:  هتابع مع ليلة تفاصيل الاستراس تست وهقارن النتائج بالبنش ماركس الأديمة بشأن نشوف امبروفمنت وكمان هعمل ديب انالسس سواء في تاسك اكس أو ديدلاين أو ظهر اي كله لازم يكون انا دلوقتي مركزة على اعداد advanced simulation environment في سيناريوز معقدة جداً تشمل long meetings ممكن تمتدة اكتر من ساعتين فيها topic switching مستمر وmultiple speakers بيتكلموا في نفس الوقت وinterruptions متكررة وكمان هضيف noisy data conditions علشان نحاكي real world environments بشكل اقرب للواقع
+[483.44-488.95] SPEAKER_03:  وهعمل structure delogging لكل test case بحيث نقدر نرجع لأي failure ونفهم السبب بدقة.
+[489.01-494.92] SPEAKER_03: وهنبدأ نشوف initial patterns في الأخطاء بعد أول 72 ساعة من التشغيل الفعلي للtests.

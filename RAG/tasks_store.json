@@ -1,0 +1,224 @@
+{
+  "2": [
+    {
+      "assignee": "SPEAKER_03",
+      "task": "يضيف Feature مهمة جدا لل Dashboard ويخلي المستخدم يقدر Approve أو Reject Tasks بشكل مباشر مع إمكانية إضافة Comments أو Edits لكل Task Extracted من AI Assistant",
+      "due_date": "الجمعة الخمسة مساءً",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_03",
+      "task": "يعمل Final UX Polish على كل الشاشات",
+      "due_date": "الجمعة الخمسة مساءً",
+      "status": "done"
+    },
+    {
+      "assignee": "سارة",
+      "task": "تجهز Final UI Demo Presentation بشكل احترافي",
+      "due_date": "يوم الجمعة الساعة الرابعة مساءً",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_03",
+      "task": "يعمل redesign ويعمل UX flow جديد",
+      "due_date": "الجمعة الخمسة مساءً",
+      "status": "pending"
+    },
+    {
+      "assignee": "أحمد",
+      "task": "يزود SPEAKER_03 API endpoints جديدة خاصة بتسك status updates",
+      "due_date": "يوم الاتنين الساعة الثالثة مساءً",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_01",
+      "task": "يشتغل على LABI layer الخاص بتحديد task style وربطه مع database بشكل real time sync",
+      "due_date": "يوم الاتنين الساعة الثانية تعشرة ظهرا",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_01",
+      "task": "يضيف endpoints جديدة للpriority management",
+      "due_date": "يوم الاتنين الساعة الثانية تعشرة ظهرا",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_02",
+      "task": "يشتغل على data set expansion",
+      "due_date": "يوم الأربعاء الساعة السادسة مساءً",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_02",
+      "task": "يضيف 10,000 sample جديد من meetings",
+      "due_date": "يوم الأربعاء الساعة السادسة مساءً",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_02",
+      "task": "يعمل annotation للtasks والdeadlines",
+      "due_date": "يوم الأربعاء الساعة السادسة مساءً",
+      "status": "pending"
+    },
+    {
+      "assignee": "ليلة",
+      "task": "تختبر UI integration باستخدام sample data",
+      "due_date": "يوم الخميس الساعة الخمسة مساءً",
+      "status": "pending"
+    },
+    {
+      "assignee": "ليلة",
+      "task": "تعمل Validation شامل على ال-New Dataset",
+      "due_date": "يوم الخميس الساعة الثانية ظهرا",
+      "status": "done"
+    },
+    {
+      "assignee": "SPEAKER_02",
+      "task": "يشتغل على data pipeline execution",
+      "due_date": "يوم الأربعة",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_02",
+      "task": "يبعت Daily Progress Report",
+      "due_date": null,
+      "status": "pending"
+    },
+    {
+      "assignee": "أمار",
+      "task": "يعمل performance benchmark شامل",
+      "due_date": "يوم الجمعة الساعة الحادية 10 صباح",
+      "status": "pending"
+    }
+  ],
+  "3": [
+    {
+      "assignee": "SPEAKER_02",
+      "task": "يعمل end-to-end testing scenarios",
+      "due_date": "يوم الأحد",
+      "status": "done"
+    },
+    {
+      "assignee": "سارة",
+      "task": "تراجع performance بتاع front-end",
+      "due_date": "يوم الأحر",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_03",
+      "task": "يحسن form validation و user input handling",
+      "due_date": "يوم الجمعة",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_00",
+      "task": "يجهز scripts الخاصة بالDeployment",
+      "due_date": "يوم الاتنين",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_03",
+      "task": "يعمل final UI review",
+      "due_date": "يوم الاتنين",
+      "status": "pending"
+    },
+    {
+      "assignee": "ليلة",
+      "task": "تشتغل على Final UI Regression Testing",
+      "due_date": "يوم الأربعاء",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_02",
+      "task": "يجهز testing scenarios مشتركة بين Backend و Frontend",
+      "due_date": "يوم الأربعة",
+      "status": "pending"
+    },
+    {
+      "assignee": "سارة",
+      "task": "تراجع UI Flow",
+      "due_date": "يوم الخميس",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_03",
+      "task": "يعمل Final UI Adjustments",
+      "due_date": "يوم الجمعة",
+      "status": "pending"
+    },
+    {
+      "assignee": "أحمد",
+      "task": "يعمل full security review",
+      "due_date": "يوم السبت",
+      "status": "pending"
+    },
+    {
+      "assignee": "أحمد",
+      "task": "يدخل في مرحلة Final Performance Tuning",
+      "due_date": "يوم الخميس",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_02",
+      "task": "يجهز end-to-end testing scenarios",
+      "due_date": "يوم الأحد",
+      "status": "done"
+    }
+  ],
+  "1": [
+    {
+      "assignee": "SPEAKER_00",
+      "task": "يعمل deep performance profiling لكل stage في pipeline",
+      "due_date": null,
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_00",
+      "task": "يعمل full deep audit على architecture بتاع NLP pipeline",
+      "due_date": "الأسبوع ده",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_00",
+      "task": "يعمل Initial Deep Review للنتائج بعد أربعة أيام من بداية الاختبارات",
+      "due_date": "بعد أربعة أيام من بداية الاختبارات",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_03",
+      "task": "يجمع data set ضخم جداً من real world meetings",
+      "due_date": null,
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_03",
+      "task": "يعمل multi-stage preprocessing يشمل cleaning و normalization و segmentation و manual annotation لكل tasks و deadlines",
+      "due_date": null,
+      "status": "done"
+    },
+    {
+      "assignee": "SPEAKER_02",
+      "task": "يعمل guided on-boarding flow و documentation بسيطة جداً",
+      "due_date": "خمس ايام قبل اطلاق النسخة التجربية",
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_02",
+      "task": "يعمل redesign كامل لل Dashboard",
+      "due_date": null,
+      "status": "pending"
+    },
+    {
+      "assignee": "SPEAKER_02",
+      "task": "يعمل redesign لfallback UI",
+      "due_date": null,
+      "status": "done"
+    },
+    {
+      "assignee": "SPEAKER_02",
+      "task": "يعمل system يسمح للمستخدم أنه يعمل edit أو correction أو حتى add new task",
+      "due_date": null,
+      "status": "pending"
+    }
+  ]
+}
