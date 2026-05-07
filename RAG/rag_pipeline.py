@@ -459,6 +459,7 @@ Question: {query}
         elif choice == "3":
             query = input("Ask a question: ")
             query_lower = query.lower()
+            mode = "qa"
 
             # ── Reminder detection ──
             if "remind" in query_lower or "ذكرني" in query or "reminder" in query_lower:

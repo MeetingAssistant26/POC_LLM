@@ -22,6 +22,11 @@ def clean_for_tts(text):
     text = re.sub(r'\s+', ' ', text)
     return text.strip()
 
+def detect_language(text):
+    arabic_chars = re.findall(r'[\u0600-\u06FF]', text)
+    if len(arabic_chars) > len(text) * 0.3:
+        return "ar"
+    return "en"
 
 # ── تحويل للهجة المصرية عن طريق Groq ────────────────────────
 def call_groq(text):
@@ -194,7 +199,6 @@ async def edge_tts_fallback(text, output_file, lang):
 # ── Main Pipeline ─────────────────────────────────────────────
 async def run_tts_async(text):
     os.makedirs("RAG/audio_results", exist_ok=True)
-
     clean_text = clean_for_tts(text)
 
     # JSON tasks → كلام مصري

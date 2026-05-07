@@ -48,6 +48,13 @@ Core modules implementing the **Retrieval-Augmented Generation pipeline**.
 - **tasks_store.json** → persistent store for all extracted tasks and their status across meetings
 - **reminders.json** → persistent store for all natural language reminders across sessions
 
+### 📂 TTS
+Text-to-Speech module using **edge-tts** (Microsoft Neural Voices).
+- **coqui_tts.py** → converts LLM answers to speech with automatic language detection
+  - Arabic meetings → `ar-EG-ShakirNeural`
+  - English meetings → `en-US-JennyNeural`
+- Audio results saved to `RAG/audio_results/`
+
 ### 📂 audio_pipeline
 Single pipeline script that handles the full audio processing flow.
 - **audio_pipeline.py** → runs all 3 steps in order:
@@ -241,6 +248,7 @@ POC_LLM
 ├── .gitignore
 ├── main.py
 ├── requirements.txt
+├── requirements_tts.txt
 └── README.md
 ```
 
@@ -305,7 +313,7 @@ HF_TOKEN=your_hf_token_here
 python main.py
 ```
 
-### 5️⃣ Choose a task when prompted
+### 7️⃣ Choose a task when prompted
 ```
 1 - Generate Meeting Summary
 2 - Extract Tasks
