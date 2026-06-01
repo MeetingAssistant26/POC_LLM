@@ -3,6 +3,7 @@ import sys
 import tempfile
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import numpy as np
 import pytest
 import soundfile as sf
@@ -59,8 +60,16 @@ client = TestClient(app)
 
 
 @pytest.fixture(autouse=True)
-def ready_stt_state():
+def ready_stt_state(monkeypatch):
     previous = _stt_state.copy()
+    for name in (
+        "STT_PROVIDER",
+        "STT_UPSTREAM_BASE_URL",
+        "STT_UPSTREAM_API_KEY",
+        "STT_UPSTREAM_MODEL",
+        "STT_UPSTREAM_REQUEST_FORMAT",
+    ):
+        monkeypatch.delenv(name, raising=False)
     _stt_state["model"] = fake_model
     _stt_state["device"] = "cpu"
     _stt_state["compute_type"] = "int8"
@@ -138,6 +147,33 @@ class TestHealthz:
         assert body["model_loaded"] is True
         _stt_state["model"] = prev
 
+    def test_readyz_openai_compatible_missing_config(self, monkeypatch):
+        monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
+        monkeypatch.delenv("STT_UPSTREAM_BASE_URL", raising=False)
+        monkeypatch.delenv("STT_UPSTREAM_API_KEY", raising=False)
+
+        response = client.get("/readyz")
+
+        assert response.status_code == 503
+        body = response.json()
+        assert body["status"] == "not_ready"
+        assert body["provider"] == "openai-compatible"
+        assert body["missing"] == ["STT_UPSTREAM_BASE_URL", "STT_UPSTREAM_API_KEY"]
+
+    def test_readyz_openai_compatible_ready_without_local_model(self, monkeypatch):
+        monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://stt-upstream.example/v1")
+        monkeypatch.setenv("STT_UPSTREAM_API_KEY", "test-upstream-key")
+        _stt_state["model"] = None
+
+        response = client.get("/readyz")
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["status"] == "ok"
+        assert body["provider"] == "openai-compatible"
+        assert body["upstream_configured"] is True
+
 
 class TestTranscriptions:
     def test_json_response(self):
@@ -155,6 +191,267 @@ class TestTranscriptions:
             assert body["text"] != ""
             assert "segments" in body
             assert len(body["segments"]) > 0
+        finally:
+            os.unlink(wav_path)
+
+    def test_openai_compatible_proxy_forwards_audio_and_configured_model(self, monkeypatch):
+        monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://stt-upstream.example/v1")
+        monkeypatch.setenv("STT_UPSTREAM_API_KEY", "test-upstream-key")
+        monkeypatch.setenv("STT_UPSTREAM_MODEL", "upstream-whisper-model")
+        _stt_state["model"] = None
+        captured = {}
+
+        class FakeClient:
+            def __init__(self, **kwargs):
+                captured["timeout"] = kwargs.get("timeout")
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return None
+
+            def post(self, url, headers, data, files):
+                captured["url"] = url
+                captured["headers"] = headers
+                captured["data"] = data
+                captured["files"] = files
+                return httpx.Response(
+                    200,
+                    json={"text": "proxied transcript", "segments": [], "language": "en"},
+                    headers={"content-type": "application/json"},
+                )
+
+        monkeypatch.setattr("services.stt.main.httpx.Client", FakeClient)
+        wav_path = _generate_test_wav()
+        try:
+            with open(wav_path, "rb") as f:
+                response = client.post(
+                    "/v1/audio/transcriptions",
+                    files={"file": ("test.wav", f, "audio/wav")},
+                    data={
+                        "model": "request-whisper-model",
+                        "language": "en",
+                        "response_format": "verbose_json",
+                        "timestamp_granularities[]": "segment",
+                    },
+                )
+
+            assert response.status_code == 200
+            assert response.json()["text"] == "proxied transcript"
+            assert captured["url"] == "https://stt-upstream.example/v1/audio/transcriptions"
+            assert captured["headers"] == {"Authorization": "Bearer test-upstream-key"}
+            assert captured["data"]["model"] == "upstream-whisper-model"
+            assert captured["data"]["language"] == "en"
+            assert captured["data"]["response_format"] == "verbose_json"
+            assert captured["data"]["timestamp_granularities[]"] == "segment"
+            assert captured["files"]["file"][0] == "test.wav"
+            assert captured["files"]["file"][2] == "audio/wav"
+            assert captured["files"]["file"][1]
+        finally:
+            os.unlink(wav_path)
+
+    def test_openai_compatible_proxy_defaults_response_format_and_uses_request_model(self, monkeypatch):
+        monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://stt-upstream.example/v1")
+        monkeypatch.setenv("STT_UPSTREAM_API_KEY", "test-upstream-key")
+        monkeypatch.delenv("STT_UPSTREAM_MODEL", raising=False)
+        captured = {}
+
+        class FakeClient:
+            def __init__(self, **kwargs):
+                pass
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return None
+
+            def post(self, url, headers, data, files):
+                captured["data"] = data
+                return httpx.Response(
+                    200,
+                    json={"text": "proxied transcript"},
+                    headers={"content-type": "application/json"},
+                )
+
+        monkeypatch.setattr("services.stt.main.httpx.Client", FakeClient)
+        wav_path = _generate_test_wav()
+        try:
+            with open(wav_path, "rb") as f:
+                response = client.post(
+                    "/v1/audio/transcriptions",
+                    files={"file": ("test.wav", f, "audio/wav")},
+                    data={"model": "request-whisper-model"},
+                )
+
+            assert response.status_code == 200
+            assert captured["data"]["model"] == "request-whisper-model"
+            assert captured["data"]["response_format"] == "verbose_json"
+        finally:
+            os.unlink(wav_path)
+
+    def test_openai_compatible_proxy_supports_openrouter_json_audio(self, monkeypatch):
+        monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://openrouter.ai/api/v1")
+        monkeypatch.setenv("STT_UPSTREAM_API_KEY", "test-upstream-key")
+        monkeypatch.setenv("STT_UPSTREAM_MODEL", "openrouter-transcription-model")
+        monkeypatch.setenv("STT_UPSTREAM_REQUEST_FORMAT", "openrouter-json")
+        captured = {}
+
+        class FakeClient:
+            def __init__(self, **kwargs):
+                captured["timeout"] = kwargs.get("timeout")
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return None
+
+            def post(self, url, headers, json):
+                captured["url"] = url
+                captured["headers"] = headers
+                captured["json"] = json
+                return httpx.Response(
+                    200,
+                    json={"text": "openrouter transcript", "usage": {"seconds": 1.0}},
+                    headers={"content-type": "application/json"},
+                )
+
+        monkeypatch.setattr("services.stt.main.httpx.Client", FakeClient)
+        wav_path = _generate_test_wav()
+        try:
+            with open(wav_path, "rb") as f:
+                response = client.post(
+                    "/v1/audio/transcriptions",
+                    files={"file": ("test.wav", f, "audio/wav")},
+                    data={"model": "ignored-by-config", "language": "en"},
+                )
+
+            assert response.status_code == 200
+            assert response.json()["text"] == "openrouter transcript"
+            assert captured["url"] == "https://openrouter.ai/api/v1/audio/transcriptions"
+            assert captured["headers"]["Authorization"] == "Bearer test-upstream-key"
+            assert captured["headers"]["Content-Type"] == "application/json"
+            assert captured["json"]["model"] == "openrouter-transcription-model"
+            assert captured["json"]["language"] == "en"
+            assert captured["json"]["input_audio"]["format"] == "wav"
+            assert captured["json"]["input_audio"]["data"]
+        finally:
+            os.unlink(wav_path)
+
+    def test_openai_compatible_proxy_supports_openrouter_chat_audio_for_voxtral(self, monkeypatch):
+        monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://openrouter.ai/api/v1")
+        monkeypatch.setenv("STT_UPSTREAM_API_KEY", "test-upstream-key")
+        monkeypatch.setenv("STT_UPSTREAM_MODEL", "mistralai/voxtral-small-24b-2507")
+        captured = {}
+
+        class FakeClient:
+            def __init__(self, **kwargs):
+                captured["timeout"] = kwargs.get("timeout")
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return None
+
+            def post(self, url, headers, json):
+                captured["url"] = url
+                captured["headers"] = headers
+                captured["json"] = json
+                return httpx.Response(
+                    200,
+                    json={
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": '{"segments":[{"t":1.25,"text":"chat audio transcript"}]}'
+                                }
+                            }
+                        ],
+                        "usage": {"total_tokens": 12},
+                    },
+                    headers={"content-type": "application/json"},
+                )
+
+        monkeypatch.setattr("services.stt.main.httpx.Client", FakeClient)
+        wav_path = _generate_test_wav()
+        try:
+            with open(wav_path, "rb") as f:
+                response = client.post(
+                    "/v1/audio/transcriptions",
+                    files={"file": ("test.wav", f, "audio/wav")},
+                    data={"model": "ignored-by-config"},
+                )
+
+            assert response.status_code == 200
+            body = response.json()
+            assert body["text"] == "chat audio transcript"
+            assert body["segments"] == [{"id": 0, "start": 1.25, "end": 1.25, "text": "chat audio transcript"}]
+            assert captured["url"] == "https://openrouter.ai/api/v1/chat/completions"
+            assert captured["json"]["model"] == "mistralai/voxtral-small-24b-2507"
+            content = captured["json"]["messages"][0]["content"]
+            assert content[0]["type"] == "text"
+            assert "Schema" in content[0]["text"]
+            assert content[1]["type"] == "input_audio"
+            assert content[1]["input_audio"]["format"] == "wav"
+            assert content[1]["input_audio"]["data"]
+        finally:
+            os.unlink(wav_path)
+
+    def test_openai_compatible_proxy_suppresses_common_empty_audio_hallucination(self, monkeypatch):
+        monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://openrouter.ai/api/v1")
+        monkeypatch.setenv("STT_UPSTREAM_API_KEY", "test-upstream-key")
+        monkeypatch.setenv("STT_UPSTREAM_MODEL", "mistralai/voxtral-small-24b-2507")
+
+        class FakeClient:
+            def __init__(self, **kwargs):
+                pass
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return None
+
+            def post(self, url, headers, json):
+                return httpx.Response(
+                    200,
+                    json={
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": (
+                                        "Hello, everyone. Welcome to the podcast. "
+                                        "Today, we have a special guest. Let's get started."
+                                    )
+                                }
+                            }
+                        ],
+                        "usage": {"total_tokens": 12},
+                    },
+                    headers={"content-type": "application/json"},
+                )
+
+        monkeypatch.setattr("services.stt.main.httpx.Client", FakeClient)
+        wav_path = _generate_test_wav()
+        try:
+            with open(wav_path, "rb") as f:
+                response = client.post(
+                    "/v1/audio/transcriptions",
+                    files={"file": ("test.wav", f, "audio/wav")},
+                    data={"model": "ignored-by-config"},
+                )
+
+            assert response.status_code == 200
+            assert response.json()["text"] == ""
+            assert response.json()["segments"] == []
         finally:
             os.unlink(wav_path)
 

@@ -9,6 +9,11 @@ services:
     env_file:
       - .env
     environment:
+      - STT_PROVIDER=${STT_PROVIDER:-local}
+      - STT_UPSTREAM_BASE_URL=${STT_UPSTREAM_BASE_URL:-}
+      - STT_UPSTREAM_API_KEY=${STT_UPSTREAM_API_KEY:-}
+      - STT_UPSTREAM_MODEL=${STT_UPSTREAM_MODEL:-}
+      - STT_UPSTREAM_REQUEST_FORMAT=${STT_UPSTREAM_REQUEST_FORMAT:-auto}
       - HF_TOKEN=${HF_TOKEN:-}
       - OMP_NUM_THREADS=4
       - PYTHONUNBUFFERED=1
