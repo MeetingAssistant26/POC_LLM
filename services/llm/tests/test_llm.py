@@ -41,7 +41,7 @@ sys.modules["python_dotenv"] = MagicMock()
 os.environ["GROQ_API_KEY"] = "fake-groq-api-key-for-tests"
 
 from fastapi.testclient import TestClient
-from main import app, _llm_state
+from services.llm.main import app, _llm_state
 
 client = TestClient(app)
 

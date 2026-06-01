@@ -25,7 +25,7 @@ fake_edge_tts.Communicate = FakeCommunicate
 sys.modules["edge_tts"] = fake_edge_tts
 
 from fastapi.testclient import TestClient
-from main import app, _tts_state
+from services.tts.main import app, _tts_state
 
 client = TestClient(app)
 

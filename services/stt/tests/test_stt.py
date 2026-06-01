@@ -50,7 +50,7 @@ sys.modules["whisperx"] = fake_whisperx
 sys.modules["torch"] = fake_torch
 
 from fastapi.testclient import TestClient
-from main import app, _stt_state
+from services.stt.main import app, _stt_state
 
 client = TestClient(app)
 
