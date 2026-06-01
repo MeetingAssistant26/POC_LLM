@@ -14,8 +14,8 @@ COPY main.py .
 EXPOSE 8000
 
 # Health check against the /healthz endpoint
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')" || exit 1
+HEALTHCHECK --interval=10s --timeout=10s --start-period=45s --retries=12 \
+    CMD python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=5)" || exit 1
 
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8000

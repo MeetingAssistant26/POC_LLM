@@ -43,9 +43,11 @@ COPY main.py .
 # Expose the HTTP port
 EXPOSE 8000
 
-# Health check against the /healthz endpoint
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz')" || exit 1
+# Health check against the readiness endpoint. Cold CPU model load can take
+# several minutes after a full compose rebuild, so keep the container in
+# "starting" until the model-backed endpoint is actually ready.
+HEALTHCHECK --interval=10s --timeout=10s --start-period=300s --retries=12 \
+    CMD python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz', timeout=5)" || exit 1
 
 # Run on CPU; int8 is set in code
 ENV OMP_NUM_THREADS=4

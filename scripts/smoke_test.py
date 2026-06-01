@@ -11,6 +11,7 @@ LLM-derived reply to the TTS service to avoid exhausting paid TTS quota. It
 exits 0 when every step returns the expected HTTP status and payload shape.
 """
 
+import http.client
 import json
 import os
 import shutil
@@ -33,7 +34,7 @@ HEALTH_URLS = {
 }
 
 POLL_INTERVAL = 5
-POLL_MAX_WAIT = 180
+POLL_MAX_WAIT = int(os.getenv("SMOKE_WAIT_MAX_SECONDS", "420"))
 DEFAULT_AUDIO_FIXTURE = Path("audio_clean/meeting_1.wav")
 SMOKE_AUDIO_SECONDS = float(os.getenv("SMOKE_AUDIO_SECONDS", "20"))
 SMOKE_TTS_MAX_CHARS = int(os.getenv("SMOKE_TTS_MAX_CHARS", "8"))
@@ -124,8 +125,15 @@ def _wait_for_services() -> None:
             except urllib.error.HTTPError as exc:
                 print(f"  {name}: not ready ({exc.code})")
                 all_ok = False
-            except (urllib.error.URLError, TimeoutError) as exc:
-                print(f"  {name}: unreachable ({type(exc).__name__})")
+            except (
+                http.client.RemoteDisconnected,
+                ConnectionResetError,
+                ConnectionRefusedError,
+                urllib.error.URLError,
+                TimeoutError,
+                OSError,
+            ) as exc:
+                print(f"  {name}: startup race ({type(exc).__name__})")
                 all_ok = False
         if all_ok:
             print("All services are healthy.\n")
