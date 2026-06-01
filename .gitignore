@@ -3,5 +3,7 @@ venv/
 venv310/
 venv_tts/
 __pycache__/
+# Environment files (keep .env.example tracked)
 .env
+.env.local
 #RAG/audio_results/
