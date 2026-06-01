@@ -1,3 +1,4 @@
+import asyncio
 import os
 import tempfile
 from contextlib import asynccontextmanager
@@ -6,7 +7,7 @@ from typing import Optional
 import soundfile as sf
 import torch
 import whisperx
-from fastapi import FastAPI, File, Form, UploadFile, status
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse
 
 # Singleton state for the loaded model and device
@@ -34,12 +35,18 @@ def _load_model_singleton(device: str, compute_type: str):
     return _stt_state["model"]
 
 
+async def _load_model_async(device: str, compute_type: str):
+    """Load the WhisperX model in a background thread."""
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(None, _load_model_singleton, device, compute_type)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Load model at startup; keep it hot for the lifetime of the process."""
+    """Start model loading in the background; yield immediately so uvicorn accepts requests."""
     device = "cpu"
     compute_type = "int8"
-    _load_model_singleton(device, compute_type)
+    asyncio.create_task(_load_model_async(device, compute_type))
     yield
     # Optional cleanup on shutdown
     _stt_state["model"] = None
@@ -154,9 +161,14 @@ def _run_pipeline(audio_path: str, language: Optional[str] = None) -> dict:
 
 @app.get("/healthz", status_code=status.HTTP_200_OK)
 async def healthz():
-    """Kubernetes-style health probe."""
-    healthy = _stt_state["model"] is not None
-    if not healthy:
+    """Kubernetes-style liveness probe — returns 200 as long as the server is running."""
+    return {"status": "ok", "model_loaded": _stt_state["model"] is not None}
+
+
+@app.get("/readyz")
+async def readyz():
+    """Kubernetes-style readiness probe — returns 200 only when the model is loaded."""
+    if _stt_state["model"] is None:
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={"status": "not_ready", "model_loaded": False},
@@ -179,6 +191,11 @@ async def create_transcription(
     - **language**: Optional ISO language code.
     - **response_format**: `json`, `verbose_json`, `text`, `srt`, `vtt`.
     """
+    if _stt_state["model"] is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="STT model is not ready yet. Please retry shortly.",
+        )
     suffix = os.path.splitext(file.filename or "audio.wav")[1]
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
         contents = await file.read()

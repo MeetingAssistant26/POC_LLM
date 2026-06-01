@@ -45,7 +45,7 @@ EXPOSE 8000
 
 # Health check against the /healthz endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz')" || exit 1
 
 # Run on CPU; int8 is set in code
 ENV OMP_NUM_THREADS=4

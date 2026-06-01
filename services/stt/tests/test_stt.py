@@ -82,9 +82,30 @@ class TestHealthz:
         prev = _stt_state["model"]
         _stt_state["model"] = None
         response = client.get("/healthz")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["status"] == "ok"
+        assert body["model_loaded"] is False
+        _stt_state["model"] = prev
+
+    def test_readyz_not_ready(self):
+        prev = _stt_state["model"]
+        _stt_state["model"] = None
+        response = client.get("/readyz")
         assert response.status_code == 503
         body = response.json()
         assert body["status"] == "not_ready"
+        assert body["model_loaded"] is False
+        _stt_state["model"] = prev
+
+    def test_readyz_ready(self):
+        prev = _stt_state["model"]
+        _stt_state["model"] = fake_model
+        response = client.get("/readyz")
+        assert response.status_code == 200
+        body = response.json()
+        assert body["status"] == "ok"
+        assert body["model_loaded"] is True
         _stt_state["model"] = prev
 
 
