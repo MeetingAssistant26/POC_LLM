@@ -1,0 +1,41 @@
+# syntax=docker/dockerfile:1
+FROM python:3.10-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    libsndfile1 \
+    gcc \
+    g++ \
+    pkg-config \
+    python3-dev \
+    libffi-dev \
+    build-essential \
+    libavformat-dev \
+    libavcodec-dev \
+    libavdevice-dev \
+    libavutil-dev \
+    libswscale-dev \
+    libswresample-dev \
+    libavfilter-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY services/stt/requirements.txt .
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir torch==2.1.2 torchaudio==2.1.2 --index-url https://download.pytorch.org/whl/cpu
+RUN grep -v -E '^(torch|torchaudio)' requirements.txt > requirements_no_torch.txt && \
+    pip install --no-cache-dir -r requirements_no_torch.txt
+RUN pip install --no-cache-dir torch==2.1.2 torchaudio==2.1.2 --index-url https://download.pytorch.org/whl/cpu --force-reinstall --no-deps
+
+COPY services/stt/main.py .
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=10s --timeout=10s --start-period=300s --retries=12 \
+    CMD python3 -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/readyz', timeout=5)" || exit 1
+
+ENV OMP_NUM_THREADS=4
+ENV PYTHONUNBUFFERED=1
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
