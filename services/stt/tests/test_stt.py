@@ -37,7 +37,9 @@ fake_whisperx.align.return_value = {
 
 fake_diarize_pipeline = MagicMock()
 fake_diarize_pipeline.return_value = MagicMock()
-fake_whisperx.diarize.DiarizationPipeline.return_value = fake_diarize_pipeline
+fake_diarize_module = MagicMock()
+fake_diarize_module.DiarizationPipeline.return_value = fake_diarize_pipeline
+fake_whisperx.diarize = fake_diarize_module
 
 fake_whisperx.assign_word_speakers.return_value = {
     "language": "en",
@@ -47,12 +49,40 @@ fake_whisperx.assign_word_speakers.return_value = {
 }
 
 sys.modules["whisperx"] = fake_whisperx
+sys.modules["whisperx.diarize"] = fake_diarize_module
 sys.modules["torch"] = fake_torch
 
 from fastapi.testclient import TestClient
 from services.stt.main import app, _stt_state
 
 client = TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def ready_stt_state():
+    previous = _stt_state.copy()
+    _stt_state["model"] = fake_model
+    _stt_state["device"] = "cpu"
+    _stt_state["compute_type"] = "int8"
+    _stt_state["hf_token"] = None
+    fake_diarize_module.DiarizationPipeline.reset_mock(return_value=True, side_effect=True)
+    fake_diarize_module.DiarizationPipeline.return_value = fake_diarize_pipeline
+    fake_whisperx.align.reset_mock()
+    fake_whisperx.align.return_value = {
+        "language": "en",
+        "segments": [
+            {"id": 0, "start": 0.0, "end": 1.5, "text": "Hello world", "speaker": "SPEAKER_00"}
+        ],
+    }
+    fake_whisperx.assign_word_speakers.reset_mock()
+    fake_whisperx.assign_word_speakers.return_value = {
+        "language": "en",
+        "segments": [
+            {"id": 0, "start": 0.0, "end": 1.5, "text": "Hello world", "speaker": "SPEAKER_00"}
+        ],
+    }
+    yield
+    _stt_state.update(previous)
 
 
 def _generate_test_wav() -> str:
@@ -177,6 +207,7 @@ class TestTranscriptions:
             os.unlink(wav_path)
 
     def test_speaker_included_when_diarized(self):
+        _stt_state["hf_token"] = "hf_test_token"
         wav_path = _generate_test_wav()
         try:
             with open(wav_path, "rb") as f:
@@ -188,6 +219,38 @@ class TestTranscriptions:
             assert response.status_code == 200
             body = response.json()
             segments = body["segments"]
+            fake_diarize_module.DiarizationPipeline.assert_called_once_with(
+                use_auth_token="hf_test_token",
+                device="cpu",
+            )
             assert any("speaker" in seg for seg in segments)
+        finally:
+            os.unlink(wav_path)
+
+    def test_transcription_survives_incompatible_diarization_constructor(self):
+        _stt_state["hf_token"] = "hf_test_token"
+        fake_diarize_module.DiarizationPipeline.side_effect = TypeError("unexpected keyword argument")
+        fake_whisperx.align.return_value = {
+            "language": "en",
+            "segments": [
+                {"id": 0, "start": 0.0, "end": 1.5, "text": "Hello world"}
+            ],
+        }
+        wav_path = _generate_test_wav()
+        try:
+            with open(wav_path, "rb") as f:
+                response = client.post(
+                    "/v1/audio/transcriptions",
+                    files={"file": ("test.wav", f, "audio/wav")},
+                    data={"response_format": "verbose_json"},
+                )
+            assert response.status_code == 200
+            body = response.json()
+            assert body["text"] == "Hello world"
+            assert body["segments"] == [
+                {"id": 0, "start": 0.0, "end": 1.5, "text": "Hello world"}
+            ]
+            assert fake_diarize_module.DiarizationPipeline.call_count == 3
+            fake_whisperx.assign_word_speakers.assert_not_called()
         finally:
             os.unlink(wav_path)

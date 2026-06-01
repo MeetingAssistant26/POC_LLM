@@ -124,6 +124,33 @@ def _vtt_time(seconds: float) -> str:
     return f"{hrs:02d}:{mins:02d}:{secs:02d}.{millis:03d}"
 
 
+def _build_diarization_pipeline(hf_token: str, device: str):
+    """Create a WhisperX diarization pipeline across supported constructor APIs.
+
+    WhisperX has changed this constructor over time. Some versions accept
+    `use_auth_token=...`, while older/newer builds may not accept the previous
+    `token=...` keyword. Diarization is optional for this service, so callers can
+    skip it when the installed API is incompatible and still return the
+    transcription.
+    """
+    from whisperx.diarize import DiarizationPipeline
+
+    constructor_attempts = (
+        {"use_auth_token": hf_token, "device": device},
+        {"token": hf_token, "device": device},
+        {"device": device},
+    )
+    errors = []
+
+    for kwargs in constructor_attempts:
+        try:
+            return DiarizationPipeline(**kwargs)
+        except TypeError as exc:
+            errors.append(f"{kwargs}: {exc}")
+
+    raise TypeError("No compatible DiarizationPipeline constructor found. " + " | ".join(errors))
+
+
 def _run_pipeline(audio_path: str, language: Optional[str] = None) -> dict:
     """Run the full WhisperX pipeline: transcribe → align → (diarize)."""
     model = _stt_state["model"]
@@ -150,11 +177,12 @@ def _run_pipeline(audio_path: str, language: Optional[str] = None) -> dict:
 
     # 3. Speaker diarization (optional)
     if hf_token:
-        from whisperx.diarize import DiarizationPipeline
-
-        diarize_model = DiarizationPipeline(token=hf_token, device=device)
-        diarize_segments = diarize_model(audio_path)
-        result = whisperx.assign_word_speakers(diarize_segments, result)
+        try:
+            diarize_model = _build_diarization_pipeline(hf_token, device)
+            diarize_segments = diarize_model(audio_path)
+            result = whisperx.assign_word_speakers(diarize_segments, result)
+        except Exception as exc:
+            print(f"[STT] Speaker diarization skipped; transcription preserved. Reason: {exc}")
 
     return result
 
