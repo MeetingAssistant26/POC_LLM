@@ -256,6 +256,23 @@ POC_LLM
 
 # ▶️ Running the Project
 
+## Docker microservices for the backend LiveKit agent
+
+The Docker compose stack exposes `stt`, `llm`, and `tts` on an `ai-network`
+bridge network. Docker Compose names that network `ai_work_ai-network`; the
+the backend LiveKit agent service can join it and call:
+
+- `http://stt:8000/v1`
+- `http://llm:8000/v1`
+- `http://tts:8000/v1`
+
+Start this stack before starting the backend with the LiveKit agent enabled:
+
+```bash
+docker compose up -d --build
+cd ../backend && docker compose up -d --build
+```
+
 ## Option A — Audio Pipeline (Audio → Transcripts → RAG)
 
 > ⚠️ WhisperX requires Python 3.10. Use the `venv310` environment for this step.
