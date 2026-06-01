@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+edge-tts==6.1.12
+pydantic
+pytest
+pytest-asyncio
+httpx
