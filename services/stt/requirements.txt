@@ -1,0 +1,12 @@
+torch==2.1.2
+torchaudio==2.1.2
+whisperx
+fastapi
+uvicorn[standard]
+python-multipart
+soundfile
+numpy==1.24.3
+transformers==4.36.2
+pytest
+pytest-asyncio
+httpx
