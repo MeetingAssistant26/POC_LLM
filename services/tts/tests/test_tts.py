@@ -1,5 +1,5 @@
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 fake_edge_tts = MagicMock()
 
@@ -176,6 +176,35 @@ class TestSpeechEndpoint:
         assert response.headers["content-type"] == "audio/mpeg"
         assert response.content == b"\xff\xfb\x90"
         assert FakeCommunicate.last_voice == "en-US-JennyNeural"
+
+
+
+    def test_trace_headers_emit_tts_completed(self, monkeypatch):
+        _tts_state["ready"] = True
+        monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)
+        headers = {
+            "X-AI-Trace-Enabled": "true",
+            "X-AI-Trace-Session-Id": "session-1",
+            "X-AI-Trace-Turn-Id": "turn-1",
+            "X-AI-Trace-Sequence-Base": "10",
+            "X-AI-Trace-Meeting-Id": "meeting-1",
+            "X-AI-Trace-Organization-Id": "org-1",
+            "X-AI-Trace-Backend-Url": "http://api:8080",
+            "X-AI-Trace-Agent-Token": "token-secret",
+            "X-AI-Trace-Persist-Payloads": "true",
+        }
+        with patch("services.tts.main.post_trace_event", new_callable=AsyncMock) as post_trace:
+            response = client.post("/v1/audio/speech", json={"input": "Hello world."}, headers=headers)
+        assert response.status_code == 200
+        post_trace.assert_awaited_once()
+        args, kwargs = post_trace.call_args
+        assert args[1] == "tts_completed"
+        assert kwargs["step"]["type"] == "tts"
+        assert kwargs["step"]["provider"] == "edge-tts"
+        assert kwargs["step"]["model"] == "edge-tts"
+        assert kwargs["step"]["voice"] == "en-US-JennyNeural"
+        assert kwargs["step"]["charactersCount"] == len("Hello world.")
+        assert kwargs["step"]["responsePayload"]["audioBytesStored"] is False
 
     def test_arabic_edge_fallback_detection(self, monkeypatch):
         _tts_state["ready"] = True

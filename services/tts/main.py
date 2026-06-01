@@ -1,13 +1,16 @@
 import os
 import re
+import time
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import AsyncGenerator, Optional
 from urllib.parse import quote
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
+
+from services.ai_debug import duration_ms, parse_trace_context, post_trace_event
 
 _tts_state = {
     "ready": False,
@@ -322,7 +325,7 @@ def _elevenlabs_audio(
     requested_voice: Optional[str],
     language: str,
     response_format: str,
-) -> bytes:
+) -> tuple[bytes, str]:
     """Synthesize text with configured ElevenLabs voice selection and safe fallback."""
     api_key = _elevenlabs_api_key()
     if not api_key:
@@ -344,7 +347,7 @@ def _elevenlabs_audio(
             index += 1
             continue
         try:
-            return _elevenlabs_audio_for_voice(text, voice_id, api_key, response_format)
+            return _elevenlabs_audio_for_voice(text, voice_id, api_key, response_format), voice_id
         except ElevenLabsError as exc:
             failed_voices.add(voice_id)
             last_error = exc
@@ -375,6 +378,36 @@ async def _single_audio_chunk(audio: bytes) -> AsyncGenerator[bytes, None]:
     yield audio
 
 
+async def _traced_audio_body(
+    body: AsyncGenerator[bytes, None],
+    trace_ctx,
+    start: float,
+    provider: str,
+    model: str,
+    voice: str,
+    request_url: str,
+    request_payload: dict,
+) -> AsyncGenerator[bytes, None]:
+    try:
+        async for chunk in body:
+            yield chunk
+    finally:
+        step = {
+            "type": "tts",
+            "provider": provider,
+            "endpoint": request_url,
+            "model": model,
+            "voice": voice,
+            "durationMs": duration_ms(start),
+            "charactersCount": len(request_payload.get("input", "")),
+        }
+        if trace_ctx and trace_ctx.persist_payloads:
+            step["requestPayload"] = request_payload
+            step["responsePayload"] = {"audioBytesStored": False, "provider": provider}
+            step["text"] = request_payload.get("input")
+        await post_trace_event(trace_ctx, "tts_completed", step=step)
+
+
 @app.get("/healthz", status_code=status.HTTP_200_OK)
 async def healthz():
     """Kubernetes-style health probe."""
@@ -388,15 +421,18 @@ async def healthz():
 
 
 @app.post("/v1/audio/speech")
-async def create_speech(request: SpeechRequest):
+async def create_speech(request: Request, speech_request: SpeechRequest):
     """OpenAI-compatible audio speech endpoint."""
-    if not request.input or not request.input.strip():
+    trace_ctx = parse_trace_context(request.headers)
+    start = time.perf_counter()
+
+    if not speech_request.input or not speech_request.input.strip():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="input field is required and must not be empty.",
         )
 
-    clean_text = clean_for_tts(request.input)
+    clean_text = clean_for_tts(speech_request.input)
     if not clean_text:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -404,27 +440,44 @@ async def create_speech(request: SpeechRequest):
         )
 
     language = detect_language(clean_text)
-    response_format = _normalize_response_format(request.response_format)
+    response_format = _normalize_response_format(speech_request.response_format)
     if _elevenlabs_api_key():
         try:
-            audio = _elevenlabs_audio(clean_text, request.voice, language, response_format)
+            audio, final_voice = _elevenlabs_audio(clean_text, speech_request.voice, language, response_format)
         except Exception as exc:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=f"ElevenLabs TTS failed: {exc}",
             ) from exc
         body = _single_audio_chunk(audio)
+        provider = "ElevenLabs"
+        resolved_model = "eleven_multilingual_v2"
     else:
         if response_format == _PCM_RESPONSE_FORMAT:
             raise HTTPException(
                 status_code=status.HTTP_501_NOT_IMPLEMENTED,
                 detail="response_format=pcm requires ElevenLabs TTS configuration.",
             )
-        voice = _resolve_edge_voice(clean_text, request.voice)
-        body = _edge_audio_stream(clean_text, voice)
+        final_voice = _resolve_edge_voice(clean_text, speech_request.voice)
+        body = _edge_audio_stream(clean_text, final_voice)
+        provider = "edge-tts"
+        resolved_model = "edge-tts"
+
+    request_payload = speech_request.model_dump(exclude_none=True)
+    request_payload["input"] = clean_text
+    traced_body = _traced_audio_body(
+        body,
+        trace_ctx,
+        start,
+        provider,
+        resolved_model,
+        final_voice,
+        str(request.url),
+        request_payload,
+    )
 
     return StreamingResponse(
-        body,
+        traced_body,
         media_type=_RESPONSE_MEDIA_TYPES[response_format],
         headers={
             "Content-Disposition": f'attachment; filename="{_RESPONSE_FILENAMES[response_format]}"',

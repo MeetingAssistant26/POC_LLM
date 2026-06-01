@@ -1,8 +1,8 @@
 services:
   stt:
     build:
-      context: ./services/stt
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/stt/Dockerfile
     container_name: ai-stt
     ports:
       - "8001:8000"
@@ -24,8 +24,8 @@ services:
 
   llm:
     build:
-      context: ./services/llm
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/llm/Dockerfile
     container_name: ai-llm
     ports:
       - "8002:8000"
@@ -46,8 +46,8 @@ services:
 
   tts:
     build:
-      context: ./services/tts
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/tts/Dockerfile
     container_name: ai-tts
     ports:
       - "8003:8000"

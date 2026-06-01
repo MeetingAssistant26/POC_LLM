@@ -1,14 +1,17 @@
 import asyncio
 import os
 import tempfile
+import time
 from contextlib import asynccontextmanager
 from typing import Optional
 
 import soundfile as sf
 import torch
 import whisperx
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile, status
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import JSONResponse
+
+from services.ai_debug import duration_ms, parse_trace_context, post_trace_event
 
 # Singleton state for the loaded model and device
 _stt_state = {
@@ -206,6 +209,7 @@ async def readyz():
 
 @app.post("/v1/audio/transcriptions")
 async def create_transcription(
+    request: Request,
     file: UploadFile = File(...),
     model: str = Form("whisper-1"),
     language: Optional[str] = Form(None),
@@ -219,6 +223,9 @@ async def create_transcription(
     - **language**: Optional ISO language code.
     - **response_format**: `json`, `verbose_json`, `text`, `srt`, `vtt`.
     """
+    trace_ctx = parse_trace_context(request.headers)
+    start = time.perf_counter()
+
     if _stt_state["model"] is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -232,6 +239,18 @@ async def create_transcription(
 
     try:
         result = _run_pipeline(tmp_path, language=language)
-        return _format_openai_response(result, response_format)
+        response_body = _format_openai_response(result, response_format)
+        step = {
+            "type": "stt",
+            "provider": "WhisperX",
+            "endpoint": str(request.url),
+            "model": "medium",
+            "durationMs": duration_ms(start),
+        }
+        if trace_ctx and trace_ctx.persist_payloads:
+            step["text"] = response_body.get("text")
+            step["responsePayload"] = response_body
+        await post_trace_event(trace_ctx, "stt_completed", step=step)
+        return response_body
     finally:
         os.unlink(tmp_path)

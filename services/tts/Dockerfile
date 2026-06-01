@@ -4,11 +4,13 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # Install Python deps first for layer caching
-COPY requirements.txt .
+COPY services/tts/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy service code
-COPY main.py .
+COPY services/__init__.py ./services/__init__.py
+COPY services/ai_debug.py ./services/ai_debug.py
+COPY services/tts/main.py .
 
 # Expose the HTTP port (default 8000, overridden at runtime)
 EXPOSE 8000

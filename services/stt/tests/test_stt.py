@@ -1,7 +1,7 @@
 import os
 import sys
 import tempfile
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import numpy as np
 import pytest
@@ -155,6 +155,40 @@ class TestTranscriptions:
             assert body["text"] != ""
             assert "segments" in body
             assert len(body["segments"]) > 0
+        finally:
+            os.unlink(wav_path)
+
+
+
+    def test_trace_headers_emit_stt_completed(self):
+        wav_path = _generate_test_wav()
+        headers = {
+            "X-AI-Trace-Enabled": "true",
+            "X-AI-Trace-Session-Id": "session-1",
+            "X-AI-Trace-Turn-Id": "turn-1",
+            "X-AI-Trace-Sequence-Base": "10",
+            "X-AI-Trace-Meeting-Id": "meeting-1",
+            "X-AI-Trace-Organization-Id": "org-1",
+            "X-AI-Trace-Backend-Url": "http://api:8080",
+            "X-AI-Trace-Agent-Token": "token-secret",
+            "X-AI-Trace-Persist-Payloads": "true",
+        }
+        try:
+            with patch("services.stt.main.post_trace_event", new_callable=AsyncMock) as post_trace, open(wav_path, "rb") as f:
+                response = client.post(
+                    "/v1/audio/transcriptions",
+                    files={"file": ("test.wav", f, "audio/wav")},
+                    data={"response_format": "json"},
+                    headers=headers,
+                )
+            assert response.status_code == 200
+            post_trace.assert_awaited_once()
+            args, kwargs = post_trace.call_args
+            assert args[1] == "stt_completed"
+            assert kwargs["step"]["type"] == "stt"
+            assert kwargs["step"]["provider"] == "WhisperX"
+            assert kwargs["step"]["model"] == "medium"
+            assert kwargs["step"]["text"] == "Hello world"
         finally:
             os.unlink(wav_path)
 

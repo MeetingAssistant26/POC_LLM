@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 # Install Python deps first for layer caching
-COPY requirements.txt .
+COPY services/stt/requirements.txt .
 RUN pip install --upgrade pip
 
 # Install torch/torchaudio first from CPU index to avoid dependency resolution conflicts
@@ -38,7 +38,9 @@ RUN grep -v -E '^(torch|torchaudio)' requirements.txt > requirements_no_torch.tx
 RUN pip install --no-cache-dir torch==2.1.2 torchaudio==2.1.2 --index-url https://download.pytorch.org/whl/cpu --force-reinstall --no-deps
 
 # Copy service code
-COPY main.py .
+COPY services/__init__.py ./services/__init__.py
+COPY services/ai_debug.py ./services/ai_debug.py
+COPY services/stt/main.py .
 
 # Expose the HTTP port
 EXPOSE 8000
