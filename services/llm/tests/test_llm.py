@@ -6,9 +6,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-# Inject fake groq module before importing main so tests run without
-# needing a real GROQ_API_KEY or network access.
-fake_groq = MagicMock()
+# Tests inject a fake OpenAI-compatible client directly into _llm_state so
+# they run without a real LLM_API_KEY or network access.
 
 fake_message = MagicMock()
 fake_message.role = "assistant"
@@ -31,15 +30,19 @@ fake_response.usage = fake_usage
 fake_client_instance = MagicMock()
 fake_client_instance.chat.completions.create.return_value = fake_response
 
-fake_groq.Groq.return_value = fake_client_instance
-sys.modules["groq"] = fake_groq
+fake_openai = MagicMock()
+fake_openai.OpenAI.return_value = fake_client_instance
+sys.modules["openai"] = fake_openai
+
 
 # Also mock dotenv so load_dotenv is a no-op
 sys.modules["dotenv"] = MagicMock()
 sys.modules["python_dotenv"] = MagicMock()
 
-# Ensure GROQ_API_KEY is set for lifespan initialization
-os.environ["GROQ_API_KEY"] = "fake-groq-api-key-for-tests"
+# Ensure LLM settings are set for lifespan initialization
+os.environ["LLM_BASE_URL"] = "https://example.test/v1"
+os.environ["LLM_API_KEY"] = "fake-llm-api-key-for-tests"
+os.environ["LLM_MODEL"] = "llama-3.3-70b-versatile"
 
 from fastapi.testclient import TestClient
 from services.llm.main import app, _llm_state
@@ -138,7 +141,7 @@ class TestChatCompletions:
         post_trace.assert_awaited_once()
         args, kwargs = post_trace.call_args
         assert args[1] == "llm_completed"
-        assert kwargs["step"]["provider"] == "Groq"
+        assert kwargs["step"]["provider"] == "OpenAI-compatible"
         assert kwargs["step"]["promptTokens"] == 10
         assert kwargs["step"]["completionTokens"] == 20
         assert kwargs["step"]["totalTokens"] == 30
@@ -157,7 +160,7 @@ class TestChatCompletions:
             },
         )
         assert response.status_code == 200
-        # Verify Groq was called with default model
+        # Verify upstream was called with configured default model
         call_kwargs = fake_client_instance.chat.completions.create.call_args.kwargs
         assert call_kwargs["model"] == "llama-3.3-70b-versatile"
 
@@ -307,7 +310,7 @@ class TestChatCompletions:
         args, kwargs = post_trace.call_args
         assert args[1] == "llm_completed"
         step = kwargs["step"]
-        assert step["provider"] == "Groq"
+        assert step["provider"] == "OpenAI-compatible"
         assert step["promptTokens"] == 11
         assert step["completionTokens"] == 5
         assert step["totalTokens"] == 16
@@ -355,5 +358,5 @@ class TestChatCompletions:
         )
         assert response.status_code == 503
         body = response.json()
-        assert "Groq client is not initialized" in body["detail"]
+        assert "LLM client is not initialized" in body["detail"]
         _llm_state["client"] = prev

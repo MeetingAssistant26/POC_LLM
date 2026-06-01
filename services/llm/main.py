@@ -7,39 +7,74 @@ from typing import Any, AsyncGenerator, List, Optional
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.responses import JSONResponse, StreamingResponse
+from openai import OpenAI
 from pydantic import AliasChoices, BaseModel, Field
 
 from services.ai_debug import duration_ms, parse_trace_context, post_trace_event
 
 load_dotenv()
 
-# Singleton state for the Groq client
+_DEFAULT_BASE_URL = "https://api.groq.com/openai/v1"
+_DEFAULT_MODEL = "llama-3.3-70b-versatile"
+
+
+def _env_value(name: str, fallback: str | None = None) -> str | None:
+    value = os.environ.get(name)
+    if value is None or value.strip() == "":
+        return fallback
+    return value.strip()
+
+
+def _llm_base_url() -> str:
+    return _env_value("LLM_BASE_URL", _DEFAULT_BASE_URL) or _DEFAULT_BASE_URL
+
+
+def _llm_api_key() -> str | None:
+    # GROQ_API_KEY is kept only as a backward-compatible fallback for existing
+    # local environments. New deployments should set LLM_API_KEY.
+    return _env_value("LLM_API_KEY", _env_value("GROQ_API_KEY"))
+
+
+def _llm_model() -> str:
+    return _env_value("LLM_MODEL", _DEFAULT_MODEL) or _DEFAULT_MODEL
+
+
+# Singleton state for the OpenAI-compatible chat-completions client
 _llm_state = {
     "client": None,
-    "api_key": os.getenv("GROQ_API_KEY"),
-    "model_name": "llama-3.3-70b-versatile",
+    "api_key": _llm_api_key(),
+    "base_url": _llm_base_url(),
+    "model_name": _llm_model(),
 }
 
 
-def _init_groq_client():
-    """Initialize Groq client once and cache it globally."""
+def _init_llm_client():
+    """Initialize OpenAI-compatible client once and cache it globally."""
     if _llm_state["client"] is None:
-        api_key = os.environ.get("GROQ_API_KEY")
+        api_key = _llm_api_key()
+        base_url = _llm_base_url()
+        model_name = _llm_model()
         if not api_key:
-            raise RuntimeError("GROQ_API_KEY environment variable is not set")
-        from groq import Groq
+            raise RuntimeError("LLM_API_KEY environment variable is not set")
+        if not model_name:
+            raise RuntimeError("LLM_MODEL environment variable is not set")
 
-        _llm_state["client"] = Groq(api_key=api_key)
+        _llm_state["client"] = OpenAI(api_key=api_key, base_url=base_url)
         _llm_state["api_key"] = api_key
-        print("[LLM] Groq client initialized successfully.")
+        _llm_state["base_url"] = base_url
+        _llm_state["model_name"] = model_name
+        print(
+            "[LLM] OpenAI-compatible client initialized successfully "
+            f"for base URL {base_url} and model {model_name}."
+        )
     return _llm_state["client"]
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Initialize Groq client at startup."""
+    """Initialize OpenAI-compatible client at startup."""
     try:
-        _init_groq_client()
+        _init_llm_client()
     except RuntimeError as e:
         print(f"[LLM] WARNING: {e}")
     yield
@@ -49,29 +84,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="LLM Service",
-    description="OpenAI-compatible chat completions proxy to Groq API.",
+    description="OpenAI-compatible chat completions proxy.",
     version="1.0.0",
     lifespan=lifespan,
 )
 
-# OpenAI model names that should be mapped to the default Groq model
-_OPENAI_MODEL_ALIASES = {
-    "gpt-4",
-    "gpt-4o",
-    "gpt-4o-mini",
-    "gpt-4-turbo",
-    "gpt-3.5-turbo",
-    "gpt-3.5-turbo-16k",
-}
 
-_DEFAULT_MODEL = _llm_state["model_name"]
-
-
-def _resolve_model(model: Optional[str]) -> str:
-    """Map OpenAI model names or missing model to the default Groq model."""
-    if not model or model.lower() in _OPENAI_MODEL_ALIASES:
-        return _DEFAULT_MODEL
-    return model
+def _resolve_model(_model: Optional[str]) -> str:
+    """Use the configured upstream model for all proxied requests."""
+    return str(_llm_state.get("model_name") or _llm_model())
 
 
 class ChatMessage(BaseModel):
@@ -100,10 +121,10 @@ def _build_completion_id() -> str:
 
 
 def _build_non_streaming_response(
-    groq_response, model: str, completion_id: str
+    upstream_response, model: str, completion_id: str
 ) -> dict:
-    choice = groq_response.choices[0]
-    usage = getattr(groq_response, "usage", None)
+    choice = upstream_response.choices[0]
+    usage = getattr(upstream_response, "usage", None)
     usage_dict = {}
     if usage:
         usage_dict = {
@@ -182,7 +203,7 @@ def _build_stream_chunk(
 
 
 async def _stream_response(
-    groq_stream,
+    upstream_stream,
     model: str,
     completion_id: str,
     trace_ctx=None,
@@ -197,7 +218,7 @@ async def _stream_response(
         completion_id, model, {"role": "assistant"}, finish_reason=None
     )
 
-    for chunk in groq_stream:
+    for chunk in upstream_stream:
         usage = _usage_to_dict(getattr(chunk, "usage", None))
         if usage is not None:
             final_payload["usage"] = usage
@@ -236,7 +257,7 @@ async def _stream_response(
     usage_payload = final_payload.get("usage", {})
     step = {
         "type": "llm",
-        "provider": "Groq",
+        "provider": "OpenAI-compatible",
         "endpoint": "/v1/chat/completions",
         "model": model,
         "durationMs": duration_ms(start or time.perf_counter()),
@@ -260,7 +281,12 @@ async def healthz():
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content={"status": "not_ready", "client_initialized": False},
         )
-    return {"status": "ok", "client_initialized": True}
+    return {
+        "status": "ok",
+        "client_initialized": True,
+        "base_url": _llm_state.get("base_url"),
+        "model": _llm_state.get("model_name"),
+    }
 
 
 @app.post("/v1/chat/completions")
@@ -268,7 +294,8 @@ async def create_chat_completion(request: Request, completion_request: ChatCompl
     """
     OpenAI-compatible chat completions endpoint.
 
-    Proxies requests to Groq API with streaming and non-streaming support.
+    Proxies requests to the configured OpenAI-compatible upstream API with
+    streaming and non-streaming support.
     """
     trace_ctx = parse_trace_context(request.headers)
     start = time.perf_counter()
@@ -277,13 +304,13 @@ async def create_chat_completion(request: Request, completion_request: ChatCompl
     if client is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Groq client is not initialized. Check GROQ_API_KEY.",
+            detail="LLM client is not initialized. Check LLM_API_KEY, LLM_BASE_URL, and LLM_MODEL.",
         )
 
     model = _resolve_model(completion_request.model)
     completion_id = _build_completion_id()
 
-    # Build kwargs for Groq API call
+    # Build kwargs for OpenAI-compatible chat-completions API call.
     kwargs = {
         "model": model,
         "messages": [msg.model_dump() for msg in completion_request.messages],
@@ -303,11 +330,11 @@ async def create_chat_completion(request: Request, completion_request: ChatCompl
         kwargs["stop"] = completion_request.stop
 
     try:
-        groq_response = client.chat.completions.create(**kwargs)
+        upstream_response = client.chat.completions.create(**kwargs)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Groq API error: {str(e)}",
+            detail=f"LLM API error: {str(e)}",
         )
 
     try:
@@ -317,16 +344,16 @@ async def create_chat_completion(request: Request, completion_request: ChatCompl
 
     if completion_request.stream:
         return StreamingResponse(
-            _stream_response(groq_response, model, completion_id, trace_ctx, request_payload, start),
+            _stream_response(upstream_response, model, completion_id, trace_ctx, request_payload, start),
             media_type="text/event-stream",
         )
 
-    response_body = _build_non_streaming_response(groq_response, model, completion_id)
+    response_body = _build_non_streaming_response(upstream_response, model, completion_id)
     usage_payload = response_body.get("usage", {})
     final_text = response_body["choices"][0]["message"]["content"]
     step = {
         "type": "llm",
-        "provider": "Groq",
+        "provider": "OpenAI-compatible",
         "endpoint": str(request.url),
         "model": model,
         "durationMs": duration_ms(start),
