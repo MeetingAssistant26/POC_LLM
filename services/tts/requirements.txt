@@ -5,3 +5,5 @@ pydantic
 pytest
 pytest-asyncio
 httpx
+requests
+python-dotenv

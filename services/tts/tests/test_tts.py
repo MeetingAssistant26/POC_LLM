@@ -1,28 +1,29 @@
 import sys
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
-import pytest
-
-# Inject fake edge_tts module before importing main so tests run without
-# needing network access to Microsoft Azure TTS edge endpoint.
 fake_edge_tts = MagicMock()
 
 
 class FakeCommunicate:
-    """Fake edge_tts.Communicate that yields fake MP3 chunks."""
+    last_text = None
+    last_voice = None
 
     def __init__(self, text, voice):
         self.text = text
         self.voice = voice
+        FakeCommunicate.last_text = text
+        FakeCommunicate.last_voice = voice
 
     async def stream(self):
-        # Yield a fake audio chunk and a boundary chunk
-        yield {"type": "audio", "data": b"\xff\xfb\x90"}  # Fake MP3 header-ish bytes
+        yield {"type": "audio", "data": b"\xff\xfb\x90"}
         yield {"type": "WordBoundary", "data": None}
 
 
 fake_edge_tts.Communicate = FakeCommunicate
 sys.modules["edge_tts"] = fake_edge_tts
+
+fake_requests = MagicMock()
+sys.modules["requests"] = fake_requests
 
 from fastapi.testclient import TestClient
 from services.tts.main import app, _tts_state
@@ -31,13 +32,15 @@ client = TestClient(app)
 
 
 class TestHealthz:
-    def test_healthz_ready(self):
+    def test_healthz_ready(self, monkeypatch):
+        monkeypatch.setenv("ELEVENLABS_API_KEY", "test-key")
         _tts_state["ready"] = True
         response = client.get("/healthz")
         assert response.status_code == 200
         body = response.json()
         assert body["status"] == "ok"
         assert body["service"] == "tts"
+        assert body["provider"] == "elevenlabs"
 
     def test_healthz_not_ready(self):
         prev = _tts_state["ready"]
@@ -51,97 +54,163 @@ class TestHealthz:
 
 
 class TestSpeechEndpoint:
-    def test_english_auto_detection(self):
+    def test_elevenlabs_when_configured(self, monkeypatch):
         _tts_state["ready"] = True
-        response = client.post(
-            "/v1/audio/speech",
-            json={"input": "Hello world, this is a test."},
+        monkeypatch.setenv("ELEVENLABS_API_KEY", "test-key")
+        monkeypatch.setenv("ELEVENLABS_VOICE_ID", "voice-123")
+        fake_response = MagicMock(status_code=200, content=b"ID3fake-mp3")
+        with patch("requests.post", return_value=fake_response) as post:
+            response = client.post("/v1/audio/speech", json={"input": "Hello world."})
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "audio/mpeg"
+        assert response.content == b"ID3fake-mp3"
+        assert "voice-123" in post.call_args.args[0]
+        assert post.call_args.kwargs["headers"]["xi-api-key"] == "test-key"
+        assert post.call_args.kwargs["json"]["model_id"] == "eleven_multilingual_v2"
+
+    def test_custom_elevenlabs_voice_override(self, monkeypatch):
+        _tts_state["ready"] = True
+        monkeypatch.setenv("ELEVENLABS_API_KEY", "test-key")
+        fake_response = MagicMock(status_code=200, content=b"ID3fake-mp3")
+        with patch("requests.post", return_value=fake_response) as post:
+            response = client.post(
+                "/v1/audio/speech",
+                json={"input": "Hello world.", "voice": "custom-voice"},
+            )
+        assert response.status_code == 200
+        assert "custom-voice" in post.call_args.args[0]
+
+    def test_elevenlabs_prefers_accessible_voice_when_configured_voice_is_not_listed(self, monkeypatch):
+        _tts_state["ready"] = True
+        monkeypatch.setenv("ELEVENLABS_API_KEY", "test-key")
+        monkeypatch.setenv("ELEVENLABS_VOICE_ID", "blocked-voice")
+        success_response = MagicMock(status_code=200, content=b"ID3fallback-mp3")
+        voices_response = MagicMock(
+            status_code=200,
+            json=lambda: {"voices": [{"voice_id": "accessible-voice", "name": "Fallback"}]},
         )
+        with patch("requests.post", return_value=success_response) as post, patch(
+            "requests.get", return_value=voices_response
+        ) as get:
+            response = client.post("/v1/audio/speech", json={"input": "Hello world."})
+        assert response.status_code == 200
+        assert response.content == b"ID3fallback-mp3"
+        assert "accessible-voice" in post.call_args_list[0].args[0]
+        assert "blocked-voice" not in post.call_args_list[0].args[0]
+        assert get.call_count == 1
+
+    def test_elevenlabs_resolves_configured_voice_name_before_request(self, monkeypatch):
+        _tts_state["ready"] = True
+        monkeypatch.setenv("ELEVENLABS_API_KEY", "test-key")
+        monkeypatch.setenv("ELEVENLABS_VOICE_NAME", "Named Voice")
+        success_response = MagicMock(status_code=200, content=b"ID3named-mp3")
+        voices_response = MagicMock(
+            status_code=200,
+            json=lambda: {"voices": [{"voice_id": "voice-id-for-name", "name": "Named Voice"}]},
+        )
+        with patch("requests.post", return_value=success_response) as post, patch(
+            "requests.get", return_value=voices_response
+        ):
+            response = client.post("/v1/audio/speech", json={"input": "Hello world."})
+        assert response.status_code == 200
+        assert response.content == b"ID3named-mp3"
+        assert "voice-id-for-name" in post.call_args_list[0].args[0]
+        assert "Named%20Voice" not in post.call_args_list[0].args[0]
+
+    def test_elevenlabs_explicit_voice_override_retries_accessible_voice_after_401(self, monkeypatch):
+        _tts_state["ready"] = True
+        monkeypatch.setenv("ELEVENLABS_API_KEY", "test-key")
+        blocked_response = MagicMock(status_code=401, content=b"", json=lambda: {"detail": {"status": "voice_not_found"}})
+        success_response = MagicMock(status_code=200, content=b"ID3fallback-mp3")
+        voices_response = MagicMock(
+            status_code=200,
+            json=lambda: {"voices": [{"voice_id": "accessible-voice", "name": "Fallback"}]},
+        )
+        with patch("requests.post", side_effect=[blocked_response, success_response]) as post, patch(
+            "requests.get", return_value=voices_response
+        ):
+            response = client.post(
+                "/v1/audio/speech",
+                json={"input": "Hello world.", "voice": "blocked-voice"},
+            )
+        assert response.status_code == 200
+        assert response.content == b"ID3fallback-mp3"
+        assert "blocked-voice" in post.call_args_list[0].args[0]
+        assert "accessible-voice" in post.call_args_list[1].args[0]
+
+    def test_elevenlabs_failure_returns_502(self, monkeypatch):
+        _tts_state["ready"] = True
+        monkeypatch.setenv("ELEVENLABS_API_KEY", "test-key")
+        fake_response = MagicMock(status_code=403, content=b"", text="forbidden", json=lambda: {})
+        with patch("requests.post", return_value=fake_response):
+            response = client.post("/v1/audio/speech", json={"input": "Hello world."})
+        assert response.status_code == 502
+        assert "ElevenLabs TTS failed" in response.json()["detail"]
+
+    def test_elevenlabs_quota_401_does_not_retry_voices(self, monkeypatch):
+        _tts_state["ready"] = True
+        monkeypatch.setenv("ELEVENLABS_API_KEY", "test-key")
+        quota_response = MagicMock(
+            status_code=401,
+            content=b"",
+            json=lambda: {"detail": {"status": "quota_exceeded", "message": "0 credits remaining"}},
+        )
+        voices_response = MagicMock(
+            status_code=200,
+            json=lambda: {"voices": [{"voice_id": "accessible-voice", "name": "Fallback"}]},
+        )
+        with patch("requests.post", return_value=quota_response) as post, patch(
+            "requests.get", return_value=voices_response
+        ):
+            response = client.post("/v1/audio/speech", json={"input": "Hello world."})
+        assert response.status_code == 502
+        assert post.call_count == 1
+        assert "quota_exceeded" in response.json()["detail"]
+
+    def test_edge_fallback_when_elevenlabs_unconfigured(self, monkeypatch):
+        _tts_state["ready"] = True
+        monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)
+        response = client.post("/v1/audio/speech", json={"input": "Hello world."})
         assert response.status_code == 200
         assert response.headers["content-type"] == "audio/mpeg"
         assert response.content == b"\xff\xfb\x90"
-        # Verify English voice was used
         assert FakeCommunicate.last_voice == "en-US-JennyNeural"
 
-    def test_arabic_auto_detection(self):
+    def test_arabic_edge_fallback_detection(self, monkeypatch):
         _tts_state["ready"] = True
-        response = client.post(
-            "/v1/audio/speech",
-            json={"input": "مرحبا بالعالم، هذا اختبار."},
-        )
+        monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)
+        response = client.post("/v1/audio/speech", json={"input": "مرحبا بالعالم، هذا اختبار."})
         assert response.status_code == 200
-        assert response.headers["content-type"] == "audio/mpeg"
-        assert response.content == b"\xff\xfb\x90"
-        # Verify Arabic voice was used
         assert FakeCommunicate.last_voice == "ar-EG-ShakirNeural"
-
-    def test_custom_voice_override(self):
-        _tts_state["ready"] = True
-        response = client.post(
-            "/v1/audio/speech",
-            json={
-                "input": "Hello world.",
-                "voice": "en-GB-SoniaNeural",
-            },
-        )
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "audio/mpeg"
-        # Verify custom voice was used
-        assert FakeCommunicate.last_voice == "en-GB-SoniaNeural"
 
     def test_empty_input_returns_400(self):
         _tts_state["ready"] = True
-        response = client.post(
-            "/v1/audio/speech",
-            json={"input": ""},
-        )
+        response = client.post("/v1/audio/speech", json={"input": ""})
         assert response.status_code == 400
-        body = response.json()
-        assert "input field is required" in body["detail"]
+        assert "input field is required" in response.json()["detail"]
 
-    def test_cleaning_removes_markdown(self):
+    def test_cleaning_removes_markdown(self, monkeypatch):
         _tts_state["ready"] = True
+        monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)
         response = client.post(
             "/v1/audio/speech",
             json={"input": "**Bold** and *italic* text.\n- bullet point one\n- bullet point two"},
         )
         assert response.status_code == 200
-        # Verify the text was cleaned before being passed to Communicate
         assert "**" not in FakeCommunicate.last_text
         assert "*" not in FakeCommunicate.last_text
-        # The regex only strips leading "- " at start of lines (re.MULTILINE)
         assert "- bullet point one" not in FakeCommunicate.last_text
         assert "- bullet point two" not in FakeCommunicate.last_text
 
-    def test_response_format_ignored(self):
+    def test_response_format_ignored(self, monkeypatch):
         _tts_state["ready"] = True
-        response = client.post(
-            "/v1/audio/speech",
-            json={"input": "Hello.", "response_format": "wav"},
-        )
+        monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)
+        response = client.post("/v1/audio/speech", json={"input": "Hello.", "response_format": "wav"})
         assert response.status_code == 200
         assert response.headers["content-type"] == "audio/mpeg"
 
-    def test_speed_ignored(self):
+    def test_speed_ignored(self, monkeypatch):
         _tts_state["ready"] = True
-        response = client.post(
-            "/v1/audio/speech",
-            json={"input": "Hello.", "speed": 1.5},
-        )
+        monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)
+        response = client.post("/v1/audio/speech", json={"input": "Hello.", "speed": 1.5})
         assert response.status_code == 200
-
-
-# Monkey-patch FakeCommunicate to capture constructor args
-_original_init = FakeCommunicate.__init__
-
-
-def _capturing_init(self, text, voice):
-    self.text = text
-    self.voice = voice
-    FakeCommunicate.last_text = text
-    FakeCommunicate.last_voice = voice
-
-
-FakeCommunicate.__init__ = _capturing_init
-FakeCommunicate.last_text = None
-FakeCommunicate.last_voice = None
