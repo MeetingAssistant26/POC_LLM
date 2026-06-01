@@ -35,13 +35,30 @@ _DEFAULT_ELEVENLABS_VOICE = "CwhRBWXzGAHq8TQ4Fs17"
 _ELEVENLABS_TTS_URL = "https://api.elevenlabs.io/v1/text-to-speech/{voice_id}"
 _ELEVENLABS_VOICES_URL = "https://api.elevenlabs.io/v1/voices"
 _VOICE_RETRY_STATUSES = {401, 403, 404}
+_PCM_RESPONSE_FORMAT = "pcm"
+_MP3_RESPONSE_FORMAT = "mp3"
+_ELEVENLABS_OUTPUT_FORMATS = {
+    _MP3_RESPONSE_FORMAT: "mp3_44100_128",
+    _PCM_RESPONSE_FORMAT: "pcm_24000",
+}
+_RESPONSE_MEDIA_TYPES = {
+    _MP3_RESPONSE_FORMAT: "audio/mpeg",
+    _PCM_RESPONSE_FORMAT: "application/octet-stream",
+}
+_RESPONSE_FILENAMES = {
+    _MP3_RESPONSE_FORMAT: "speech.mp3",
+    _PCM_RESPONSE_FORMAT: "speech.pcm",
+}
 
 
 class SpeechRequest(BaseModel):
     input: str = Field(..., description="Text to synthesize into speech.")
     model: Optional[str] = Field(None, description="OpenAI-compatible model hint. ElevenLabs uses eleven_multilingual_v2.")
     voice: Optional[str] = Field(None, description="ElevenLabs voice id when ElevenLabs is configured; edge-tts voice otherwise.")
-    response_format: Optional[str] = Field("mp3", description="Audio format. Only mp3 is supported.")
+    response_format: Optional[str] = Field(
+        "mp3",
+        description="Audio format. Supports mp3 and OpenAI-compatible raw 24 kHz mono PCM.",
+    )
     speed: Optional[float] = Field(1.0, description="Speaking speed multiplier. Reserved for compatibility.")
 
 
@@ -240,12 +257,39 @@ def _resolve_edge_voice(text: str, requested_voice: Optional[str]) -> str:
     return _DEFAULT_AR_VOICE if detect_language(text) == "ar" else _DEFAULT_EN_VOICE
 
 
-def _elevenlabs_audio_for_voice(text: str, voice_id: str, api_key: str) -> bytes:
-    """Synthesize text with a specific ElevenLabs voice and return MP3 bytes."""
+def _normalize_response_format(response_format: Optional[str]) -> str:
+    normalized = (response_format or _MP3_RESPONSE_FORMAT).strip().lower()
+    if normalized in {"mpeg", "mp3"}:
+        return _MP3_RESPONSE_FORMAT
+    if normalized in {"pcm", "s16le"}:
+        return _PCM_RESPONSE_FORMAT
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="response_format must be one of: mp3, pcm.",
+    )
+
+
+def _elevenlabs_audio_for_voice(
+    text: str,
+    voice_id: str,
+    api_key: str,
+    response_format: str,
+) -> bytes:
+    """Synthesize text with a specific ElevenLabs voice and return audio bytes.
+
+    LiveKit's OpenAI TTS adapter requests response_format=pcm and then treats
+    the response body as raw 24 kHz mono signed 16-bit PCM. Returning MP3 for
+    that request sounds like static, so forward the matching ElevenLabs
+    output_format instead of relying on the provider default.
+    """
     import requests
 
-    headers = _elevenlabs_headers(api_key, accept="audio/mpeg")
+    headers = _elevenlabs_headers(
+        api_key,
+        accept="application/octet-stream" if response_format == _PCM_RESPONSE_FORMAT else "audio/mpeg",
+    )
     headers["Content-Type"] = "application/json"
+    output_format = _ELEVENLABS_OUTPUT_FORMATS[response_format]
     audio_parts: list[bytes] = []
     for chunk in split_text(text):
         payload = {
@@ -260,6 +304,7 @@ def _elevenlabs_audio_for_voice(text: str, voice_id: str, api_key: str) -> bytes
         }
         response = requests.post(
             _ELEVENLABS_TTS_URL.format(voice_id=quote(voice_id, safe="")),
+            params={"output_format": output_format},
             json=payload,
             headers=headers,
             timeout=60,
@@ -272,7 +317,12 @@ def _elevenlabs_audio_for_voice(text: str, voice_id: str, api_key: str) -> bytes
     return b"".join(audio_parts)
 
 
-def _elevenlabs_audio(text: str, requested_voice: Optional[str], language: str) -> bytes:
+def _elevenlabs_audio(
+    text: str,
+    requested_voice: Optional[str],
+    language: str,
+    response_format: str,
+) -> bytes:
     """Synthesize text with configured ElevenLabs voice selection and safe fallback."""
     api_key = _elevenlabs_api_key()
     if not api_key:
@@ -294,7 +344,7 @@ def _elevenlabs_audio(text: str, requested_voice: Optional[str], language: str) 
             index += 1
             continue
         try:
-            return _elevenlabs_audio_for_voice(text, voice_id, api_key)
+            return _elevenlabs_audio_for_voice(text, voice_id, api_key, response_format)
         except ElevenLabsError as exc:
             failed_voices.add(voice_id)
             last_error = exc
@@ -354,9 +404,10 @@ async def create_speech(request: SpeechRequest):
         )
 
     language = detect_language(clean_text)
+    response_format = _normalize_response_format(request.response_format)
     if _elevenlabs_api_key():
         try:
-            audio = _elevenlabs_audio(clean_text, request.voice, language)
+            audio = _elevenlabs_audio(clean_text, request.voice, language, response_format)
         except Exception as exc:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
@@ -364,11 +415,18 @@ async def create_speech(request: SpeechRequest):
             ) from exc
         body = _single_audio_chunk(audio)
     else:
+        if response_format == _PCM_RESPONSE_FORMAT:
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail="response_format=pcm requires ElevenLabs TTS configuration.",
+            )
         voice = _resolve_edge_voice(clean_text, request.voice)
         body = _edge_audio_stream(clean_text, voice)
 
     return StreamingResponse(
         body,
-        media_type="audio/mpeg",
-        headers={"Content-Disposition": 'attachment; filename="speech.mp3"'},
+        media_type=_RESPONSE_MEDIA_TYPES[response_format],
+        headers={
+            "Content-Disposition": f'attachment; filename="{_RESPONSE_FILENAMES[response_format]}"',
+        },
     )

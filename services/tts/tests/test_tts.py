@@ -67,6 +67,7 @@ class TestSpeechEndpoint:
         assert "voice-123" in post.call_args.args[0]
         assert post.call_args.kwargs["headers"]["xi-api-key"] == "test-key"
         assert post.call_args.kwargs["json"]["model_id"] == "eleven_multilingual_v2"
+        assert post.call_args.kwargs["params"] == {"output_format": "mp3_44100_128"}
 
     def test_custom_elevenlabs_voice_override(self, monkeypatch):
         _tts_state["ready"] = True
@@ -202,12 +203,35 @@ class TestSpeechEndpoint:
         assert "- bullet point one" not in FakeCommunicate.last_text
         assert "- bullet point two" not in FakeCommunicate.last_text
 
-    def test_response_format_ignored(self, monkeypatch):
+    def test_pcm_response_format_uses_elevenlabs_pcm_output(self, monkeypatch):
+        _tts_state["ready"] = True
+        monkeypatch.setenv("ELEVENLABS_API_KEY", "test-key")
+        monkeypatch.setenv("ELEVENLABS_VOICE_ID", "voice-123")
+        fake_response = MagicMock(status_code=200, content=b"\x01\x02raw-pcm")
+        with patch("requests.post", return_value=fake_response) as post:
+            response = client.post(
+                "/v1/audio/speech",
+                json={"input": "Hello.", "response_format": "pcm"},
+            )
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/octet-stream"
+        assert response.content == b"\x01\x02raw-pcm"
+        assert post.call_args.kwargs["params"] == {"output_format": "pcm_24000"}
+        assert post.call_args.kwargs["headers"]["Accept"] == "application/octet-stream"
+
+    def test_unsupported_response_format_returns_400(self, monkeypatch):
         _tts_state["ready"] = True
         monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)
         response = client.post("/v1/audio/speech", json={"input": "Hello.", "response_format": "wav"})
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "audio/mpeg"
+        assert response.status_code == 400
+        assert "response_format" in response.json()["detail"]
+
+    def test_pcm_response_format_without_elevenlabs_returns_501(self, monkeypatch):
+        _tts_state["ready"] = True
+        monkeypatch.delenv("ELEVENLABS_API_KEY", raising=False)
+        response = client.post("/v1/audio/speech", json={"input": "Hello.", "response_format": "pcm"})
+        assert response.status_code == 501
+        assert "requires ElevenLabs" in response.json()["detail"]
 
     def test_speed_ignored(self, monkeypatch):
         _tts_state["ready"] = True
