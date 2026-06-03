@@ -1,0 +1,6 @@
+.cache/
+data/
+data-initial/
+output/
+output-initial/
+logs/*.log

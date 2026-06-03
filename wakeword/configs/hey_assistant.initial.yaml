@@ -1,0 +1,58 @@
+# Docker-contained initial training profile for browser integration/manual testing.
+#
+# This is intentionally derived from configs/hey_assistant.yaml (itself based on
+# livekit-wakeword/configs/prod.yaml), but reduces sample counts, augmentation
+# rounds, model size, and training steps so the full generate → augment → train
+# → export → eval flow can produce a usable hey_assistant.onnx on CPU-only Docker
+# before a full production-quality run is scheduled.
+model_name: hey_assistant
+
+target_phrases: ["hey assistant"]
+
+# Reduced initial dataset. Keep the production profile in hey_assistant.yaml for
+# the final higher-quality artifact run.
+n_samples: 50
+n_samples_val: 20
+n_background_samples: 20
+n_background_samples_val: 10
+
+tts_batch_size: 50
+
+custom_negative_phrases:
+  - "assistant"
+  - "hey assistance"
+  - "hey system"
+  - "they assistant"
+  - "hi assistant"
+
+noise_scales: [0.98]
+noise_scale_ws: [0.98]
+length_scales: [0.75, 1.0, 1.25]
+slerp_weights: [0.2, 0.35, 0.5, 0.65, 0.8]
+
+data_dir: ./wakeword/data-initial
+output_dir: ./wakeword/output-initial
+
+augmentation:
+  clip_duration: 2.0
+  batch_size: 16
+  rounds: 1
+  background_paths: [./wakeword/data-initial/backgrounds]
+  rir_paths: [./wakeword/data-initial/rirs]
+
+model:
+  model_type: conv_attention
+  model_size: small
+
+steps: 600
+learning_rate: 0.0001
+weight_decay: 0.01
+label_smoothing: 0.02
+max_negative_weight: 50
+target_fp_per_hour: 10.0
+
+batch_n_per_class:
+  positive: 24
+  adversarial_negative: 24
+  ACAV100M_sample: 24
+  background_noise: 8

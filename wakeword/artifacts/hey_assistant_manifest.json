@@ -1,0 +1,63 @@
+{
+  "modelName": "hey_assistant",
+  "profile": "initial",
+  "productionQuality": false,
+  "note": "Reduced Docker-contained initial artifact for browser integration/manual testing; replace with a full production-profile artifact before production use.",
+  "generatedAtUtc": "2026-06-03T15:38:50.285733+00:00",
+  "livekitWakewordRevision": "5558b0a32c9316a0f22f2ba4e104658d3aa6238c",
+  "configPath": "wakeword/configs/hey_assistant.initial.yaml",
+  "config": {
+    "targetPhrases": [
+      "hey assistant"
+    ],
+    "customNegativePhrases": [
+      "assistant",
+      "hey assistance",
+      "hey system",
+      "they assistant",
+      "hi assistant"
+    ],
+    "nSamples": 50,
+    "nSamplesVal": 20,
+    "nBackgroundSamples": 20,
+    "nBackgroundSamplesVal": 10,
+    "dataDir": "./wakeword/data-initial",
+    "outputDir": "./wakeword/output-initial",
+    "augmentationRounds": 1,
+    "modelType": "conv_attention",
+    "modelSize": "small",
+    "steps": 600,
+    "targetFpPerHour": 10.0
+  },
+  "eval": {
+    "aut": 0.0,
+    "fpph": 0.0,
+    "recall": 1.0,
+    "accuracy": 1.0,
+    "threshold": 0.5,
+    "optimal_threshold": 0.22,
+    "optimal_recall": 1.0,
+    "optimal_fpph": 7.82608695652174,
+    "n_positive": 20,
+    "n_negative": 230,
+    "validation_hours": 0.13
+  },
+  "artifacts": {
+    "melspectrogram.onnx": {
+      "sha256": "ba2b0e0f8b7b875369a2c89cb13360ff53bac436f2895cced9f479fa65eb176f",
+      "bytes": 1087958
+    },
+    "embedding_model.onnx": {
+      "sha256": "70d164290c1d095d1d4ee149bc5e00543250a7316b59f31d056cff7bd3075c1f",
+      "bytes": 1326578
+    },
+    "hey_assistant.onnx": {
+      "sha256": "6d3abb9682fae3302689af2a69cd98890893609884abb8b633c9a2981e138b06",
+      "bytes": 164975
+    },
+    "hey_assistant_eval.json": {
+      "sha256": "ea120688793ec05d443182918f09d2a59eb0d8380da78a4a7fe834c0d1f6ff93",
+      "bytes": 247
+    }
+  }
+}
