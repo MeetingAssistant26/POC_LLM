@@ -54,7 +54,7 @@ sys.modules["whisperx.diarize"] = fake_diarize_module
 sys.modules["torch"] = fake_torch
 
 from fastapi.testclient import TestClient
-from services.stt.main import app, _stt_state
+from services.stt.main import app, _stt_state, _upstream_request_format
 
 client = TestClient(app)
 
@@ -68,6 +68,7 @@ def ready_stt_state(monkeypatch):
         "STT_UPSTREAM_API_KEY",
         "STT_UPSTREAM_MODEL",
         "STT_UPSTREAM_REQUEST_FORMAT",
+        "STT_UPSTREAM_LANGUAGE",
     ):
         monkeypatch.delenv(name, raising=False)
     _stt_state["model"] = fake_model
@@ -173,6 +174,20 @@ class TestHealthz:
         assert body["status"] == "ok"
         assert body["provider"] == "openai-compatible"
         assert body["upstream_configured"] is True
+
+    def test_openrouter_auto_uses_json_for_transcription_voxtral_models(self, monkeypatch):
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://openrouter.ai/api/v1")
+        monkeypatch.setenv("STT_UPSTREAM_MODEL", "mistralai/voxtral-mini-transcribe")
+        monkeypatch.setenv("STT_UPSTREAM_REQUEST_FORMAT", "auto")
+
+        assert _upstream_request_format() == "openrouter-json"
+
+    def test_openrouter_auto_uses_chat_audio_for_non_transcription_voxtral_models(self, monkeypatch):
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://openrouter.ai/api/v1")
+        monkeypatch.setenv("STT_UPSTREAM_MODEL", "mistralai/voxtral-small-24b-2507")
+        monkeypatch.setenv("STT_UPSTREAM_REQUEST_FORMAT", "auto")
+
+        assert _upstream_request_format() == "openrouter-chat-audio"
 
 
 class TestTranscriptions:
@@ -340,6 +355,90 @@ class TestTranscriptions:
             assert captured["json"]["language"] == "en"
             assert captured["json"]["input_audio"]["format"] == "wav"
             assert captured["json"]["input_audio"]["data"]
+        finally:
+            os.unlink(wav_path)
+
+    def test_openai_compatible_proxy_can_omit_openrouter_json_language_for_auto_detection(self, monkeypatch):
+        monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://openrouter.ai/api/v1")
+        monkeypatch.setenv("STT_UPSTREAM_API_KEY", "test-upstream-key")
+        monkeypatch.setenv("STT_UPSTREAM_MODEL", "microsoft/mai-transcribe-1.5")
+        monkeypatch.setenv("STT_UPSTREAM_REQUEST_FORMAT", "openrouter-json")
+        monkeypatch.setenv("STT_UPSTREAM_LANGUAGE", "auto")
+        captured = {}
+
+        class FakeClient:
+            def __init__(self, **kwargs):
+                pass
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return None
+
+            def post(self, url, headers, json):
+                captured["json"] = json
+                return httpx.Response(
+                    200,
+                    json={"text": "auto-detected transcript"},
+                    headers={"content-type": "application/json"},
+                )
+
+        monkeypatch.setattr("services.stt.main.httpx.Client", FakeClient)
+        wav_path = _generate_test_wav()
+        try:
+            with open(wav_path, "rb") as f:
+                response = client.post(
+                    "/v1/audio/transcriptions",
+                    files={"file": ("test.wav", f, "audio/wav")},
+                    data={"model": "ignored-by-config", "language": "en"},
+                )
+
+            assert response.status_code == 200
+            assert "language" not in captured["json"]
+        finally:
+            os.unlink(wav_path)
+
+    def test_openai_compatible_proxy_can_override_openrouter_json_language(self, monkeypatch):
+        monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://openrouter.ai/api/v1")
+        monkeypatch.setenv("STT_UPSTREAM_API_KEY", "test-upstream-key")
+        monkeypatch.setenv("STT_UPSTREAM_MODEL", "microsoft/mai-transcribe-1.5")
+        monkeypatch.setenv("STT_UPSTREAM_REQUEST_FORMAT", "openrouter-json")
+        monkeypatch.setenv("STT_UPSTREAM_LANGUAGE", "ar")
+        captured = {}
+
+        class FakeClient:
+            def __init__(self, **kwargs):
+                pass
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return None
+
+            def post(self, url, headers, json):
+                captured["json"] = json
+                return httpx.Response(
+                    200,
+                    json={"text": "arabic transcript"},
+                    headers={"content-type": "application/json"},
+                )
+
+        monkeypatch.setattr("services.stt.main.httpx.Client", FakeClient)
+        wav_path = _generate_test_wav()
+        try:
+            with open(wav_path, "rb") as f:
+                response = client.post(
+                    "/v1/audio/transcriptions",
+                    files={"file": ("test.wav", f, "audio/wav")},
+                    data={"model": "ignored-by-config", "language": "en"},
+                )
+
+            assert response.status_code == 200
+            assert captured["json"]["language"] == "ar"
         finally:
             os.unlink(wav_path)
 

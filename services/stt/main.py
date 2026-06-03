@@ -48,10 +48,33 @@ def _upstream_model() -> str:
 def _upstream_request_format() -> str:
     configured = os.environ.get("STT_UPSTREAM_REQUEST_FORMAT", "auto").strip().lower() or "auto"
     if configured == "auto" and "openrouter.ai" in _upstream_base_url():
-        if "voxtral" in _upstream_model().lower():
+        model = _upstream_model().lower()
+        if "voxtral" in model and "transcribe" not in model:
             return "openrouter-chat-audio"
         return "openrouter-json"
     return configured
+
+
+def _upstream_language() -> str:
+    return os.environ.get("STT_UPSTREAM_LANGUAGE", "").strip()
+
+
+def _resolved_upstream_language(data: dict) -> str | None:
+    """Resolve the language sent to an upstream STT provider.
+
+    The LiveKit OpenAI STT plugin defaults to sending language=en. For providers
+    with useful language auto-detection, callers can set STT_UPSTREAM_LANGUAGE=auto
+    to intentionally omit the upstream language field instead of forwarding that
+    default English hint.
+    """
+    configured = _upstream_language()
+    if configured:
+        if configured.lower() in {"auto", "detect", "auto-detect", "auto_detect"}:
+            return None
+        return configured
+
+    incoming = str(data.get("language") or "").strip()
+    return incoming or None
 
 
 def _provider_config_status() -> dict:
@@ -483,8 +506,9 @@ async def _proxy_transcription_to_openai_compatible(
                     "format": _audio_format(file.filename, file.content_type),
                 },
             }
-            if data_dict.get("language"):
-                payload["language"] = data_dict["language"]
+            language = _resolved_upstream_language(data_dict)
+            if language:
+                payload["language"] = language
             upstream_response = await asyncio.to_thread(
                 _post_upstream_transcription_json,
                 upstream_url,
