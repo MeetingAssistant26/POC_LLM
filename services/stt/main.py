@@ -473,31 +473,145 @@ def _suppress_empty_audio_hallucination(response_body):
     return sanitized
 
 
+_TRANSCRIPT_TEXT_FIELD_RE = re.compile(
+    r'"text"\s*:\s*"((?:[^"\\]|\\.)*)"',
+    re.IGNORECASE,
+)
+
+
+def _strip_transcript_content_fences(content: str) -> str:
+    return re.sub(r"^```(?:json)?\s*|\s*```$", "", content.strip(), flags=re.IGNORECASE)
+
+
+def _looks_like_structured_transcript_json(text: str) -> bool:
+    normalized = text.strip()
+    if not normalized:
+        return False
+    lower = normalized.lower()
+    if '"segments"' in lower or "'segments'" in lower:
+        return True
+    if normalized.startswith(("{", "[")) and '"text"' in lower:
+        return True
+    return False
+
+
+def _unescape_json_string_fragment(raw_value: str) -> str:
+    try:
+        return json.loads(f'"{raw_value}"')
+    except json.JSONDecodeError:
+        return raw_value.replace('\\"', '"').replace("\\\\", "\\")
+
+
+def _salvage_transcript_text_fields(text: str) -> list[str]:
+    salvaged: list[str] = []
+    for match in _TRANSCRIPT_TEXT_FIELD_RE.finditer(text):
+        value = _unescape_json_string_fragment(match.group(1)).strip()
+        if value:
+            salvaged.append(value)
+    return salvaged
+
+
+def _salvage_normalized_transcript_parts(text: str) -> list[str]:
+    parts: list[str] = []
+    seen: set[str] = set()
+    for raw_value in _salvage_transcript_text_fields(text):
+        normalized = _normalize_nested_transcript_text(raw_value)
+        if not normalized or _looks_like_structured_transcript_json(normalized):
+            continue
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        parts.append(normalized)
+    return parts
+
+
+def _normalize_nested_transcript_text(text: str) -> str:
+    cleaned = _strip_transcript_content_fences(text)
+    if not _looks_like_structured_transcript_json(cleaned):
+        return cleaned.strip()
+
+    try:
+        parsed = json.loads(cleaned)
+        if isinstance(parsed, dict):
+            parts = []
+            for item in parsed.get("segments", []):
+                if isinstance(item, dict):
+                    segment_text = _normalize_nested_transcript_text(
+                        str(item.get("text", "")).strip(),
+                    )
+                    if segment_text and not _looks_like_structured_transcript_json(
+                        segment_text,
+                    ):
+                        parts.append(segment_text)
+            if parts:
+                return " ".join(parts)
+            root_text = str(parsed.get("text", "")).strip()
+            if root_text:
+                if _looks_like_structured_transcript_json(root_text):
+                    nested = _normalize_nested_transcript_text(root_text)
+                    if nested and not _looks_like_structured_transcript_json(nested):
+                        return nested
+                else:
+                    return root_text
+    except (json.JSONDecodeError, TypeError, AttributeError):
+        pass
+
+    salvaged = _salvage_normalized_transcript_parts(cleaned)
+    if salvaged:
+        return " ".join(salvaged)
+    return ""
+
+
+def _segments_from_parsed_json(parsed: dict) -> list[dict]:
+    segments: list[dict] = []
+    for item in parsed.get("segments", []):
+        if not isinstance(item, dict):
+            continue
+        text = _normalize_nested_transcript_text(str(item.get("text", "")).strip())
+        if not text or _looks_like_structured_transcript_json(text):
+            continue
+        start = item.get("t", item.get("start", 0))
+        try:
+            start = float(start)
+        except (TypeError, ValueError):
+            start = 0.0
+        segments.append({"id": len(segments), "start": start, "end": start, "text": text})
+    if not segments:
+        root_text = _normalize_nested_transcript_text(str(parsed.get("text", "")).strip())
+        if root_text and not _looks_like_structured_transcript_json(root_text):
+            segments.append({"id": 0, "start": 0.0, "end": 0.0, "text": root_text})
+    return segments
+
+
 def _parse_chat_audio_transcription(response_body):
     choices = response_body.get("choices") if isinstance(response_body, dict) else None
     message = choices[0].get("message", {}) if choices else {}
     raw = _chat_audio_content_text(message.get("content"))
-    cleaned = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip(), flags=re.IGNORECASE)
-    segments = []
+    cleaned = _strip_transcript_content_fences(raw)
+    segments: list[dict] = []
     try:
         parsed = json.loads(cleaned)
-        for item in parsed.get("segments", []) if isinstance(parsed, dict) else []:
-            text = str(item.get("text", "")).strip() if isinstance(item, dict) else ""
-            if not text:
-                continue
-            start = item.get("t", item.get("start", 0)) if isinstance(item, dict) else 0
-            try:
-                start = float(start)
-            except (TypeError, ValueError):
-                start = 0.0
-            segments.append({"id": len(segments), "start": start, "end": start, "text": text})
+        if isinstance(parsed, dict):
+            segments = _segments_from_parsed_json(parsed)
     except (json.JSONDecodeError, TypeError, AttributeError):
         pass
 
-    if not segments and raw:
-        text = re.sub(r"\s+", " ", raw).strip()
-        if text:
-            segments.append({"id": 0, "start": 0.0, "end": 0.0, "text": text})
+    if not segments:
+        source = cleaned or raw
+        if _looks_like_structured_transcript_json(source):
+            for text in _salvage_normalized_transcript_parts(source):
+                segments.append(
+                    {
+                        "id": len(segments),
+                        "start": 0.0,
+                        "end": 0.0,
+                        "text": text,
+                    },
+                )
+        elif raw:
+            text = re.sub(r"\s+", " ", raw).strip()
+            if text:
+                segments.append({"id": 0, "start": 0.0, "end": 0.0, "text": text})
 
     combined_text = " ".join(segment["text"] for segment in segments).strip()
     if _is_likely_empty_audio_hallucination(combined_text):

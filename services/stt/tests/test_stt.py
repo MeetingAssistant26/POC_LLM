@@ -54,7 +54,12 @@ sys.modules["whisperx.diarize"] = fake_diarize_module
 sys.modules["torch"] = fake_torch
 
 from fastapi.testclient import TestClient
-from services.stt.main import app, _stt_state, _upstream_request_format
+from services.stt.main import (
+    _parse_chat_audio_transcription,
+    _stt_state,
+    _upstream_request_format,
+    app,
+)
 
 client = TestClient(app)
 
@@ -613,6 +618,80 @@ class TestTranscriptions:
             assert content[1]["input_audio"]["data"]
         finally:
             os.unlink(wav_path)
+
+    def test_parse_chat_audio_malformed_structured_json_does_not_leak_raw(self):
+        malformed = (
+            '{"segments":[{"t":13.1,"text":"Hello assistant"},'
+            '{"t":14.2,"text":"follow up phrase"}'
+        )
+        body = _parse_chat_audio_transcription(
+            {
+                "choices": [{"message": {"content": malformed}}],
+                "usage": {"total_tokens": 3},
+            }
+        )
+
+        assert body["text"] == "Hello assistant follow up phrase"
+        assert body["segments"] == [
+            {"id": 0, "start": 0.0, "end": 0.0, "text": "Hello assistant"},
+            {"id": 1, "start": 0.0, "end": 0.0, "text": "follow up phrase"},
+        ]
+        assert '{"segments"' not in body["text"]
+        for segment in body["segments"]:
+            assert '{"segments"' not in segment["text"]
+
+    def test_parse_chat_audio_fenced_valid_json_is_parsed(self):
+        fenced = (
+            '```json\n'
+            '{"segments":[{"t":2.5,"text":"fenced transcript"}]}\n'
+            "```"
+        )
+        body = _parse_chat_audio_transcription(
+            {"choices": [{"message": {"content": fenced}}]}
+        )
+
+        assert body["text"] == "fenced transcript"
+        assert body["segments"] == [
+            {"id": 0, "start": 2.5, "end": 2.5, "text": "fenced transcript"}
+        ]
+
+    def test_parse_chat_audio_plain_text_fallback_still_works(self):
+        body = _parse_chat_audio_transcription(
+            {"choices": [{"message": {"content": "plain spoken transcript"}}]}
+        )
+
+        assert body["text"] == "plain spoken transcript"
+        assert body["segments"] == [
+            {"id": 0, "start": 0.0, "end": 0.0, "text": "plain spoken transcript"}
+        ]
+
+    def test_parse_chat_audio_nested_root_text_valid_json(self):
+        content = '{"text":"{\\"segments\\":[{\\"text\\":\\"hello\\"}]}"}'
+        body = _parse_chat_audio_transcription(
+            {"choices": [{"message": {"content": content}}]}
+        )
+
+        assert body["text"] == "hello"
+        assert body["segments"] == [
+            {"id": 0, "start": 0.0, "end": 0.0, "text": "hello"}
+        ]
+        assert '{"segments"' not in body["text"]
+        for segment in body["segments"]:
+            assert '{"segments"' not in segment["text"]
+
+    def test_parse_chat_audio_nested_root_text_malformed_json(self):
+        content = '{"text":"{\\"segments\\":[{\\"text\\":\\"hello\\"}"}'
+        body = _parse_chat_audio_transcription(
+            {"choices": [{"message": {"content": content}}]}
+        )
+
+        assert body["text"] == "hello"
+        assert body["segments"] == [
+            {"id": 0, "start": 0.0, "end": 0.0, "text": "hello"}
+        ]
+        assert '{"segments"' not in body["text"]
+        for segment in body["segments"]:
+            assert '{"segments"' not in segment["text"]
 
     def test_openai_compatible_proxy_suppresses_common_empty_audio_hallucination(self, monkeypatch):
         monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
