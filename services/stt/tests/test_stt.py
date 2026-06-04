@@ -189,6 +189,50 @@ class TestHealthz:
 
         assert _upstream_request_format() == "openrouter-chat-audio"
 
+    def test_openrouter_auto_uses_chat_audio_for_gemini_models(self, monkeypatch):
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://openrouter.ai/api/v1")
+        monkeypatch.setenv("STT_UPSTREAM_MODEL", "google/gemini-3.1-flash-lite")
+        monkeypatch.setenv("STT_UPSTREAM_REQUEST_FORMAT", "auto")
+
+        assert _upstream_request_format() == "openrouter-chat-audio"
+
+    def test_readyz_openai_compatible_exposes_gemini_runtime_config(self, monkeypatch):
+        monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://openrouter.ai/api/v1")
+        monkeypatch.setenv("STT_UPSTREAM_API_KEY", "test-upstream-key")
+        monkeypatch.setenv("STT_UPSTREAM_MODEL", "google/gemini-3.1-flash-lite")
+        monkeypatch.setenv("STT_UPSTREAM_REQUEST_FORMAT", "openrouter-chat-audio")
+        _stt_state["model"] = None
+
+        response = client.get("/readyz")
+
+        assert response.status_code == 200
+        body = response.json()
+        assert body["status"] == "ok"
+        assert body["provider"] == "openai-compatible"
+        assert body["upstream_configured"] is True
+        assert body["upstream_model"] == "google/gemini-3.1-flash-lite"
+        assert body["request_format"] == "openrouter-chat-audio"
+        assert body["upstream_endpoint"] == "/chat/completions"
+        assert body["upstream_base_url"] == "https://openrouter.ai/api/v1"
+
+    @pytest.mark.parametrize("request_format", ["openrouter-json", "openai-multipart"])
+    def test_gemini_misconfigured_request_format_fails_readiness(self, monkeypatch, request_format):
+        monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://openrouter.ai/api/v1")
+        monkeypatch.setenv("STT_UPSTREAM_API_KEY", "test-upstream-key")
+        monkeypatch.setenv("STT_UPSTREAM_MODEL", "google/gemini-3.1-flash-lite")
+        monkeypatch.setenv("STT_UPSTREAM_REQUEST_FORMAT", request_format)
+
+        response = client.get("/readyz")
+
+        assert response.status_code == 503
+        body = response.json()
+        assert body["status"] == "not_ready"
+        assert body["provider"] == "openai-compatible"
+        assert "openrouter-chat-audio" in body["error"]
+        assert "google/gemini" in body["error"]
+
 
 class TestTranscriptions:
     def test_json_response(self):
@@ -442,6 +486,73 @@ class TestTranscriptions:
         finally:
             os.unlink(wav_path)
 
+    def test_openai_compatible_proxy_supports_openrouter_chat_audio_for_gemini(self, monkeypatch):
+        monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://openrouter.ai/api/v1")
+        monkeypatch.setenv("STT_UPSTREAM_API_KEY", "test-upstream-key")
+        monkeypatch.setenv("STT_UPSTREAM_MODEL", "google/gemini-3.1-flash-lite")
+        monkeypatch.setenv("STT_UPSTREAM_REQUEST_FORMAT", "openrouter-chat-audio")
+        captured = {}
+
+        class FakeClient:
+            def __init__(self, **kwargs):
+                captured["timeout"] = kwargs.get("timeout")
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return None
+
+            def post(self, url, headers, json):
+                captured["url"] = url
+                captured["headers"] = headers
+                captured["json"] = json
+                return httpx.Response(
+                    200,
+                    json={
+                        "model": "google/gemini-3.1-flash-lite",
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": (
+                                        '{"segments":[{"t":0.5,"text":"gemini transcript"}]}'
+                                    )
+                                }
+                            }
+                        ],
+                        "usage": {"total_tokens": 8},
+                    },
+                    headers={"content-type": "application/json"},
+                )
+
+        monkeypatch.setattr("services.stt.main.httpx.Client", FakeClient)
+        wav_path = _generate_test_wav()
+        try:
+            with open(wav_path, "rb") as f:
+                response = client.post(
+                    "/v1/audio/transcriptions",
+                    files={"file": ("test.wav", f, "audio/wav")},
+                    data={"model": "ignored-by-config"},
+                )
+
+            assert response.status_code == 200
+            body = response.json()
+            assert body["text"] == "gemini transcript"
+            assert body["segments"] == [
+                {"id": 0, "start": 0.5, "end": 0.5, "text": "gemini transcript"}
+            ]
+            assert captured["url"] == "https://openrouter.ai/api/v1/chat/completions"
+            assert captured["json"]["model"] == "google/gemini-3.1-flash-lite"
+            content = captured["json"]["messages"][0]["content"]
+            assert content[0]["type"] == "text"
+            assert "Schema" in content[0]["text"]
+            assert content[1]["type"] == "input_audio"
+            assert content[1]["input_audio"]["format"] == "wav"
+            assert content[1]["input_audio"]["data"]
+        finally:
+            os.unlink(wav_path)
+
     def test_openai_compatible_proxy_supports_openrouter_chat_audio_for_voxtral(self, monkeypatch):
         monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
         monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://openrouter.ai/api/v1")
@@ -555,6 +666,72 @@ class TestTranscriptions:
             os.unlink(wav_path)
 
 
+
+    def test_gemini_trace_step_includes_request_format_and_model(self, monkeypatch):
+        monkeypatch.setenv("STT_PROVIDER", "openai-compatible")
+        monkeypatch.setenv("STT_UPSTREAM_BASE_URL", "https://openrouter.ai/api/v1")
+        monkeypatch.setenv("STT_UPSTREAM_API_KEY", "test-upstream-key")
+        monkeypatch.setenv("STT_UPSTREAM_MODEL", "google/gemini-3.1-flash-lite")
+        monkeypatch.setenv("STT_UPSTREAM_REQUEST_FORMAT", "openrouter-chat-audio")
+
+        class FakeClient:
+            def __init__(self, **kwargs):
+                pass
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return None
+
+            def post(self, url, headers, json):
+                return httpx.Response(
+                    200,
+                    json={
+                        "model": "google/gemini-3.1-flash-lite",
+                        "choices": [
+                            {
+                                "message": {
+                                    "content": '{"segments":[{"t":0,"text":"trace transcript"}]}'
+                                }
+                            }
+                        ],
+                    },
+                    headers={"content-type": "application/json"},
+                )
+
+        monkeypatch.setattr("services.stt.main.httpx.Client", FakeClient)
+        wav_path = _generate_test_wav()
+        headers = {
+            "X-AI-Trace-Enabled": "true",
+            "X-AI-Trace-Session-Id": "session-gemini",
+            "X-AI-Trace-Turn-Id": "turn-gemini",
+            "X-AI-Trace-Sequence-Base": "1",
+            "X-AI-Trace-Meeting-Id": "meeting-gemini",
+            "X-AI-Trace-Organization-Id": "org-gemini",
+            "X-AI-Trace-Backend-Url": "http://api:8080",
+            "X-AI-Trace-Agent-Token": "token-secret",
+            "X-AI-Trace-Persist-Payloads": "true",
+        }
+        try:
+            with patch("services.stt.main.post_trace_event", new_callable=AsyncMock) as post_trace, open(
+                wav_path, "rb"
+            ) as f:
+                response = client.post(
+                    "/v1/audio/transcriptions",
+                    files={"file": ("test.wav", f, "audio/wav")},
+                    data={"model": "ignored-by-config"},
+                    headers=headers,
+                )
+            assert response.status_code == 200
+            post_trace.assert_awaited_once()
+            step = post_trace.call_args.kwargs["step"]
+            assert step["requestFormat"] == "openrouter-chat-audio"
+            assert step["model"] == "google/gemini-3.1-flash-lite"
+            assert step["upstreamResponseModel"] == "google/gemini-3.1-flash-lite"
+            assert "voxtral" not in str(step).lower()
+        finally:
+            os.unlink(wav_path)
 
     def test_trace_headers_emit_stt_completed(self):
         wav_path = _generate_test_wav()

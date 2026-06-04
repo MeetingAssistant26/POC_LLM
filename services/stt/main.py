@@ -49,10 +49,51 @@ def _upstream_request_format() -> str:
     configured = os.environ.get("STT_UPSTREAM_REQUEST_FORMAT", "auto").strip().lower() or "auto"
     if configured == "auto" and "openrouter.ai" in _upstream_base_url():
         model = _upstream_model().lower()
+        if "google/gemini" in model:
+            return "openrouter-chat-audio"
         if "voxtral" in model and "transcribe" not in model:
             return "openrouter-chat-audio"
         return "openrouter-json"
     return configured
+
+
+def _upstream_endpoint_path(request_format: str | None = None) -> str:
+    """Return the upstream path for the resolved STT request format."""
+    fmt = request_format or _upstream_request_format()
+    if fmt == "openrouter-chat-audio":
+        return "/chat/completions"
+    return "/audio/transcriptions"
+
+
+def _is_gemini_upstream_model() -> bool:
+    return "google/gemini" in _upstream_model().lower()
+
+
+def _openai_compatible_probe_fields(config: dict) -> dict:
+    if config.get("provider") != STT_PROVIDER_OPENAI_COMPATIBLE:
+        return {}
+    request_format = config.get("request_format") or _upstream_request_format()
+    return {
+        "upstream_base_url": _upstream_base_url(),
+        "upstream_model": _upstream_model() or None,
+        "request_format": request_format,
+        "upstream_endpoint": _upstream_endpoint_path(request_format),
+    }
+
+
+def _log_upstream_request(*, endpoint: str, model: str, request_format: str) -> None:
+    print(
+        json.dumps(
+            {
+                "event": "stt.upstream_request",
+                "endpoint": endpoint,
+                "model": model,
+                "request_format": request_format,
+            },
+            separators=(",", ":"),
+        ),
+        flush=True,
+    )
 
 
 def _upstream_language() -> str:
@@ -98,6 +139,12 @@ def _provider_config_status() -> dict:
             error = (
                 f"Unsupported STT_UPSTREAM_REQUEST_FORMAT '{request_format}'. "
                 "Use 'auto', 'openai-multipart', 'openrouter-json', or 'openrouter-chat-audio'."
+            )
+        elif _is_gemini_upstream_model() and request_format != "openrouter-chat-audio":
+            error = (
+                f"google/gemini models such as '{_upstream_model()}' require "
+                "STT_UPSTREAM_REQUEST_FORMAT=openrouter-chat-audio on OpenRouter "
+                f"(current: '{request_format}')."
             )
         return {
             "provider": provider,
@@ -298,6 +345,7 @@ async def healthz():
         body["missing"] = config["missing"]
     if config.get("error"):
         body["error"] = config["error"]
+    body.update(_openai_compatible_probe_fields(config))
     if not config["configured"]:
         return JSONResponse(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, content=body)
     return body
@@ -316,13 +364,19 @@ async def readyz():
         }
         if config.get("error"):
             body["error"] = config["error"]
+        body.update(_openai_compatible_probe_fields(config))
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             content=body,
         )
 
     if config["provider"] == STT_PROVIDER_OPENAI_COMPATIBLE:
-        return {"status": "ok", "provider": config["provider"], "upstream_configured": True}
+        return {
+            "status": "ok",
+            "provider": config["provider"],
+            "upstream_configured": True,
+            **_openai_compatible_probe_fields(config),
+        }
 
     if _stt_state["model"] is None:
         return JSONResponse(
@@ -492,12 +546,17 @@ async def _proxy_transcription_to_openai_compatible(
         data.append(("response_format", "verbose_json"))
 
     contents = await file.read()
-    upstream_url = f"{_upstream_base_url()}/audio/transcriptions"
     headers = {"Authorization": f"Bearer {_upstream_api_key()}"}
     data_dict = dict(data)
 
     try:
         request_format = _upstream_request_format()
+        upstream_url = f"{_upstream_base_url()}{_upstream_endpoint_path(request_format)}"
+        _log_upstream_request(
+            endpoint=upstream_url,
+            model=data_dict["model"],
+            request_format=request_format,
+        )
         if request_format == "openrouter-json":
             payload = {
                 "model": data_dict["model"],
@@ -516,7 +575,6 @@ async def _proxy_transcription_to_openai_compatible(
                 payload,
             )
         elif request_format == "openrouter-chat-audio":
-            upstream_url = f"{_upstream_base_url()}/chat/completions"
             payload = {
                 "model": data_dict["model"],
                 "messages": [
@@ -583,18 +641,24 @@ async def _proxy_transcription_to_openai_compatible(
         raise HTTPException(status_code=upstream_response.status_code, detail=detail)
 
     if "application/json" in content_type:
-        response_body = upstream_response.json()
-        if _upstream_request_format() == "openrouter-chat-audio":
-            response_body = _parse_chat_audio_transcription(response_body)
+        raw_body = upstream_response.json()
+        upstream_response_model = (
+            raw_body.get("model") if isinstance(raw_body, dict) else None
+        )
+        if request_format == "openrouter-chat-audio":
+            response_body = _parse_chat_audio_transcription(raw_body)
         else:
-            response_body = _suppress_empty_audio_hallucination(response_body)
+            response_body = _suppress_empty_audio_hallucination(raw_body)
         step = {
             "type": "stt",
             "provider": "OpenAICompatible",
             "endpoint": upstream_url,
             "model": _upstream_model() or request_model,
+            "requestFormat": request_format,
             "durationMs": duration_ms(start),
         }
+        if upstream_response_model:
+            step["upstreamResponseModel"] = upstream_response_model
         if trace_ctx and trace_ctx.persist_payloads:
             step["text"] = response_body.get("text") if isinstance(response_body, dict) else None
             step["responsePayload"] = response_body

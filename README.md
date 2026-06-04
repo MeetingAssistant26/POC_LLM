@@ -273,6 +273,20 @@ docker compose up -d --build
 cd ../backend && docker compose up -d --build
 ```
 
+### STT service (OpenRouter + Gemini)
+
+The STT microservice keeps a stable public API at `POST /v1/audio/transcriptions` (OpenAI-compatible multipart upload). When `STT_PROVIDER=openai-compatible` and the upstream is OpenRouter with a `google/gemini-*` model, configure:
+
+```env
+STT_PROVIDER=openai-compatible
+STT_UPSTREAM_BASE_URL=https://openrouter.ai/api/v1
+STT_UPSTREAM_MODEL=google/gemini-3.1-flash-lite
+STT_UPSTREAM_REQUEST_FORMAT=openrouter-chat-audio
+STT_UPSTREAM_LANGUAGE=auto
+```
+
+The service forwards audio to OpenRouter **Chat Completions** (`/chat/completions`) using message content with `input_audio` (base64 WAV/MP3), then maps the JSON segment reply back to the usual `{ text, segments }` transcription shape. `/healthz` and `/readyz` expose `upstream_base_url`, `upstream_model`, `request_format`, and `upstream_endpoint` (no secrets). `STT_UPSTREAM_REQUEST_FORMAT=auto` on OpenRouter selects `openrouter-chat-audio` for Gemini and non-transcribe Voxtral models.
+
 ## Option A — Audio Pipeline (Audio → Transcripts → RAG)
 
 > ⚠️ WhisperX requires Python 3.10. Use the `venv310` environment for this step.

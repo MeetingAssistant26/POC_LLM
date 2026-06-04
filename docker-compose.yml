@@ -9,12 +9,12 @@ services:
     env_file:
       - .env
     environment:
-      - STT_PROVIDER=${STT_PROVIDER:-local}
-      - STT_UPSTREAM_BASE_URL=${STT_UPSTREAM_BASE_URL:-}
+      - STT_PROVIDER=${STT_PROVIDER:-openai-compatible}
+      - STT_UPSTREAM_BASE_URL=${STT_UPSTREAM_BASE_URL:-https://openrouter.ai/api/v1}
       - STT_UPSTREAM_API_KEY=${STT_UPSTREAM_API_KEY:-}
-      - STT_UPSTREAM_MODEL=${STT_UPSTREAM_MODEL:-}
-      - STT_UPSTREAM_REQUEST_FORMAT=${STT_UPSTREAM_REQUEST_FORMAT:-auto}
-      - STT_UPSTREAM_LANGUAGE=${STT_UPSTREAM_LANGUAGE:-}
+      - STT_UPSTREAM_MODEL=${STT_UPSTREAM_MODEL:-google/gemini-3.1-flash-lite}
+      - STT_UPSTREAM_REQUEST_FORMAT=${STT_UPSTREAM_REQUEST_FORMAT:-openrouter-chat-audio}
+      - STT_UPSTREAM_LANGUAGE=${STT_UPSTREAM_LANGUAGE:-auto}
       - HF_TOKEN=${HF_TOKEN:-}
       - OMP_NUM_THREADS=4
       - PYTHONUNBUFFERED=1
