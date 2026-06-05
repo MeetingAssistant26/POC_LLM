@@ -6,6 +6,8 @@ WORKDIR /app
 COPY services/llm/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY services/__init__.py ./services/__init__.py
+COPY services/ai_debug.py ./services/ai_debug.py
 COPY services/llm/main.py .
 
 EXPOSE 8000
