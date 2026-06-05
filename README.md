@@ -258,13 +258,19 @@ POC_LLM
 
 ## Docker microservices for the backend LiveKit agent
 
-The Docker compose stack exposes `stt`, `llm`, and `tts` on an `ai-network`
-bridge network. Docker Compose names that network `ai_work_ai-network`; the
-the backend LiveKit agent service can join it and call:
+The Docker compose stack exposes `stt`, `llm`, `llm-live`, and `tts` on an
+`ai-network` bridge network. Docker Compose names that network
+`ai_work_ai-network`; the backend LiveKit agent service can join it and call:
 
 - `http://stt:8000/v1`
-- `http://llm:8000/v1`
+- `http://llm:8000/v1` — backend post-meeting summarization, action extraction, and RAG LLM jobs
+- `http://llm-live:8000/v1` — isolated LiveKit voice-turn LLM proxy (`ai-llm-live`, host `http://localhost:8004/healthz`)
 - `http://tts:8000/v1`
+
+`llm` and `llm-live` run the same LLM proxy image. Splitting them locally prevents
+backend post-meeting LLM work from starving live voice-turn requests. Optional
+`LLM_LIVE_*` env vars override only the live container; otherwise it inherits the
+matching `LLM_*` values from `.env`.
 
 Start this stack before starting the backend with the LiveKit agent enabled:
 

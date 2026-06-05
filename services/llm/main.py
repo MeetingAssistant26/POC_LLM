@@ -1,3 +1,5 @@
+import hashlib
+import json
 import os
 import time
 import uuid
@@ -10,7 +12,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from openai import OpenAI
 from pydantic import AliasChoices, BaseModel, Field
 
-from services.ai_debug import duration_ms, parse_trace_context, post_trace_event
+from services.ai_debug import duration_ms, parse_trace_context, post_trace_event, utc_now_iso
 
 load_dotenv()
 
@@ -37,6 +39,34 @@ def _llm_api_key() -> str | None:
 
 def _llm_model() -> str:
     return _env_value("LLM_MODEL", _DEFAULT_MODEL) or _DEFAULT_MODEL
+
+
+_ALLOWED_THINKING_TYPES = frozenset({"enabled", "disabled"})
+
+
+def _llm_thinking_type() -> str | None:
+    value = _env_value("LLM_THINKING_TYPE")
+    if value is None:
+        return None
+    normalized = value.lower()
+    if normalized not in _ALLOWED_THINKING_TYPES:
+        return None
+    return normalized
+
+
+def _thinking_type_metadata() -> dict[str, bool | str | None]:
+    thinking_type = _llm_thinking_type()
+    return {
+        "thinkingTypeConfigured": thinking_type is not None,
+        "thinkingType": thinking_type,
+    }
+
+
+def _thinking_type_extra_body() -> dict[str, Any] | None:
+    thinking_type = _llm_thinking_type()
+    if thinking_type is None:
+        return None
+    return {"thinking": {"type": thinking_type}}
 
 
 # Singleton state for the OpenAI-compatible chat-completions client
@@ -110,6 +140,10 @@ class ChatCompletionRequest(BaseModel):
     )
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
+    max_completion_tokens: Optional[int] = Field(
+        default=None,
+        validation_alias=AliasChoices("max_completion_tokens", "maxCompletionTokens"),
+    )
     top_p: Optional[float] = None
     frequency_penalty: Optional[float] = None
     presence_penalty: Optional[float] = None
@@ -118,6 +152,172 @@ class ChatCompletionRequest(BaseModel):
 
 def _build_completion_id() -> str:
     return f"chatcmpl-{uuid.uuid4().hex[:24]}"
+
+
+_LLM_TRACE_PREFIX = "[LLM_TRACE] "
+
+
+def _emit_llm_trace(payload: dict[str, Any]) -> None:
+    print(f"{_LLM_TRACE_PREFIX}{json.dumps(payload, separators=(',', ':'))}")
+
+
+def _trace_id_hash(value: str | None) -> str | None:
+    if not value:
+        return None
+    return hashlib.sha256(value.encode()).hexdigest()[:16]
+
+
+def _trace_context_hashes(trace_ctx: Any) -> dict[str, str | None]:
+    if trace_ctx is None:
+        return {}
+    return {
+        "traceSessionIdHash": _trace_id_hash(trace_ctx.session_id),
+        "traceTurnIdHash": _trace_id_hash(trace_ctx.turn_id),
+        "traceMeetingIdHash": _trace_id_hash(trace_ctx.meeting_id),
+        "traceOrganizationIdHash": _trace_id_hash(trace_ctx.organization_id),
+    }
+
+
+def _llm_trace_common_fields(*, completion_id: str, trace_ctx: Any) -> dict[str, Any]:
+    fields: dict[str, Any] = {
+        "requestId": completion_id,
+        "emittedAtUtc": utc_now_iso(),
+    }
+    fields.update(_trace_context_hashes(trace_ctx))
+    return fields
+
+
+def _trace_context_bools(trace_ctx: Any) -> dict[str, bool]:
+    if trace_ctx is None:
+        return {
+            "traceEnabled": False,
+            "traceSessionIdPresent": False,
+            "traceTurnIdPresent": False,
+            "traceMeetingIdPresent": False,
+            "traceOrganizationIdPresent": False,
+            "traceBackendUrlPresent": False,
+            "traceAgentTokenPresent": False,
+            "tracePersistPayloads": False,
+        }
+    return {
+        "traceEnabled": True,
+        "traceSessionIdPresent": bool(trace_ctx.session_id),
+        "traceTurnIdPresent": bool(trace_ctx.turn_id),
+        "traceMeetingIdPresent": bool(trace_ctx.meeting_id),
+        "traceOrganizationIdPresent": bool(trace_ctx.organization_id),
+        "traceBackendUrlPresent": bool(trace_ctx.backend_url),
+        "traceAgentTokenPresent": bool(trace_ctx.agent_token),
+        "tracePersistPayloads": bool(trace_ctx.persist_payloads),
+    }
+
+
+def _resolve_max_tokens_metadata(
+    request_payload: dict[str, Any] | None,
+    completion_request: ChatCompletionRequest,
+) -> dict[str, Any]:
+    max_tokens_present = completion_request.max_tokens is not None
+    max_completion_tokens_present = completion_request.max_completion_tokens is not None
+
+    source = "unset"
+    forwarded: int | None = None
+    if isinstance(request_payload, dict):
+        if request_payload.get("max_tokens") is not None:
+            source = "max_tokens"
+            forwarded = completion_request.max_tokens
+        elif request_payload.get("max_completion_tokens") is not None:
+            source = "max_completion_tokens"
+            forwarded = completion_request.max_completion_tokens
+        elif request_payload.get("maxCompletionTokens") is not None:
+            source = "maxCompletionTokens"
+            forwarded = completion_request.max_completion_tokens
+    elif max_tokens_present:
+        source = "max_tokens"
+        forwarded = completion_request.max_tokens
+    elif max_completion_tokens_present:
+        source = "max_completion_tokens"
+        forwarded = completion_request.max_completion_tokens
+
+    return {
+        "maxTokensPresent": max_tokens_present,
+        "maxCompletionTokensPresent": max_completion_tokens_present,
+        "maxTokensSource": source,
+        "forwardedMaxTokens": forwarded,
+    }
+
+
+def _extract_reasoning_tokens(usage: Any) -> int | None:
+    if not usage:
+        return None
+
+    def read_reasoning(value: Any) -> int | None:
+        if isinstance(value, dict):
+            reasoning = value.get("reasoning_tokens")
+            return reasoning if isinstance(reasoning, int) else None
+        reasoning = getattr(value, "reasoning_tokens", None)
+        return reasoning if isinstance(reasoning, int) else None
+
+    direct = read_reasoning(usage)
+    if direct is not None:
+        return direct
+
+    for details_key in ("completion_tokens_details", "output_tokens_details"):
+        if isinstance(usage, dict):
+            details = usage.get(details_key)
+        else:
+            details = getattr(usage, details_key, None)
+        reasoning = read_reasoning(details)
+        if reasoning is not None:
+            return reasoning
+    return None
+
+
+def _usage_trace_fields(usage: Any) -> dict[str, int | None]:
+    usage_dict = _usage_to_dict(usage)
+    if not usage_dict:
+        return {
+            "promptTokens": None,
+            "completionTokens": None,
+            "totalTokens": None,
+            "reasoningTokens": _extract_reasoning_tokens(usage),
+        }
+    return {
+        "promptTokens": usage_dict.get("prompt_tokens"),
+        "completionTokens": usage_dict.get("completion_tokens"),
+        "totalTokens": usage_dict.get("total_tokens"),
+        "reasoningTokens": _extract_reasoning_tokens(usage),
+    }
+
+
+async def _read_request_payload(
+    request: Request, completion_request: ChatCompletionRequest
+) -> dict[str, Any]:
+    try:
+        payload = await request.json()
+        if isinstance(payload, dict):
+            return payload
+    except Exception:
+        pass
+    return completion_request.model_dump(exclude_none=True)
+
+
+def _build_request_started_trace(
+    *,
+    model: str,
+    completion_id: str,
+    completion_request: ChatCompletionRequest,
+    request_payload: dict[str, Any],
+    trace_ctx: Any,
+) -> dict[str, Any]:
+    return {
+        "event": "request_started",
+        "model": model,
+        "stream": completion_request.stream,
+        "messageCount": len(completion_request.messages),
+        **_resolve_max_tokens_metadata(request_payload, completion_request),
+        **_thinking_type_metadata(),
+        **_trace_context_bools(trace_ctx),
+        **_llm_trace_common_fields(completion_id=completion_id, trace_ctx=trace_ctx),
+    }
 
 
 def _build_non_streaming_response(
@@ -209,9 +409,16 @@ async def _stream_response(
     trace_ctx=None,
     request_payload: dict | None = None,
     start: float | None = None,
+    max_tokens_metadata: dict[str, Any] | None = None,
 ) -> AsyncGenerator[str, None]:
+    stream_start = start or time.perf_counter()
     collected_content: list[str] = []
     final_payload: dict = {"id": completion_id, "model": model, "streamed": True}
+    first_upstream_chunk_ms: int | None = None
+    first_visible_content_chunk_ms: int | None = None
+    upstream_chunk_count = 0
+    visible_content_chunk_count = 0
+    final_usage: Any = None
 
     # First chunk with role
     yield _build_stream_chunk(
@@ -219,9 +426,14 @@ async def _stream_response(
     )
 
     for chunk in upstream_stream:
+        upstream_chunk_count += 1
+        if first_upstream_chunk_ms is None:
+            first_upstream_chunk_ms = duration_ms(stream_start)
+
         usage = _usage_to_dict(getattr(chunk, "usage", None))
         if usage is not None:
             final_payload["usage"] = usage
+            final_usage = getattr(chunk, "usage", None)
 
         choices = getattr(chunk, "choices", None) or []
         if not choices:
@@ -234,9 +446,13 @@ async def _stream_response(
         choice = choices[0]
         delta = choice.delta
         content = getattr(delta, "content", "") or ""
+        # reasoning_content is intentionally ignored and never forwarded to SSE.
         finish_reason = choice.finish_reason
 
         if content:
+            visible_content_chunk_count += 1
+            if first_visible_content_chunk_ms is None:
+                first_visible_content_chunk_ms = duration_ms(stream_start)
             collected_content.append(content)
             yield _build_stream_chunk(
                 completion_id,
@@ -255,12 +471,31 @@ async def _stream_response(
     yield "data: [DONE]\n\n"
     final_text = "".join(collected_content)
     usage_payload = final_payload.get("usage", {})
+    usage_trace = _usage_trace_fields(final_usage)
+    _emit_llm_trace(
+        {
+            "event": "request_completed",
+            "stream": True,
+            "firstUpstreamChunkMs": first_upstream_chunk_ms,
+            "firstVisibleContentChunkMs": first_visible_content_chunk_ms,
+            "upstreamChunkCount": upstream_chunk_count,
+            "visibleContentChunkCount": visible_content_chunk_count,
+            "totalDurationMs": duration_ms(stream_start),
+            "finishReason": final_payload.get("finish_reason"),
+            "visibleContentLength": len(final_text),
+            "contentEmpty": len(final_text) == 0,
+            **usage_trace,
+            **_thinking_type_metadata(),
+            **(max_tokens_metadata or {}),
+            **_llm_trace_common_fields(completion_id=completion_id, trace_ctx=trace_ctx),
+        }
+    )
     step = {
         "type": "llm",
         "provider": "OpenAI-compatible",
         "endpoint": "/v1/chat/completions",
         "model": model,
-        "durationMs": duration_ms(start or time.perf_counter()),
+        "durationMs": duration_ms(stream_start),
         "promptTokens": usage_payload.get("prompt_tokens"),
         "completionTokens": usage_payload.get("completion_tokens"),
         "totalTokens": usage_payload.get("total_tokens"),
@@ -309,6 +544,17 @@ async def create_chat_completion(request: Request, completion_request: ChatCompl
 
     model = _resolve_model(completion_request.model)
     completion_id = _build_completion_id()
+    request_payload = await _read_request_payload(request, completion_request)
+    max_tokens_metadata = _resolve_max_tokens_metadata(request_payload, completion_request)
+    _emit_llm_trace(
+        _build_request_started_trace(
+            model=model,
+            completion_id=completion_id,
+            completion_request=completion_request,
+            request_payload=request_payload,
+            trace_ctx=trace_ctx,
+        )
+    )
 
     # Build kwargs for OpenAI-compatible chat-completions API call.
     kwargs = {
@@ -320,6 +566,8 @@ async def create_chat_completion(request: Request, completion_request: ChatCompl
         kwargs["temperature"] = completion_request.temperature
     if completion_request.max_tokens is not None:
         kwargs["max_tokens"] = completion_request.max_tokens
+    elif completion_request.max_completion_tokens is not None:
+        kwargs["max_tokens"] = completion_request.max_completion_tokens
     if completion_request.top_p is not None:
         kwargs["top_p"] = completion_request.top_p
     if completion_request.frequency_penalty is not None:
@@ -328,29 +576,61 @@ async def create_chat_completion(request: Request, completion_request: ChatCompl
         kwargs["presence_penalty"] = completion_request.presence_penalty
     if completion_request.stop is not None:
         kwargs["stop"] = completion_request.stop
+    extra_body = _thinking_type_extra_body()
+    if extra_body is not None:
+        kwargs["extra_body"] = extra_body
 
     try:
         upstream_response = client.chat.completions.create(**kwargs)
     except Exception as e:
+        _emit_llm_trace(
+            {
+                "event": "request_failed",
+                "stream": completion_request.stream,
+                "exceptionClass": type(e).__name__,
+                "exceptionMessage": str(e)[:500],
+                **_thinking_type_metadata(),
+                **_llm_trace_common_fields(completion_id=completion_id, trace_ctx=trace_ctx),
+            }
+        )
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"LLM API error: {str(e)}",
         )
 
-    try:
-        request_payload = await request.json()
-    except Exception:
-        request_payload = completion_request.model_dump(exclude_none=True)
-
     if completion_request.stream:
         return StreamingResponse(
-            _stream_response(upstream_response, model, completion_id, trace_ctx, request_payload, start),
+            _stream_response(
+                upstream_response,
+                model,
+                completion_id,
+                trace_ctx,
+                request_payload,
+                start,
+                max_tokens_metadata,
+            ),
             media_type="text/event-stream",
         )
 
     response_body = _build_non_streaming_response(upstream_response, model, completion_id)
     usage_payload = response_body.get("usage", {})
-    final_text = response_body["choices"][0]["message"]["content"]
+    final_text = response_body["choices"][0]["message"]["content"] or ""
+    finish_reason = response_body["choices"][0].get("finish_reason")
+    usage_trace = _usage_trace_fields(getattr(upstream_response, "usage", None))
+    _emit_llm_trace(
+        {
+            "event": "request_completed",
+            "stream": False,
+            "upstreamCreateMs": duration_ms(start),
+            "finishReason": finish_reason,
+            "visibleContentLength": len(final_text),
+            "contentEmpty": len(final_text) == 0,
+            **usage_trace,
+            **_thinking_type_metadata(),
+            **max_tokens_metadata,
+            **_llm_trace_common_fields(completion_id=completion_id, trace_ctx=trace_ctx),
+        }
+    )
     step = {
         "type": "llm",
         "provider": "OpenAI-compatible",
